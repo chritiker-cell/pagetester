@@ -14,4 +14,4 @@ jobs:
         server: ftp://195.242.102.132/
         username: schulprojekt
         password: ${{ secrets.ftp_password }}
-        server-dir: public_html/test-push-ftp
+        server-dir: public_html/
