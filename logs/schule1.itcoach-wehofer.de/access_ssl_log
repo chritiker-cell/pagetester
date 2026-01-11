@@ -1,0 +1,2 @@
+41.66.123.124 - abc [11/Jan/2026:09:00:19 +0100] "GET / HTTP/1.0" 200 4046 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+41.66.123.124 - - [11/Jan/2026:09:00:19 +0100] "GET /favicon.ico HTTP/1.0" 404 4889 "https://schule1.itcoach-wehofer.de/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"

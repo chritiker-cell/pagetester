@@ -1,0 +1,7 @@
+[Sat Jan 10 12:43:34.092808 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:44:12.117427 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:44:32.495217 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:44:54.784258 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:45:11.412125 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:54:22.482692 2026] [proxy_fcgi:error] [pid 268705:tid 268705] [client 209.38.248.17:0] AH01071: Got error 'Primary script unknown'
+[Sat Jan 10 12:59:40.231268 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: schule1.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name

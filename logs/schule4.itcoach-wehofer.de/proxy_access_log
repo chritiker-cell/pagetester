@@ -1,0 +1,2 @@
+137.184.32.143 - - [11/Jan/2026:13:29:07 +0100] "GET / HTTP/1.1" 301 162 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+137.184.32.143 - - [11/Jan/2026:13:29:07 +0100] "GET /favicon.ico HTTP/1.1" 301 162 "http://schule4.itcoach-wehofer.de/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"

@@ -1,0 +1,2 @@
+34.56.155.89 - - [11/Jan/2026:15:54:29 +0100] "GET / HTTP/1.1" 301 162 "-" "Mozilla/5.0 (compatible; CMS-Checker/1.0; +https://example.com)"
+87.236.176.81 - - [11/Jan/2026:16:13:59 +0100] "GET / HTTP/1.1" 301 162 "-" "Mozilla/5.0 (compatible; InternetMeasurement/1.0; +https://internet-measurement.com/)"

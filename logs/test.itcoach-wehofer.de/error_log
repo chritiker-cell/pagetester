@@ -1,0 +1,6 @@
+[Sat Jan 10 12:02:01.855793 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:18:26.376960 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:23:56.965348 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:25:44.130965 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:28:47.939388 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name
+[Sat Jan 10 12:30:33.967251 2026] [ssl:warn] [pid 2608:tid 2608] AH01909: test.itcoach-wehofer.de:443:0 server certificate does NOT include an ID which matches the server name

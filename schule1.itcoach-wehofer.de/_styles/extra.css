@@ -1,0 +1,22 @@
+.md-typeset h1 {
+  font-size: 1.2rem;   /* Standard Material ~2.0–2.2rem */
+  font-weight: 450;    /* optional */  
+}
+
+.md-typeset h2 {
+  font-size: 1.1rem;   /* Standard Material ~2.0–2.2rem */
+  font-weight: 430;    /* optional */
+  color:red;
+}
+
+.md-typeset h3 {
+  font-size: 1.0rem;   /* Standard Material ~2.0–2.2rem */
+  font-weight: 40;    /* optional */
+  color:cornflowerblue;
+}
+
+
+.done {
+  color: green;
+  font-weight: 400;
+}

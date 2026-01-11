@@ -1,0 +1,117 @@
+[Sun Jan 11 08:15:09.122388 2026] [proxy_fcgi:error] [pid 2150081:tid 2150081] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.178396 2026] [proxy_fcgi:error] [pid 2142603:tid 2142603] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.240295 2026] [proxy_fcgi:error] [pid 2148386:tid 2148386] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.299680 2026] [proxy_fcgi:error] [pid 2150081:tid 2150081] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.361934 2026] [proxy_fcgi:error] [pid 2150259:tid 2150259] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.421193 2026] [proxy_fcgi:error] [pid 2127221:tid 2127221] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.476944 2026] [proxy_fcgi:error] [pid 2148219:tid 2148219] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.532120 2026] [proxy_fcgi:error] [pid 2142103:tid 2142103] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.586574 2026] [proxy_fcgi:error] [pid 2150259:tid 2150259] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.645373 2026] [proxy_fcgi:error] [pid 2127533:tid 2127533] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.727659 2026] [proxy_fcgi:error] [pid 2101846:tid 2101846] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.785729 2026] [proxy_fcgi:error] [pid 2150259:tid 2150259] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.841594 2026] [proxy_fcgi:error] [pid 2148219:tid 2148219] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.896768 2026] [proxy_fcgi:error] [pid 2150081:tid 2150081] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:15:09.952174 2026] [proxy_fcgi:error] [pid 2127533:tid 2127533] [client 13.74.146.113:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:28:22.159296 2026] [proxy_fcgi:error] [pid 2254512:tid 2254512] [client 195.178.110.132:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 08:28:22.188960 2026] [proxy_fcgi:error] [pid 2303048:tid 2303048] [client 195.178.110.132:0] AH01071: Got error 'Primary script unknown'
+[Sun Jan 11 13:00:41.299757 2026] [proxy_fcgi:error] [pid 2643001:tid 2643001] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 13:00:41.993407 2026] [proxy_fcgi:error] [pid 2642780:tid 2642780] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 13:00:42.339639 2026] [proxy_fcgi:error] [pid 2642057:tid 2642057] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:42.672425 2026] [proxy_fcgi:error] [pid 2642549:tid 2642549] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 13:00:43.007260 2026] [proxy_fcgi:error] [pid 2642057:tid 2642057] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:43.339449 2026] [proxy_fcgi:error] [pid 2642661:tid 2642661] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:45.384595 2026] [proxy_fcgi:error] [pid 2640587:tid 2640587] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 13:00:45.718338 2026] [php7:error] [pid 2642038:tid 2642038] [client 4.194.99.179:0] script '/usr/lib/cgi-bin/file.php' not found or unable to stat, referer: https://www.yahoo.com/
+[Sun Jan 11 13:00:46.383950 2026] [proxy_fcgi:error] [pid 2642537:tid 2642537] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:48.072129 2026] [proxy_fcgi:error] [pid 2640365:tid 2640365] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:48.410659 2026] [proxy_fcgi:error] [pid 2636837:tid 2636837] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 13:00:50.418325 2026] [proxy_fcgi:error] [pid 2640365:tid 2640365] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 13:00:50.755251 2026] [proxy_fcgi:error] [pid 2640587:tid 2640587] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 13:00:51.092254 2026] [proxy_fcgi:error] [pid 2633292:tid 2633292] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 13:00:51.425478 2026] [proxy_fcgi:error] [pid 2642038:tid 2642038] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 13:00:51.758761 2026] [proxy_fcgi:error] [pid 2642038:tid 2642038] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 13:00:52.090952 2026] [proxy_fcgi:error] [pid 2642038:tid 2642038] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 13:00:52.423990 2026] [proxy_fcgi:error] [pid 2642705:tid 2642705] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 13:00:52.758158 2026] [proxy_fcgi:error] [pid 2642780:tid 2642780] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 13:00:53.108205 2026] [proxy_fcgi:error] [pid 2642661:tid 2642661] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 13:00:54.462071 2026] [proxy_fcgi:error] [pid 2636837:tid 2636837] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 13:00:54.796170 2026] [proxy_fcgi:error] [pid 2640587:tid 2640587] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 13:00:55.129158 2026] [proxy_fcgi:error] [pid 2640365:tid 2640365] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 13:00:55.461719 2026] [proxy_fcgi:error] [pid 2633292:tid 2633292] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 13:00:55.795493 2026] [php7:error] [pid 2642845:tid 2642845] [client 4.194.99.179:0] script '/usr/lib/cgi-bin/xmrlpc.php' not found or unable to stat, referer: https://duckduckgo.com/
+[Sun Jan 11 13:00:57.126984 2026] [proxy_fcgi:error] [pid 2642845:tid 2642845] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 13:00:57.459523 2026] [proxy_fcgi:error] [pid 2633292:tid 2633292] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 13:00:57.793003 2026] [proxy_fcgi:error] [pid 2636837:tid 2636837] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 13:00:58.127167 2026] [proxy_fcgi:error] [pid 2633292:tid 2633292] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 13:00:58.458659 2026] [proxy_fcgi:error] [pid 2642705:tid 2642705] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 13:00:58.791251 2026] [proxy_fcgi:error] [pid 2633292:tid 2633292] [client 4.194.99.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:49:23.196653 2026] [proxy_fcgi:error] [pid 2803553:tid 2803553] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/style.php
+[Sun Jan 11 15:49:24.890665 2026] [proxy_fcgi:error] [pid 2803902:tid 2803902] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/chosen.php?p=
+[Sun Jan 11 15:49:25.194339 2026] [proxy_fcgi:error] [pid 2803902:tid 2803902] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/file.php
+[Sun Jan 11 15:49:25.497290 2026] [proxy_fcgi:error] [pid 2804018:tid 2804018] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/flower.php
+[Sun Jan 11 15:49:25.806279 2026] [proxy_fcgi:error] [pid 2798028:tid 2798028] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/gifclass.php#888xyz999
+[Sun Jan 11 15:49:26.137155 2026] [proxy_fcgi:error] [pid 2806497:tid 2806497] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/bless.php#888xyz999
+[Sun Jan 11 15:49:26.449971 2026] [proxy_fcgi:error] [pid 2804018:tid 2804018] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/class-t.api.php#888xyz999
+[Sun Jan 11 15:49:26.752400 2026] [proxy_fcgi:error] [pid 2803553:tid 2803553] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/blurbs.php#888xyz999
+[Sun Jan 11 15:49:27.055241 2026] [proxy_fcgi:error] [pid 2803553:tid 2803553] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/akcc.php
+[Sun Jan 11 15:49:27.359292 2026] [proxy_fcgi:error] [pid 2802833:tid 2802833] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/abcd.php
+[Sun Jan 11 15:49:27.671984 2026] [proxy_fcgi:error] [pid 2805958:tid 2805958] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/shelp.php
+[Sun Jan 11 15:49:27.982389 2026] [proxy_fcgi:error] [pid 2802833:tid 2802833] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/cord.php
+[Sun Jan 11 15:49:28.285002 2026] [proxy_fcgi:error] [pid 2805797:tid 2805797] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/dex.php
+[Sun Jan 11 15:49:28.929379 2026] [proxy_fcgi:error] [pid 2805067:tid 2805067] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/file2.php#tabFM
+[Sun Jan 11 15:49:29.242723 2026] [proxy_fcgi:error] [pid 2806904:tid 2806904] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de//zwso.php
+[Sun Jan 11 15:49:30.153408 2026] [proxy_fcgi:error] [pid 2804085:tid 2804085] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/bolt.php
+[Sun Jan 11 15:49:30.461219 2026] [proxy_fcgi:error] [pid 2798028:tid 2798028] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/shlo.php#lufix
+[Sun Jan 11 15:49:30.769985 2026] [proxy_fcgi:error] [pid 2804085:tid 2804085] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/133.php
+[Sun Jan 11 15:49:31.071474 2026] [proxy_fcgi:error] [pid 2804018:tid 2804018] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/ahax.php
+[Sun Jan 11 15:49:31.372404 2026] [proxy_fcgi:error] [pid 2805067:tid 2805067] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/php8.php#xleet
+[Sun Jan 11 15:49:31.677631 2026] [proxy_fcgi:error] [pid 2804085:tid 2804085] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/lufix1.php#lufix
+[Sun Jan 11 15:49:31.984077 2026] [proxy_fcgi:error] [pid 2805958:tid 2805958] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/witmm.php#lufix
+[Sun Jan 11 15:49:33.246210 2026] [proxy_fcgi:error] [pid 2806497:tid 2806497] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/ioxi-o.php
+[Sun Jan 11 15:49:33.583970 2026] [proxy_fcgi:error] [pid 2805797:tid 2805797] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/222.php
+[Sun Jan 11 15:49:33.888471 2026] [proxy_fcgi:error] [pid 2805067:tid 2805067] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/files.php#admin@3tu/T?TJ8v?N
+[Sun Jan 11 15:49:34.191083 2026] [proxy_fcgi:error] [pid 2805797:tid 2805797] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/wp-editor.php#lufix
+[Sun Jan 11 15:49:34.496985 2026] [proxy_fcgi:error] [pid 2806904:tid 2806904] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/txets.php
+[Sun Jan 11 15:49:35.414531 2026] [proxy_fcgi:error] [pid 2805797:tid 2805797] [client 104.28.235.57:0] AH01071: Got error 'Primary script unknown', referer: http://itcoach-wehofer.de/postnews.php
+[Sun Jan 11 15:57:02.312592 2026] [proxy_fcgi:error] [pid 2811516:tid 2811516] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:02.578310 2026] [proxy_fcgi:error] [pid 2808022:tid 2808022] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 15:57:03.108259 2026] [proxy_fcgi:error] [pid 2813467:tid 2813467] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 15:57:03.375322 2026] [proxy_fcgi:error] [pid 2812262:tid 2812262] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:03.654663 2026] [proxy_fcgi:error] [pid 2812262:tid 2812262] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 15:57:03.919330 2026] [proxy_fcgi:error] [pid 2812600:tid 2812600] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:04.196008 2026] [proxy_fcgi:error] [pid 2812242:tid 2812242] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:04.730789 2026] [proxy_fcgi:error] [pid 2812535:tid 2812535] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:04.994992 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:05.524554 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 15:57:05.789386 2026] [proxy_fcgi:error] [pid 2812600:tid 2812600] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:06.054703 2026] [proxy_fcgi:error] [pid 2813315:tid 2813315] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:06.321302 2026] [proxy_fcgi:error] [pid 2813443:tid 2813443] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 15:57:06.587002 2026] [proxy_fcgi:error] [pid 2813443:tid 2813443] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:06.851091 2026] [proxy_fcgi:error] [pid 2812242:tid 2812242] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.bing.com/
+[Sun Jan 11 15:57:07.154302 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:07.423933 2026] [proxy_fcgi:error] [pid 2812535:tid 2812535] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 15:57:07.690212 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:07.958093 2026] [proxy_fcgi:error] [pid 2813467:tid 2813467] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:08.501451 2026] [proxy_fcgi:error] [pid 2813467:tid 2813467] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 15:57:08.765778 2026] [proxy_fcgi:error] [pid 2811516:tid 2811516] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:09.039859 2026] [proxy_fcgi:error] [pid 2811516:tid 2811516] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:09.319105 2026] [proxy_fcgi:error] [pid 2808022:tid 2808022] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:09.584403 2026] [proxy_fcgi:error] [pid 2811516:tid 2811516] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:09.851754 2026] [proxy_fcgi:error] [pid 2811516:tid 2811516] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.co.uk/
+[Sun Jan 11 15:57:10.381335 2026] [proxy_fcgi:error] [pid 2813530:tid 2813530] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:11.468084 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:11.994952 2026] [proxy_fcgi:error] [pid 2812242:tid 2812242] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:12.259008 2026] [proxy_fcgi:error] [pid 2812600:tid 2812600] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 15:57:12.786734 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:13.053165 2026] [proxy_fcgi:error] [pid 2813315:tid 2813315] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:13.319421 2026] [proxy_fcgi:error] [pid 2811940:tid 2811940] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:13.587620 2026] [proxy_fcgi:error] [pid 2813114:tid 2813114] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:14.388221 2026] [proxy_fcgi:error] [pid 2812262:tid 2812262] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:14.928112 2026] [proxy_fcgi:error] [pid 2813443:tid 2813443] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.com/
+[Sun Jan 11 15:57:15.197874 2026] [proxy_fcgi:error] [pid 2813443:tid 2813443] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.yahoo.com/
+[Sun Jan 11 15:57:15.461338 2026] [proxy_fcgi:error] [pid 2812242:tid 2812242] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 15:57:15.725351 2026] [proxy_fcgi:error] [pid 2812535:tid 2812535] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.fr/
+[Sun Jan 11 15:57:15.993989 2026] [proxy_fcgi:error] [pid 2812262:tid 2812262] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://www.google.de/
+[Sun Jan 11 15:57:16.291937 2026] [proxy_fcgi:error] [pid 2813114:tid 2813114] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
+[Sun Jan 11 15:57:16.558437 2026] [proxy_fcgi:error] [pid 2812242:tid 2812242] [client 74.225.195.179:0] AH01071: Got error 'Primary script unknown', referer: https://duckduckgo.com/
