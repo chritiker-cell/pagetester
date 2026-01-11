@@ -12,6 +12,6 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
         server: ftp://195.242.102.132/
-        username: myFtpUserName
+        username: schulprojekt
         password: ${{ secrets.ftp_password }}
         server-dir: public_html/test-push-ftp
