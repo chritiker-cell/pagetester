@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission: Code-Retter - Lerne Algorithmen mit Algo-Bot!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Bangers&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #f97316;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --bg-comic: #fff8e7;
+            --panel-border: #2d3748;
+            --speech-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Comic Neue', cursive;
+            background: var(--bg-comic);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========== HEADER ========== */
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .game-title {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            color: white;
+            text-shadow: 3px 3px 0 #2d3748;
+            letter-spacing: 2px;
+        }
+
+        .level-indicator {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .level-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .level-dot.completed { background: var(--success); }
+        .level-dot.current { background: var(--warning); animation: pulse 1.5s infinite; }
+        .level-dot.locked { opacity: 0.5; cursor: not-allowed; }
+        .level-dot.locked::after { content: '🔒'; font-size: 0.8rem; }
+
+        /* ========== ALGO-BOT ========== */
+        .algobot-container { display: flex; justify-content: center; margin: 1rem 0; }
+        .algobot { width: 150px; height: 180px; }
+        .algobot.small { width: 80px; height: 96px; }
+        .algobot.large { width: 200px; height: 240px; }
+
+        @keyframes wobble { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes blink { 0%, 90%, 100% { opacity: 1; } 95% { opacity: 0; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .algobot.idle { animation: wobble 2s ease-in-out infinite; }
+        .algobot.happy { animation: bounce 0.5s ease-in-out infinite; }
+        .algobot.confused { animation: shake 0.3s ease-in-out infinite; }
+        .algobot.sad { transform: rotate(-10deg); }
+        .algobot .eye { animation: blink 4s infinite; }
+
+        /* ========== SCREENS & PANELS ========== */
+        .screen { display: none; padding: 2rem; max-width: 900px; margin: 0 auto; }
+        .screen.active { display: block; }
+
+        .comic-panel {
+            background: white;
+            border: 4px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: 8px 8px 0 var(--panel-border);
+        }
+
+        .comic-panel h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .comic-panel h3 {
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin: 1rem 0;
+        }
+
+        /* ========== SPEECH BUBBLES ========== */
+        .speech-container { display: flex; align-items: flex-start; gap: 1rem; margin: 1.5rem 0; }
+
+        .speech-bubble {
+            background: var(--speech-bg);
+            border: 3px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            position: relative;
+            max-width: 500px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            border: 10px solid transparent;
+            border-right-color: var(--panel-border);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -14px;
+            top: 23px;
+            border: 7px solid transparent;
+            border-right-color: var(--speech-bg);
+        }
+
+        .speech-bubble strong { color: var(--primary); }
+        .highlight { background: linear-gradient(120deg, #fef08a 0%, #fef08a 100%); padding: 0 4px; border-radius: 4px; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            font-family: 'Comic Neue', cursive;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0.8rem 2rem;
+            border: 3px solid var(--panel-border);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--panel-border);
+        }
+
+        .btn:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--panel-border); }
+        .btn:active { transform: translate(4px, 4px); box-shadow: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: var(--panel-border); }
+        .btn-secondary { background: #e2e8f0; color: var(--panel-border); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-container { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+        /* ========== INTRO ========== */
+        #intro-screen { text-align: center; padding-top: 3rem; }
+        .intro-title { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 4rem); color: var(--primary); text-shadow: 4px 4px 0 var(--secondary); margin-bottom: 1rem; letter-spacing: 3px; }
+        .intro-subtitle { font-size: 1.3rem; color: #64748b; margin-bottom: 2rem; }
+
+        /* ========== TASK AREAS ========== */
+        .task-area {
+            background: #f1f5f9;
+            border: 3px dashed #94a3b8;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            min-height: 100px;
+        }
+
+        .task-area.drag-over { background: #dbeafe; border-color: var(--primary); }
+
+        /* ========== DRAG ITEMS ========== */
+        .drag-item {
+            display: inline-block;
+            background: white;
+            border: 3px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            margin: 0.5rem;
+            cursor: grab;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+            user-select: none;
+        }
+
+        .drag-item:hover { transform: scale(1.05); box-shadow: 5px 5px 0 rgba(0,0,0,0.15); }
+        .drag-item.dragging { opacity: 0.5; cursor: grabbing; }
+        .drag-item.correct { background: #d1fae5; border-color: var(--success); }
+        .drag-item.incorrect { background: #fee2e2; border-color: var(--danger); }
+
+        /* ========== INFO BOXES ========== */
+        .info-box {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border-left: 5px solid var(--primary);
+            border-radius: 0 15px 15px 0;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.success { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: var(--success); }
+        .info-box.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: var(--warning); }
+        .info-box.error { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: var(--danger); }
+
+        /* ========== EVA MACHINE ========== */
+        .eva-machine { display: flex; justify-content: center; gap: 1rem; margin: 2rem 0; flex-wrap: wrap; }
+
+        .eva-slot {
+            width: 180px;
+            min-height: 150px;
+            background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+            border: 4px solid #111827;
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .eva-slot h4 { color: white; font-family: 'Bangers', cursive; font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .eva-slot .slot-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .eva-slot .drop-area {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            min-height: 80px;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .eva-slot .drop-area.drag-over { background: rgba(79, 70, 229, 0.3); border-color: var(--primary); }
+        .eva-slot.eingabe { border-top: 5px solid #3b82f6; }
+        .eva-slot.verarbeitung { border-top: 5px solid #f59e0b; }
+        .eva-slot.ausgabe { border-top: 5px solid #22c55e; }
+
+        /* ========== DEBRIS / SORTING ITEMS ========== */
+        .debris-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .debris-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: white;
+            border: 3px solid var(--panel-border);
+            border-radius: 10px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .debris-item:hover { transform: scale(1.1); background: #f1f5f9; }
+        .debris-item.dragging { opacity: 0.5; cursor: grabbing; }
+        .debris-item.selected { background: #dbeafe; border-color: var(--primary); transform: scale(1.1); }
+        .debris-item.matched { background: #d1fae5; border-color: var(--success); }
+
+        .category-bins { display: flex; justify-content: center; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+
+        .category-bin {
+            width: 160px;
+            min-height: 140px;
+            border: 4px solid var(--panel-border);
+            border-radius: 15px;
+            padding: 0.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .category-bin h5 { font-family: 'Bangers', cursive; margin-bottom: 0.5rem; font-size: 1.1rem; }
+
+        .category-bin .bin-drop {
+            min-height: 90px;
+            border: 2px dashed #94a3b8;
+            border-radius: 10px;
+            padding: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+            align-content: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .category-bin .bin-drop.drag-over { background: rgba(79, 70, 229, 0.2); border-color: var(--primary); }
+
+        .category-bin.holz { background: #fef3c7; border-top: 5px solid #d97706; }
+        .category-bin.metall { background: #e2e8f0; border-top: 5px solid #64748b; }
+        .category-bin.plastik { background: #dbeafe; border-top: 5px solid #3b82f6; }
+
+        .category-bin .debris-item { width: 45px; height: 45px; font-size: 1.5rem; }
+
+        /* ========== SORTING RACE ========== */
+        .race-track { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin: 1rem 0; }
+        .racer { text-align: center; }
+        .racer h4 { font-family: 'Bangers', cursive; font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .racer-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+        .sort-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 5px;
+            height: 200px;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .sort-bar {
+            width: 35px;
+            background: linear-gradient(180deg, var(--primary) 0%, #3730a3 100%);
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 5px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sort-bar.comparing { background: linear-gradient(180deg, var(--secondary) 0%, #ea580c 100%); }
+        .sort-bar.sorted { background: linear-gradient(180deg, var(--success) 0%, #16a34a 100%); }
+        .sort-bar.pivot { background: linear-gradient(180deg, #a855f7 0%, #7c3aed 100%); }
+        .sort-bar.selected { outline: 3px solid var(--warning); outline-offset: 2px; }
+
+        /* ========== QUIZ ========== */
+        .quiz-options { display: grid; gap: 0.75rem; margin: 1rem 0; }
+
+        .quiz-option {
+            background: white;
+            border: 3px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            font-size: 1.1rem;
+        }
+
+        .quiz-option:hover:not(.disabled) { background: #f1f5f9; transform: translateX(5px); }
+        .quiz-option.correct { background: #d1fae5; border-color: var(--success); }
+        .quiz-option.wrong { background: #fee2e2; border-color: var(--danger); }
+        .quiz-option.disabled { cursor: default; }
+        .quiz-option.selected { background: #dbeafe; border-color: var(--primary); }
+
+        .quiz-progress { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+
+        .quiz-progress-bar {
+            flex: 1;
+            height: 15px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+        }
+
+        .quiz-score { font-family: 'Bangers', cursive; font-size: 1.5rem; color: var(--primary); }
+
+        /* ========== VICTORY ========== */
+        .victory-container { text-align: center; padding: 2rem; }
+        .victory-title { font-family: 'Bangers', cursive; font-size: 3rem; color: var(--success); text-shadow: 3px 3px 0 var(--panel-border); margin-bottom: 1rem; }
+        .victory-stars { font-size: 4rem; margin: 1rem 0; }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ========== TIP BOX ========== */
+        .tip-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid var(--warning);
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .tip-box.show { display: block; animation: shake 0.3s ease-in-out; }
+        .tip-box::before { content: '💡 Tipp: '; font-weight: bold; }
+
+        /* ========== TASK INDICATOR ========== */
+        .task-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .task-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: 2px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .task-dot.active { background: var(--warning); }
+        .task-dot.done { background: var(--success); color: white; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .game-title { font-size: 1.3rem; }
+            .level-dot { width: 30px; height: 30px; font-size: 0.8rem; }
+            .comic-panel { padding: 1rem; }
+            .speech-container { flex-direction: column; align-items: center; }
+            .speech-bubble::before, .speech-bubble::after { display: none; }
+            .eva-slot { width: 140px; }
+            .sort-bar { width: 25px; }
+            .category-bin { width: 130px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="game-header">
+        <div class="game-title">🤖 Mission: Code-Retter</div>
+        <div class="level-indicator" id="level-indicator">
+            <div class="level-dot current" data-level="0">⭐</div>
+            <div class="level-dot locked" data-level="1">1</div>
+            <div class="level-dot locked" data-level="2">2</div>
+            <div class="level-dot locked" data-level="3">3</div>
+            <div class="level-dot locked" data-level="4">4</div>
+            <div class="level-dot locked" data-level="5">5</div>
+        </div>
+    </header>
+
+    <!-- ALGO-BOT SVG TEMPLATE -->
+    <template id="algobot-template">
+        <svg class="algobot" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+            <line x1="50" y1="5" x2="50" y2="20" stroke="#374151" stroke-width="3"/>
+            <circle cx="50" cy="5" r="5" fill="#ef4444" class="antenna-light">
+                <animate attributeName="fill" values="#ef4444;#fca5a5;#ef4444" dur="1s" repeatCount="indefinite"/>
+            </circle>
+            <rect x="20" y="20" width="60" height="50" rx="15" fill="#6366f1" stroke="#374151" stroke-width="3"/>
+            <rect x="28" y="28" width="44" height="35" rx="8" fill="#1e1b4b"/>
+            <circle cx="40" cy="42" r="8" fill="#22d3ee" class="eye"/>
+            <circle cx="60" cy="42" r="8" fill="#22d3ee" class="eye"/>
+            <circle cx="40" cy="42" r="3" fill="#0e7490"/>
+            <circle cx="60" cy="42" r="3" fill="#0e7490"/>
+            <path class="mouth neutral" d="M 38 55 Q 50 55 62 55" stroke="#22d3ee" stroke-width="3" fill="none"/>
+            <path class="mouth happy" d="M 38 52 Q 50 62 62 52" stroke="#22d3ee" stroke-width="3" fill="none" style="display:none"/>
+            <path class="mouth sad" d="M 38 58 Q 50 50 62 58" stroke="#22d3ee" stroke-width="3" fill="none" style="display:none"/>
+            <path class="mouth surprised" d="M 45 52 Q 50 60 55 52 Q 50 58 45 52" stroke="#22d3ee" stroke-width="3" fill="#22d3ee" style="display:none"/>
+            <rect x="25" y="72" width="50" height="35" rx="10" fill="#6366f1" stroke="#374151" stroke-width="3"/>
+            <rect x="35" y="78" width="30" height="20" rx="5" fill="#1e1b4b"/>
+            <circle cx="42" cy="85" r="3" fill="#22c55e"><animate attributeName="fill" values="#22c55e;#4ade80;#22c55e" dur="2s" repeatCount="indefinite"/></circle>
+            <circle cx="50" cy="85" r="3" fill="#eab308"><animate attributeName="fill" values="#eab308;#fde047;#eab308" dur="1.5s" repeatCount="indefinite"/></circle>
+            <circle cx="58" cy="85" r="3" fill="#ef4444"><animate attributeName="fill" values="#ef4444;#fca5a5;#ef4444" dur="1.8s" repeatCount="indefinite"/></circle>
+            <rect x="5" y="75" width="18" height="12" rx="6" fill="#6366f1" stroke="#374151" stroke-width="2"/>
+            <rect x="77" y="75" width="18" height="12" rx="6" fill="#6366f1" stroke="#374151" stroke-width="2"/>
+            <ellipse cx="35" cy="112" rx="10" ry="8" fill="#374151"/>
+            <ellipse cx="65" cy="112" rx="10" ry="8" fill="#374151"/>
+        </svg>
+    </template>
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen" class="screen active">
+        <h1 class="intro-title">Mission: Code-Retter</h1>
+        <p class="intro-subtitle">Ein Abenteuer in die Welt der Algorithmen</p>
+        <div class="algobot-container">
+            <svg class="algobot large idle" viewBox="0 0 100 120" id="intro-bot"></svg>
+        </div>
+        <div class="comic-panel">
+            <div class="speech-container" style="justify-content: center;">
+                <div class="speech-bubble" style="max-width: 600px;" id="intro-speech">
+                    <p><strong>Hallo! Ich bin Algo-Bot!</strong></p>
+                    <p>Ich bin ein kleiner Roboter, aber ich habe ein grosses Problem...</p>
+                </div>
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-primary" onclick="nextIntroDialog()">Weiter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL SELECT -->
+    <div id="level-select" class="screen">
+        <div class="comic-panel">
+            <h2>Waehle deine Mission!</h2>
+            <div class="speech-container">
+                <svg class="algobot small idle" viewBox="0 0 100 120"></svg>
+                <div class="speech-bubble">Jedes Level hat 2 Aufgaben. Schliesse beide ab, um weiterzukommen!</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                <div class="comic-panel level-card" data-level="1" onclick="startLevel(1)">
+                    <h3>🍞 Level 1</h3>
+                    <p><strong>Das Marmeladen-Chaos</strong></p>
+                    <p style="color: #64748b;">Was ist ein Algorithmus?</p>
+                </div>
+                <div class="comic-panel level-card locked" data-level="2" onclick="startLevel(2)">
+                    <h3>⚙️ Level 2</h3>
+                    <p><strong>Die EVA-Maschine</strong></p>
+                    <p style="color: #64748b;">Das Grundgesetz der Informatik</p>
+                </div>
+                <div class="comic-panel level-card locked" data-level="3" onclick="startLevel(3)">
+                    <h3>🔍 Level 3</h3>
+                    <p><strong>Die Detektiv-Zentrale</strong></p>
+                    <p style="color: #64748b;">Computational Thinking</p>
+                </div>
+                <div class="comic-panel level-card locked" data-level="4" onclick="startLevel(4)">
+                    <h3>🏎️ Level 4</h3>
+                    <p><strong>Das Grosse Rennen</strong></p>
+                    <p style="color: #64748b;">Sortieralgorithmen</p>
+                </div>
+                <div class="comic-panel level-card locked" data-level="5" onclick="startLevel(5)">
+                    <h3>🏆 Level 5</h3>
+                    <p><strong>Der finale Test</strong></p>
+                    <p style="color: #64748b;">Das schwere Abschluss-Quiz</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL 1 -->
+    <div id="level-1" class="screen">
+        <div class="comic-panel">
+            <h2>🍞 Level 1: Das Marmeladen-Chaos</h2>
+            <div class="task-indicator"><div class="task-dot active" id="l1-t1">1</div><div class="task-dot" id="l1-t2">2</div></div>
+            <div class="speech-container">
+                <svg class="algobot small confused" viewBox="0 0 100 120" id="level1-bot"></svg>
+                <div class="speech-bubble" id="level1-speech">
+                    <p>Oh nein! Du hast gesagt: <em>"Tu die Marmelade aufs Brot"</em></p>
+                    <p>Also habe ich das ganze Glas draufgeworfen! 🫙💥🍞</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Ein Algorithmus</strong> ist eine Schritt-fuer-Schritt-Anleitung mit 3 Eigenschaften:
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Eindeutigkeit</strong> - Jeder Schritt muss klar sein</li>
+                    <li><strong>Ausfuehrbarkeit</strong> - Jeder Schritt muss machbar sein</li>
+                    <li><strong>Endlichkeit</strong> - Es muss irgendwann fertig sein</li>
+                </ul>
+            </div>
+
+            <!-- Task 1.1 -->
+            <div id="task1-1">
+                <h3>Aufgabe 1: Sortiere die Schritte!</h3>
+                <p>Ziehe die Schritte in die richtige Reihenfolge:</p>
+                <div class="task-area" id="level1-items">
+                    <div class="drag-item" draggable="true" data-order="3">Marmelade mit Messer auf Brot streichen</div>
+                    <div class="drag-item" draggable="true" data-order="1">Brot aus der Packung nehmen</div>
+                    <div class="drag-item" draggable="true" data-order="5">Geniessen!</div>
+                    <div class="drag-item" draggable="true" data-order="2">Marmeladenglas oeffnen</div>
+                    <div class="drag-item" draggable="true" data-order="4">Zweite Brotscheibe drauflegen</div>
+                </div>
+                <p>⬇️ Hierher ziehen (in der richtigen Reihenfolge):</p>
+                <div class="task-area" id="level1-dropzone"></div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="checkTask1_1()">Pruefen</button>
+                    <button class="btn btn-secondary" onclick="resetTask1_1()">Nochmal</button>
+                </div>
+            </div>
+
+            <!-- Task 1.2 -->
+            <div id="task1-2" style="display: none;">
+                <h3>Aufgabe 2: Quiz zu den Eigenschaften</h3>
+                <div id="task1-2-quiz"></div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" id="task1-2-next" onclick="nextTask1_2Question()" style="display: none;">Naechste Frage</button>
+                </div>
+            </div>
+
+            <div class="tip-box" id="level1-tip">Denke daran: Was muss zuerst passieren?</div>
+            <div class="info-box" id="level1-feedback" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- LEVEL 2 -->
+    <div id="level-2" class="screen">
+        <div class="comic-panel">
+            <h2>⚙️ Level 2: Die EVA-Maschine</h2>
+            <div class="task-indicator"><div class="task-dot active" id="l2-t1">1</div><div class="task-dot" id="l2-t2">2</div></div>
+            <div class="speech-container">
+                <svg class="algobot small idle" viewBox="0 0 100 120" id="level2-bot"></svg>
+                <div class="speech-bubble">
+                    <p>Diese Maschine hat drei Schlitze: <strong>E</strong>, <strong>V</strong> und <strong>A</strong>!</p>
+                    <p>Das ist das <span class="highlight">Grundgesetz der Informatik</span>!</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Das EVA-Prinzip:</strong>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>E</strong>ingabe - Du gibst dem Computer Informationen</li>
+                    <li><strong>V</strong>erarbeitung - Der Algorithmus arbeitet</li>
+                    <li><strong>A</strong>usgabe - Das Ergebnis wird angezeigt</li>
+                </ul>
+            </div>
+
+            <!-- Task 2.1 -->
+            <div id="task2-1">
+                <h3>Aufgabe 1: Ordne die Begriffe zu!</h3>
+                <div class="task-area" id="level2-items">
+                    <div class="drag-item" draggable="true" data-category="E">Mausklick</div>
+                    <div class="drag-item" draggable="true" data-category="V">Berechnung</div>
+                    <div class="drag-item" draggable="true" data-category="A">Bildschirmanzeige</div>
+                    <div class="drag-item" draggable="true" data-category="E">Tastatureingabe</div>
+                    <div class="drag-item" draggable="true" data-category="V">Vergleichen</div>
+                    <div class="drag-item" draggable="true" data-category="A">Ton abspielen</div>
+                </div>
+                <div class="eva-machine">
+                    <div class="eva-slot eingabe">
+                        <div class="slot-icon">📥</div>
+                        <h4>Eingabe</h4>
+                        <div class="drop-area" id="eva-drop-E" data-category="E"></div>
+                    </div>
+                    <div class="eva-slot verarbeitung">
+                        <div class="slot-icon">⚙️</div>
+                        <h4>Verarbeitung</h4>
+                        <div class="drop-area" id="eva-drop-V" data-category="V"></div>
+                    </div>
+                    <div class="eva-slot ausgabe">
+                        <div class="slot-icon">📤</div>
+                        <h4>Ausgabe</h4>
+                        <div class="drop-area" id="eva-drop-A" data-category="A"></div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="checkTask2_1()">Pruefen</button>
+                    <button class="btn btn-secondary" onclick="resetTask2_1()">Nochmal</button>
+                </div>
+            </div>
+
+            <!-- Task 2.2 -->
+            <div id="task2-2" style="display: none;">
+                <h3>Aufgabe 2: Alltagsbeispiele zuordnen</h3>
+                <p>Ordne die Alltagssituationen dem EVA-Prinzip zu:</p>
+                <div id="task2-2-content"></div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="checkTask2_2()">Pruefen</button>
+                </div>
+            </div>
+
+            <div class="tip-box" id="level2-tip">Eingabe = was DU gibst. Ausgabe = was der Computer DIR zeigt.</div>
+            <div class="info-box" id="level2-feedback" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- LEVEL 3 -->
+    <div id="level-3" class="screen">
+        <div class="comic-panel">
+            <h2>🔍 Level 3: Die Detektiv-Zentrale</h2>
+            <div class="task-indicator"><div class="task-dot active" id="l3-t1">1</div><div class="task-dot" id="l3-t2">2</div></div>
+            <div class="speech-container">
+                <svg class="algobot small sad" viewBox="0 0 100 120" id="level3-bot"></svg>
+                <div class="speech-bubble">
+                    <p>Ein Truemmerhaufen versperrt den Weg!</p>
+                    <p>Nutze <strong>Computational Thinking</strong>!</p>
+                </div>
+                <div style="position: relative; width: 140px; height: 120px; background: linear-gradient(180deg, #a8a29e 0%, #78716c 50%, #57534e 100%); border: 3px solid var(--panel-border); border-radius: 15px 15px 50% 50%; box-shadow: 4px 4px 0 rgba(0,0,0,0.2), inset 0 -10px 20px rgba(0,0,0,0.2); overflow: visible;">
+                    <span style="position: absolute; font-size: 1.8rem; top: 60px; left: 10px; transform: rotate(-25deg);">🪵</span>
+                    <span style="position: absolute; font-size: 1.4rem; top: 20px; left: 55px; transform: rotate(15deg);">🔩</span>
+                    <span style="position: absolute; font-size: 1.6rem; top: 45px; left: 85px; transform: rotate(-10deg);">🧴</span>
+                    <span style="position: absolute; font-size: 2rem; top: 70px; left: 50px; transform: rotate(20deg);">🪑</span>
+                    <span style="position: absolute; font-size: 1.8rem; top: 15px; left: 25px; transform: rotate(-35deg); z-index: 2;">⚙️</span>
+                    <span style="position: absolute; font-size: 1.5rem; top: 50px; left: 30px; transform: rotate(30deg);">🪣</span>
+                    <span style="position: absolute; font-size: 2rem; top: 5px; left: 70px; transform: rotate(-5deg); z-index: 3;">📦</span>
+                    <span style="position: absolute; font-size: 1.3rem; top: 35px; left: 5px; transform: rotate(45deg);">🔧</span>
+                    <span style="position: absolute; font-size: 1.6rem; top: 0px; left: 40px; transform: rotate(-20deg); z-index: 4;">🎮</span>
+                    <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; background: var(--danger); color: white; padding: 2px 8px; border-radius: 5px; white-space: nowrap;">⚠️ Weg blockiert!</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Computational Thinking - Die 4 Schritte:</strong>
+                <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Aufteilen</strong> - Problem in kleine Teile zerlegen</li>
+                    <li><strong>Muster erkennen</strong> - Gibt es Aehnlichkeiten?</li>
+                    <li><strong>Vereinfachen</strong> - Unwichtiges weglassen</li>
+                    <li><strong>Algorithmus</strong> - Schritt-fuer-Schritt Loesung</li>
+                </ol>
+            </div>
+
+            <!-- Task 3.1: Aufteilen -->
+            <div id="task3-1">
+                <h3>Aufgabe 1: Aufteilen!</h3>
+                <p>Sortiere die Truemmer in die richtigen Kategorien (Drag & Drop):</p>
+                <div class="debris-container" id="debris-source">
+                    <div class="debris-item" draggable="true" data-type="holz">🪵</div>
+                    <div class="debris-item" draggable="true" data-type="metall">🔩</div>
+                    <div class="debris-item" draggable="true" data-type="plastik">🧴</div>
+                    <div class="debris-item" draggable="true" data-type="holz">🪑</div>
+                    <div class="debris-item" draggable="true" data-type="metall">⚙️</div>
+                    <div class="debris-item" draggable="true" data-type="plastik">🪣</div>
+                    <div class="debris-item" draggable="true" data-type="holz">📦</div>
+                    <div class="debris-item" draggable="true" data-type="metall">🔧</div>
+                    <div class="debris-item" draggable="true" data-type="plastik">🎮</div>
+                </div>
+                <div class="category-bins">
+                    <div class="category-bin holz">
+                        <h5>🪵 Holz</h5>
+                        <div class="bin-drop" id="bin-holz" data-type="holz"></div>
+                    </div>
+                    <div class="category-bin metall">
+                        <h5>🔩 Metall</h5>
+                        <div class="bin-drop" id="bin-metall" data-type="metall"></div>
+                    </div>
+                    <div class="category-bin plastik">
+                        <h5>🧴 Plastik</h5>
+                        <div class="bin-drop" id="bin-plastik" data-type="plastik"></div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="checkTask3_1()">Pruefen</button>
+                    <button class="btn btn-secondary" onclick="resetTask3_1()">Nochmal</button>
+                </div>
+            </div>
+
+            <!-- Task 3.2: Vereinfachen -->
+            <div id="task3-2" style="display: none;">
+                <h3>Aufgabe 2: Vereinfachen!</h3>
+                <p>Zaehle nur die wichtigen Ersatzteile (⚙️ Zahnraeder), ignoriere den Rest:</p>
+                <div class="debris-container" id="count-items"></div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <label style="font-size: 1.2rem;">Anzahl Zahnraeder: </label>
+                    <input type="number" id="gear-count" style="font-size: 1.5rem; width: 80px; padding: 0.5rem; border: 3px solid var(--panel-border); border-radius: 10px;" min="0" max="20">
+                    <button class="btn btn-primary" onclick="checkTask3_2()" style="margin-left: 1rem;">Pruefen</button>
+                </div>
+            </div>
+
+            <div class="tip-box" id="level3-tip"></div>
+            <div class="info-box" id="level3-feedback" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- LEVEL 4 -->
+    <div id="level-4" class="screen">
+        <div class="comic-panel">
+            <h2>🏎️ Level 4: Das Grosse Rennen</h2>
+            <div class="task-indicator"><div class="task-dot active" id="l4-t1">1</div><div class="task-dot" id="l4-t2">2</div></div>
+            <div class="speech-container">
+                <svg class="algobot small happy" viewBox="0 0 100 120" id="level4-bot"></svg>
+                <div class="speech-bubble">
+                    <p>Ein Rennen! 🐌 Schnecke gegen 🏎️ Rennwagen!</p>
+                    <p>Wer sortiert schneller?</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Sortieralgorithmen:</strong>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Bubble-Sort</strong> 🐌 - Vergleicht Nachbarn und tauscht sie</li>
+                    <li><strong>Quick-Sort</strong> 🏎️ - Teilt die Liste clever in Haelften</li>
+                </ul>
+            </div>
+
+            <!-- Task 4.1 -->
+            <div id="task4-1">
+                <h3>Aufgabe 1: Bubble-Sort selbst machen!</h3>
+                <p>Klicke auf zwei <strong>benachbarte</strong> Balken um sie zu tauschen. Sortiere von klein nach gross!</p>
+                <div class="sort-bars" id="bubble-manual"></div>
+                <p id="bubble-moves">Zuege: <strong>0</strong></p>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="checkTask4_1()">Fertig!</button>
+                    <button class="btn btn-secondary" onclick="resetTask4_1()">Nochmal</button>
+                </div>
+            </div>
+
+            <!-- Task 4.2 -->
+            <div id="task4-2" style="display: none;">
+                <h3>Aufgabe 2: Das Rennen!</h3>
+                <p>Beobachte, wie unterschiedlich schnell die Algorithmen arbeiten:</p>
+                <div class="race-track">
+                    <div class="racer">
+                        <div class="racer-icon">🐌</div>
+                        <h4>Bubble-Sort</h4>
+                        <div class="sort-bars" id="race-bubble"></div>
+                        <p>Schritte: <span id="bubble-steps">0</span></p>
+                    </div>
+                    <div class="racer">
+                        <div class="racer-icon">🏎️</div>
+                        <h4>Quick-Sort</h4>
+                        <div class="sort-bars" id="race-quick"></div>
+                        <p>Schritte: <span id="quick-steps">0</span></p>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" id="race-btn" onclick="startRace()">🏁 Rennen starten!</button>
+                </div>
+            </div>
+
+            <div class="tip-box" id="level4-tip"></div>
+            <div class="info-box" id="level4-feedback" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- LEVEL 5: QUIZ -->
+    <div id="level-5" class="screen">
+        <div class="comic-panel">
+            <h2>🏆 Level 5: Der finale Test!</h2>
+            <div class="speech-container">
+                <svg class="algobot small idle" viewBox="0 0 100 120" id="level5-bot"></svg>
+                <div class="speech-bubble">
+                    <p>Das ist der <strong>schwierige</strong> Abschlusstest!</p>
+                    <p>16 Fragen warten auf dich! 💪</p>
+                </div>
+            </div>
+
+            <div class="quiz-progress">
+                <span id="quiz-current">Frage 1/16</span>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quiz-progress" style="width: 6.25%;"></div>
+                </div>
+                <span class="quiz-score" id="quiz-score">0 Punkte</span>
+            </div>
+
+            <div id="quiz-container">
+                <h3 id="quiz-question"></h3>
+                <div class="quiz-options" id="quiz-options"></div>
+            </div>
+
+            <div class="tip-box" id="level5-tip"></div>
+            <div class="btn-container">
+                <button class="btn btn-primary" id="quiz-next-btn" onclick="nextQuizQuestion()" style="display: none;">Naechste Frage</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY -->
+    <div id="victory-screen" class="screen">
+        <div class="comic-panel victory-container">
+            <h1 class="victory-title">🎉 GESCHAFFT! 🎉</h1>
+            <div class="algobot-container">
+                <svg class="algobot large happy" viewBox="0 0 100 120" id="victory-bot"></svg>
+            </div>
+            <div class="speech-container" style="justify-content: center;">
+                <div class="speech-bubble" style="max-width: 600px;">
+                    <p><strong>Du bist ein echter Code-Retter!</strong></p>
+                    <p>Jetzt verstehe ich Algorithmen! 🤖💙</p>
+                </div>
+            </div>
+            <div class="victory-stars" id="victory-stars">⭐⭐⭐</div>
+            <p style="font-size: 1.5rem; margin: 1rem 0;">Deine Punktzahl: <strong id="final-score">0</strong>/16</p>
+            <div class="btn-container">
+                <button class="btn btn-primary" onclick="restartGame()">🔄 Nochmal spielen</button>
+                <button class="btn btn-secondary" onclick="showScreen('level-select')">📚 Zur Level-Auswahl</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== GAME STATE ==========
+        let gameState = {
+            currentLevel: 0,
+            unlockedLevels: [0, 1],
+            completedLevels: [],
+            quizScore: 0,
+            currentQuizQuestion: 0
+        };
+
+        const savedState = localStorage.getItem('codeRetterState2');
+        if (savedState) gameState = JSON.parse(savedState);
+
+        function saveState() { localStorage.setItem('codeRetterState2', JSON.stringify(gameState)); }
+
+        // ========== SCREEN MANAGEMENT ==========
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            updateLevelIndicator();
+        }
+
+        function updateLevelIndicator() {
+            document.querySelectorAll('.level-dot').forEach(dot => {
+                const level = parseInt(dot.dataset.level);
+                dot.classList.remove('completed', 'current', 'locked');
+                if (gameState.completedLevels.includes(level)) {
+                    dot.classList.add('completed');
+                    dot.innerHTML = '✓';
+                } else if (gameState.unlockedLevels.includes(level)) {
+                    if (level === gameState.currentLevel) dot.classList.add('current');
+                } else {
+                    dot.classList.add('locked');
+                }
+            });
+            document.querySelectorAll('.level-card').forEach(card => {
+                const level = parseInt(card.dataset.level);
+                card.classList.toggle('locked', !gameState.unlockedLevels.includes(level));
+            });
+        }
+
+        function startLevel(level) {
+            if (!gameState.unlockedLevels.includes(level)) return;
+            gameState.currentLevel = level;
+            showScreen('level-' + level);
+            initLevel(level);
+            saveState();
+        }
+
+        function unlockLevel(level) {
+            if (!gameState.unlockedLevels.includes(level)) gameState.unlockedLevels.push(level);
+            saveState();
+            updateLevelIndicator();
+        }
+
+        function completeLevel(level) {
+            if (!gameState.completedLevels.includes(level)) gameState.completedLevels.push(level);
+            unlockLevel(level + 1);
+            saveState();
+        }
+
+        // ========== INTRO ==========
+        let introStep = 0;
+        const introDialogs = [
+            { text: "<p><strong>Hallo! Ich bin Algo-Bot!</strong></p><p>Ich habe ein grosses Problem...</p>", emotion: "idle" },
+            { text: "<p>Ohne <strong>genaue Anleitungen</strong> mache ich alles falsch!</p><p>Einmal wollte ich ein Marmeladenbrot machen... Katastrophe! 😅</p>", emotion: "confused" },
+            { text: "<p>Ich brauche deine Hilfe!</p><p>Zusammen lernen wir <span class='highlight'>Algorithmen</span>!</p>", emotion: "idle" },
+            { text: "<p><strong>5 Level mit je 2 Aufgaben</strong> warten!</p><p>Am Ende ein schwieriges Quiz! Los geht's! 🚀</p>", emotion: "happy" }
+        ];
+
+        function nextIntroDialog() {
+            introStep++;
+            if (introStep >= introDialogs.length) { showScreen('level-select'); return; }
+            document.getElementById('intro-speech').innerHTML = introDialogs[introStep].text;
+            const bot = document.querySelector('#intro-screen .algobot');
+            bot.className = 'algobot large ' + introDialogs[introStep].emotion;
+        }
+
+        // ========== DRAG AND DROP ==========
+        let draggedItem = null;
+
+        function initDragDrop() {
+            document.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('drag-item') || e.target.classList.contains('debris-item')) {
+                    draggedItem = e.target;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+
+            document.addEventListener('dragend', function(e) {
+                if (e.target.classList.contains('drag-item') || e.target.classList.contains('debris-item')) {
+                    e.target.classList.remove('dragging');
+                    draggedItem = null;
+                    document.querySelectorAll('.drag-over').forEach(z => z.classList.remove('drag-over'));
+                }
+            });
+
+            document.addEventListener('dragover', function(e) {
+                const zone = e.target.closest('.task-area, .drop-area, .bin-drop');
+                if (zone) {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                }
+            });
+
+            document.addEventListener('dragleave', function(e) {
+                const zone = e.target.closest('.task-area, .drop-area, .bin-drop');
+                if (zone) zone.classList.remove('drag-over');
+            });
+
+            document.addEventListener('drop', function(e) {
+                const zone = e.target.closest('.task-area, .drop-area, .bin-drop');
+                if (zone && draggedItem) {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    zone.appendChild(draggedItem);
+                }
+            });
+        }
+
+        // ========== LEVEL INIT ==========
+        function initLevel(level) {
+            if (level === 1) initLevel1();
+            else if (level === 2) initLevel2();
+            else if (level === 3) initLevel3();
+            else if (level === 4) initLevel4();
+            else if (level === 5) initQuiz();
+        }
+
+        // ========== LEVEL 1 ==========
+        let level1Task = 1;
+        let task1_2_questionIndex = 0;
+        let task1_2_correct = 0;
+
+        const task1_2_questions = [
+            { q: "Was bedeutet 'Eindeutigkeit'?", options: ["Jeder Schritt ist klar", "Alles geht schnell", "Man braucht einen Computer"], correct: 0 },
+            { q: "'Fliege zum Mond' - welche Eigenschaft fehlt?", options: ["Eindeutigkeit", "Ausfuehrbarkeit", "Endlichkeit"], correct: 1 },
+            { q: "'Wiederhole fuer immer' - welche Eigenschaft fehlt?", options: ["Eindeutigkeit", "Ausfuehrbarkeit", "Endlichkeit"], correct: 2 },
+            { q: "Ein Computer hat nicht unendlich viel Power! Woran messen wir, ob ein Algorithmus wirklich gut ist? (Mehrfachauswahl)", options: ["Speicherverbrauch", "Zeitverbrauch", "Anzahl der Codezeilen", "Schoenheit des Codes"], correct: [0, 1], multiSelect: true }
+        ];
+
+        function initLevel1() {
+            level1Task = 1;
+            task1_2_questionIndex = 0;
+            task1_2_correct = 0;
+            document.getElementById('task1-1').style.display = 'block';
+            document.getElementById('task1-2').style.display = 'none';
+            document.getElementById('l1-t1').className = 'task-dot active';
+            document.getElementById('l1-t2').className = 'task-dot';
+            resetTask1_1();
+        }
+
+        function resetTask1_1() {
+            const items = document.getElementById('level1-items');
+            document.querySelectorAll('#level-1 .drag-item').forEach(item => {
+                item.classList.remove('correct', 'incorrect');
+                items.appendChild(item);
+            });
+            [...items.children].sort(() => Math.random() - 0.5).forEach(c => items.appendChild(c));
+            document.getElementById('level1-feedback').style.display = 'none';
+            document.getElementById('level1-tip').classList.remove('show');
+        }
+
+        function checkTask1_1() {
+            const items = [...document.getElementById('level1-dropzone').querySelectorAll('.drag-item')];
+            if (items.length < 5) { showFeedback('level1-feedback', 'warning', 'Ziehe alle 5 Schritte!'); return; }
+
+            let allCorrect = true;
+            items.forEach((item, i) => {
+                const correct = parseInt(item.dataset.order) === i + 1;
+                item.classList.toggle('correct', correct);
+                item.classList.toggle('incorrect', !correct);
+                if (!correct) allCorrect = false;
+            });
+
+            if (allCorrect) {
+                showFeedback('level1-feedback', 'success', '🎉 Perfekt! Weiter zu Aufgabe 2!');
+                document.getElementById('level1-bot').className = 'algobot small happy';
+                setTimeout(() => {
+                    document.getElementById('task1-1').style.display = 'none';
+                    document.getElementById('task1-2').style.display = 'block';
+                    document.getElementById('l1-t1').className = 'task-dot done';
+                    document.getElementById('l1-t2').className = 'task-dot active';
+                    document.getElementById('level1-feedback').style.display = 'none';
+                    showTask1_2Question();
+                }, 1500);
+            } else {
+                showFeedback('level1-feedback', 'error', 'Nicht ganz richtig. Rote sind falsch!');
+                document.getElementById('level1-tip').classList.add('show');
+            }
+        }
+
+        let task1_2_selected = [];
+
+        function showTask1_2Question() {
+            if (task1_2_questionIndex >= task1_2_questions.length) {
+                if (task1_2_correct >= 3) {
+                    showFeedback('level1-feedback', 'success', '🎉 Level 1 geschafft!');
+                    setTimeout(() => { completeLevel(1); showScreen('level-select'); }, 1500);
+                } else {
+                    task1_2_questionIndex = 0;
+                    task1_2_correct = 0;
+                    showFeedback('level1-feedback', 'error', 'Mindestens 3 richtige noetig. Nochmal!');
+                    setTimeout(() => { document.getElementById('level1-feedback').style.display = 'none'; showTask1_2Question(); }, 2000);
+                }
+                return;
+            }
+
+            task1_2_selected = [];
+            const q = task1_2_questions[task1_2_questionIndex];
+            let html = `<p style="font-size: 1.2rem; margin-bottom: 1rem;"><strong>${q.q}</strong></p><div class="quiz-options">`;
+            q.options.forEach((opt, i) => {
+                if (q.multiSelect) {
+                    html += `<div class="quiz-option" onclick="toggleTask1_2Answer(${i})" data-idx="${i}">☐ ${opt}</div>`;
+                } else {
+                    html += `<div class="quiz-option" onclick="selectTask1_2Answer(${i})">${opt}</div>`;
+                }
+            });
+            html += '</div>';
+            if (q.multiSelect) {
+                html += '<div class="btn-container" style="margin-top: 1rem;"><button class="btn btn-primary" onclick="checkTask1_2MultiSelect()">Pruefen</button></div>';
+            }
+            document.getElementById('task1-2-quiz').innerHTML = html;
+            document.getElementById('task1-2-next').style.display = 'none';
+        }
+
+        function toggleTask1_2Answer(idx) {
+            const option = document.querySelector(`#task1-2-quiz .quiz-option[data-idx="${idx}"]`);
+            if (option.classList.contains('disabled')) return;
+
+            if (task1_2_selected.includes(idx)) {
+                task1_2_selected = task1_2_selected.filter(i => i !== idx);
+                option.classList.remove('selected');
+                option.innerHTML = '☐ ' + task1_2_questions[task1_2_questionIndex].options[idx];
+            } else {
+                task1_2_selected.push(idx);
+                option.classList.add('selected');
+                option.innerHTML = '☑ ' + task1_2_questions[task1_2_questionIndex].options[idx];
+            }
+        }
+
+        function checkTask1_2MultiSelect() {
+            const q = task1_2_questions[task1_2_questionIndex];
+            const options = document.querySelectorAll('#task1-2-quiz .quiz-option');
+            options.forEach((opt, i) => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+                if (q.correct.includes(i)) opt.classList.add('correct');
+            });
+
+            const correctSet = new Set(q.correct);
+            const selectedSet = new Set(task1_2_selected);
+            const isCorrect = correctSet.size === selectedSet.size && [...correctSet].every(x => selectedSet.has(x));
+
+            if (isCorrect) {
+                task1_2_correct++;
+            } else {
+                task1_2_selected.forEach(idx => {
+                    if (!q.correct.includes(idx)) {
+                        options[idx].classList.add('wrong');
+                    }
+                });
+            }
+            document.getElementById('task1-2-next').style.display = 'inline-block';
+        }
+
+        function selectTask1_2Answer(idx) {
+            const q = task1_2_questions[task1_2_questionIndex];
+            const options = document.querySelectorAll('#task1-2-quiz .quiz-option');
+            options.forEach((opt, i) => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+                if (i === q.correct) opt.classList.add('correct');
+            });
+            if (idx === q.correct) task1_2_correct++;
+            else options[idx].classList.add('wrong');
+            document.getElementById('task1-2-next').style.display = 'inline-block';
+        }
+
+        function nextTask1_2Question() {
+            task1_2_questionIndex++;
+            showTask1_2Question();
+        }
+
+        // ========== LEVEL 2 ==========
+        let level2Task = 1;
+
+        function initLevel2() {
+            level2Task = 1;
+            document.getElementById('task2-1').style.display = 'block';
+            document.getElementById('task2-2').style.display = 'none';
+            document.getElementById('l2-t1').className = 'task-dot active';
+            document.getElementById('l2-t2').className = 'task-dot';
+            resetTask2_1();
+        }
+
+        function resetTask2_1() {
+            const items = document.getElementById('level2-items');
+            document.querySelectorAll('#level-2 .drag-item').forEach(item => {
+                item.classList.remove('correct', 'incorrect');
+                items.appendChild(item);
+            });
+            // Begriffe zufaellig anordnen
+            [...items.children].sort(() => Math.random() - 0.5).forEach(c => items.appendChild(c));
+            document.getElementById('level2-feedback').style.display = 'none';
+        }
+
+        function checkTask2_1() {
+            let allCorrect = true, totalPlaced = 0;
+            ['E', 'V', 'A'].forEach(cat => {
+                const items = document.getElementById('eva-drop-' + cat).querySelectorAll('.drag-item');
+                totalPlaced += items.length;
+                items.forEach(item => {
+                    const correct = item.dataset.category === cat;
+                    item.classList.toggle('correct', correct);
+                    item.classList.toggle('incorrect', !correct);
+                    if (!correct) allCorrect = false;
+                });
+            });
+
+            if (totalPlaced < 6) { showFeedback('level2-feedback', 'warning', 'Ziehe alle 6 Begriffe!'); return; }
+
+            if (allCorrect) {
+                showFeedback('level2-feedback', 'success', '🎉 Super! Weiter zu Aufgabe 2!');
+                setTimeout(() => {
+                    document.getElementById('task2-1').style.display = 'none';
+                    document.getElementById('task2-2').style.display = 'block';
+                    document.getElementById('l2-t1').className = 'task-dot done';
+                    document.getElementById('l2-t2').className = 'task-dot active';
+                    document.getElementById('level2-feedback').style.display = 'none';
+                    initTask2_2();
+                }, 1500);
+            } else {
+                showFeedback('level2-feedback', 'error', 'Einige sind falsch (rot markiert)!');
+            }
+        }
+
+        const task2_2_examples_original = [
+            { situation: "Du gibst dein Passwort ein", answer: "E" },
+            { situation: "Der Computer prueft das Passwort", answer: "V" },
+            { situation: "Die Tuere oeffnet sich", answer: "A" },
+            { situation: "Du sprichst ins Mikrofon", answer: "E" },
+            { situation: "Die App erkennt deine Stimme", answer: "V" },
+            { situation: "Der Text erscheint auf dem Bildschirm", answer: "A" }
+        ];
+        let task2_2_examples = [];
+
+        function initTask2_2() {
+            // Situationen zufaellig anordnen
+            task2_2_examples = [...task2_2_examples_original].sort(() => Math.random() - 0.5);
+            let html = '<div style="display: grid; gap: 0.5rem;">';
+            task2_2_examples.forEach((ex, i) => {
+                html += `<div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 10px;">
+                    <span style="flex: 1;">${ex.situation}</span>
+                    <select id="task2-2-${i}" style="padding: 0.5rem; border-radius: 8px; border: 2px solid var(--panel-border);">
+                        <option value="">--</option>
+                        <option value="E">Eingabe</option>
+                        <option value="V">Verarbeitung</option>
+                        <option value="A">Ausgabe</option>
+                    </select>
+                </div>`;
+            });
+            html += '</div>';
+            document.getElementById('task2-2-content').innerHTML = html;
+        }
+
+        function checkTask2_2() {
+            let correct = 0;
+            task2_2_examples.forEach((ex, i) => {
+                const sel = document.getElementById('task2-2-' + i);
+                if (sel.value === ex.answer) {
+                    correct++;
+                    sel.style.borderColor = 'var(--success)';
+                    sel.style.background = '#d1fae5';
+                } else {
+                    sel.style.borderColor = 'var(--danger)';
+                    sel.style.background = '#fee2e2';
+                }
+            });
+
+            if (correct >= 5) {
+                showFeedback('level2-feedback', 'success', `🎉 ${correct}/6 richtig! Level 2 geschafft!`);
+                setTimeout(() => { completeLevel(2); showScreen('level-select'); }, 1500);
+            } else {
+                showFeedback('level2-feedback', 'error', `Nur ${correct}/6 richtig. Mindestens 5 noetig!`);
+            }
+        }
+
+        // ========== LEVEL 3 ==========
+        let correctGearCount = 0;
+
+        function initLevel3() {
+            document.getElementById('task3-1').style.display = 'block';
+            document.getElementById('task3-2').style.display = 'none';
+            document.getElementById('l3-t1').className = 'task-dot active';
+            document.getElementById('l3-t2').className = 'task-dot';
+            resetTask3_1();
+        }
+
+        function resetTask3_1() {
+            const source = document.getElementById('debris-source');
+            document.querySelectorAll('#level-3 .debris-item').forEach(item => {
+                item.classList.remove('correct', 'incorrect', 'matched');
+                source.appendChild(item);
+            });
+            document.getElementById('level3-feedback').style.display = 'none';
+        }
+
+        function checkTask3_1() {
+            let allCorrect = true, totalPlaced = 0;
+            ['holz', 'metall', 'plastik'].forEach(type => {
+                const bin = document.getElementById('bin-' + type);
+                const items = bin.querySelectorAll('.debris-item');
+                totalPlaced += items.length;
+                items.forEach(item => {
+                    if (item.dataset.type === type) item.classList.add('matched');
+                    else allCorrect = false;
+                });
+            });
+
+            if (totalPlaced < 9) { showFeedback('level3-feedback', 'warning', 'Sortiere alle 9 Teile!'); return; }
+
+            if (allCorrect) {
+                showFeedback('level3-feedback', 'success', '🎉 Perfekt aufgeteilt! Weiter!');
+                document.getElementById('level3-bot').className = 'algobot small happy';
+                setTimeout(() => {
+                    document.getElementById('task3-1').style.display = 'none';
+                    document.getElementById('task3-2').style.display = 'block';
+                    document.getElementById('l3-t1').className = 'task-dot done';
+                    document.getElementById('l3-t2').className = 'task-dot active';
+                    document.getElementById('level3-feedback').style.display = 'none';
+                    initTask3_2();
+                }, 1500);
+            } else {
+                showFeedback('level3-feedback', 'error', 'Einige Teile sind falsch sortiert!');
+                document.getElementById('level3-tip').textContent = 'Schau genau auf die Symbole!';
+                document.getElementById('level3-tip').classList.add('show');
+            }
+        }
+
+        function initTask3_2() {
+            const items = ['⚙️', '🪵', '⚙️', '🔩', '🧴', '⚙️', '🪑', '⚙️', '🔧', '📦', '⚙️', '🎮', '🪣', '⚙️', '🔩'];
+            correctGearCount = items.filter(i => i === '⚙️').length;
+            const container = document.getElementById('count-items');
+            container.innerHTML = '';
+            items.sort(() => Math.random() - 0.5).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'debris-item';
+                div.textContent = item;
+                div.style.cursor = 'default';
+                div.draggable = false;
+                container.appendChild(div);
+            });
+            document.getElementById('gear-count').value = '';
+        }
+
+        function checkTask3_2() {
+            const answer = parseInt(document.getElementById('gear-count').value);
+            if (answer === correctGearCount) {
+                showFeedback('level3-feedback', 'success', `🎉 Richtig! ${correctGearCount} Zahnraeder! Level 3 geschafft!`);
+                document.getElementById('l3-t2').className = 'task-dot done';
+                setTimeout(() => { completeLevel(3); showScreen('level-select'); }, 1500);
+            } else {
+                showFeedback('level3-feedback', 'error', 'Das stimmt nicht. Zaehle nur die ⚙️!');
+                document.getElementById('level3-tip').textContent = 'Tipp: Ignoriere alles ausser ⚙️!';
+                document.getElementById('level3-tip').classList.add('show');
+            }
+        }
+
+        // ========== LEVEL 4 ==========
+        let bubbleArray = [], bubbleMoves = 0, selectedBar = null;
+
+        function initLevel4() {
+            document.getElementById('task4-1').style.display = 'block';
+            document.getElementById('task4-2').style.display = 'none';
+            document.getElementById('l4-t1').className = 'task-dot active';
+            document.getElementById('l4-t2').className = 'task-dot';
+            resetTask4_1();
+        }
+
+        function resetTask4_1() {
+            bubbleArray = [5, 2, 8, 1, 9, 3, 7, 4];
+            bubbleMoves = 0;
+            selectedBar = null;
+            renderBubbleManual();
+            document.getElementById('bubble-moves').innerHTML = 'Zuege: <strong>0</strong>';
+            document.getElementById('level4-feedback').style.display = 'none';
+        }
+
+        function renderBubbleManual() {
+            const container = document.getElementById('bubble-manual');
+            container.innerHTML = '';
+            bubbleArray.forEach((val, idx) => {
+                const bar = document.createElement('div');
+                bar.className = 'sort-bar' + (selectedBar === idx ? ' selected' : '');
+                bar.style.height = (val * 20) + 'px';
+                bar.textContent = val;
+                bar.onclick = () => selectBar(idx);
+                container.appendChild(bar);
+            });
+        }
+
+        function selectBar(index) {
+            if (selectedBar === null) {
+                selectedBar = index;
+            } else {
+                if (Math.abs(selectedBar - index) === 1) {
+                    [bubbleArray[selectedBar], bubbleArray[index]] = [bubbleArray[index], bubbleArray[selectedBar]];
+                    bubbleMoves++;
+                    document.getElementById('bubble-moves').innerHTML = 'Zuege: <strong>' + bubbleMoves + '</strong>';
+                }
+                selectedBar = null;
+            }
+            renderBubbleManual();
+        }
+
+        function checkTask4_1() {
+            const sorted = [...bubbleArray].sort((a, b) => a - b);
+            if (bubbleArray.every((v, i) => v === sorted[i])) {
+                showFeedback('level4-feedback', 'success', `🎉 In ${bubbleMoves} Zuegen! Jetzt das Rennen!`);
+                document.getElementById('l4-t1').className = 'task-dot done';
+                setTimeout(() => {
+                    document.getElementById('task4-1').style.display = 'none';
+                    document.getElementById('task4-2').style.display = 'block';
+                    document.getElementById('l4-t2').className = 'task-dot active';
+                    document.getElementById('level4-feedback').style.display = 'none';
+                    initRace();
+                }, 1500);
+            } else {
+                showFeedback('level4-feedback', 'warning', 'Noch nicht sortiert! Klein nach gross!');
+            }
+        }
+
+        let raceArrayBubble = [], raceArrayQuick = [], raceRunning = false;
+
+        function initRace() {
+            const arr = [6, 2, 8, 1, 9, 3, 7, 5];
+            raceArrayBubble = [...arr];
+            raceArrayQuick = [...arr];
+            renderRace('race-bubble', raceArrayBubble);
+            renderRace('race-quick', raceArrayQuick);
+            document.getElementById('bubble-steps').textContent = '0';
+            document.getElementById('quick-steps').textContent = '0';
+            document.getElementById('race-btn').disabled = false;
+        }
+
+        function renderRace(id, array, comparing = [], pivot = -1, sorted = []) {
+            const container = document.getElementById(id);
+            container.innerHTML = '';
+            array.forEach((val, idx) => {
+                const bar = document.createElement('div');
+                bar.className = 'sort-bar';
+                bar.style.height = (val * 18) + 'px';
+                bar.textContent = val;
+                if (comparing.includes(idx)) bar.classList.add('comparing');
+                if (idx === pivot) bar.classList.add('pivot');
+                if (sorted.includes(idx)) bar.classList.add('sorted');
+                container.appendChild(bar);
+            });
+        }
+
+        async function startRace() {
+            if (raceRunning) return;
+            raceRunning = true;
+            document.getElementById('race-btn').disabled = true;
+
+            const bubblePromise = animateBubbleSort();
+            const quickPromise = animateQuickSort();
+            await Promise.all([bubblePromise, quickPromise]);
+
+            raceRunning = false;
+            showFeedback('level4-feedback', 'success', '🏎️ Quick-Sort gewinnt! Level 4 geschafft!');
+            document.getElementById('l4-t2').className = 'task-dot done';
+            setTimeout(() => { completeLevel(4); showScreen('level-select'); }, 2000);
+        }
+
+        async function animateBubbleSort() {
+            let steps = 0;
+            const n = raceArrayBubble.length, sorted = [];
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    renderRace('race-bubble', raceArrayBubble, [j, j + 1], -1, sorted);
+                    await sleep(150);
+                    steps++;
+                    document.getElementById('bubble-steps').textContent = steps;
+                    if (raceArrayBubble[j] > raceArrayBubble[j + 1]) {
+                        [raceArrayBubble[j], raceArrayBubble[j + 1]] = [raceArrayBubble[j + 1], raceArrayBubble[j]];
+                    }
+                }
+                sorted.push(n - 1 - i);
+            }
+            sorted.push(0);
+            renderRace('race-bubble', raceArrayBubble, [], -1, sorted);
+        }
+
+        async function animateQuickSort() {
+            let steps = 0;
+            const sorted = [];
+
+            async function qs(low, high) {
+                if (low < high) {
+                    const pi = await partition(low, high);
+                    sorted.push(pi);
+                    await qs(low, pi - 1);
+                    await qs(pi + 1, high);
+                } else if (low === high) sorted.push(low);
+            }
+
+            async function partition(low, high) {
+                const pivot = raceArrayQuick[high];
+                let i = low - 1;
+                renderRace('race-quick', raceArrayQuick, [], high, sorted);
+                await sleep(150);
+                steps++;
+                document.getElementById('quick-steps').textContent = steps;
+
+                for (let j = low; j < high; j++) {
+                    renderRace('race-quick', raceArrayQuick, [j], high, sorted);
+                    await sleep(100);
+                    steps++;
+                    document.getElementById('quick-steps').textContent = steps;
+                    if (raceArrayQuick[j] < pivot) {
+                        i++;
+                        [raceArrayQuick[i], raceArrayQuick[j]] = [raceArrayQuick[j], raceArrayQuick[i]];
+                    }
+                }
+                [raceArrayQuick[i + 1], raceArrayQuick[high]] = [raceArrayQuick[high], raceArrayQuick[i + 1]];
+                return i + 1;
+            }
+
+            await qs(0, raceArrayQuick.length - 1);
+            renderRace('race-quick', raceArrayQuick, [], -1, Array.from({length: raceArrayQuick.length}, (_, i) => i));
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // ========== LEVEL 5: SCHWERES QUIZ ==========
+        const quizQuestions = [
+            { q: "Was ist ein Algorithmus?", options: ["Ein Computervirus", "Eine Schritt-fuer-Schritt-Anleitung", "Eine Programmiersprache", "Ein Betriebssystem"], correct: 1, tip: "Denk an das Marmeladenbrot!" },
+            { q: "Welche Eigenschaft bedeutet 'jeder Schritt ist klar definiert'?", options: ["Endlichkeit", "Ausfuehrbarkeit", "Eindeutigkeit", "Schnelligkeit"], correct: 2, tip: "Keine Missverstaendnisse!" },
+            { q: "Was fehlt bei 'Wiederhole fuer immer'?", options: ["Eindeutigkeit", "Ausfuehrbarkeit", "Endlichkeit", "Alles ist ok"], correct: 2, tip: "Endet das jemals?" },
+            { q: "Wofuer steht EVA?", options: ["Eingabe-Verarbeitung-Ausgabe", "Elektronik-Verbindung-Aktion", "Ende-Vergleich-Anfang", "Eins-Vier-Acht"], correct: 0, tip: "Das Grundgesetz!" },
+            { q: "Was gehoert zur EINGABE?", options: ["Bildschirmanzeige", "Berechnung", "Tastatureingabe", "Druckerausgabe"], correct: 2, tip: "Was gibst DU dem Computer?" },
+            { q: "Was gehoert zur VERARBEITUNG?", options: ["Mausklick", "Lautsprecherton", "Vergleichen von Zahlen", "Kameraaufnahme"], correct: 2, tip: "Was macht der Computer intern?" },
+            { q: "Was gehoert zur AUSGABE?", options: ["Tastendruck", "Mikrofoneingabe", "Berechnung", "Bildschirmanzeige"], correct: 3, tip: "Was zeigt der Computer DIR?" },
+            { q: "Was ist der ERSTE Schritt beim Computational Thinking?", options: ["Muster erkennen", "Problem aufteilen", "Vereinfachen", "Algorithmus schreiben"], correct: 1, tip: "Grosse Probleme zuerst..." },
+            { q: "Was bedeutet 'Abstraktion'?", options: ["Alles detailliert aufschreiben", "Unwichtiges weglassen", "Schneller tippen", "Programme kopieren"], correct: 1, tip: "Nur das Wichtige!" },
+            { q: "Wie funktioniert Bubble-Sort?", options: ["Alles auf einmal sortieren", "Nachbarn vergleichen und tauschen", "Liste halbieren", "Zufaellig mischen"], correct: 1, tip: "Wie Luftblasen..." },
+            { q: "Was ist die 'Vergleichszahl' bei Quick-Sort?", options: ["Ein Fehler", "Die Zahl, mit der alle anderen verglichen werden", "Der Anfang", "Das Ende"], correct: 1, tip: "Teile und herrsche!" },
+            { q: "Warum ist Quick-Sort schneller als Bubble-Sort?", options: ["Er macht weniger Vergleiche durch cleveres Teilen", "Er ist neuer", "Er braucht mehr Speicher", "Er ist einfacher"], correct: 0, tip: "Teilen ist effizienter!" },
+            { q: "Ein Kochrezept ist ein Beispiel fuer...", options: ["Einen Computer", "Einen Algorithmus", "Eine Datenbank", "Ein Netzwerk"], correct: 1, tip: "Schritt fuer Schritt!" },
+            { q: "Was macht ein Navi-Algorithmus?", options: ["Fotos aufnehmen", "Den kuerzesten oder schnellsten Weg berechnen", "Musik abspielen", "SMS senden"], correct: 1, tip: "Von A nach B!" },
+            { q: "Welcher Algorithmus nutzt 'Teile und herrsche'?", options: ["Bubble-Sort", "Quick-Sort", "Beide", "Keiner"], correct: 1, tip: "Der schnelle Teiler!" },
+            { q: "Woran misst man, wie gut ein Algorithmus ist?", options: ["An der Anzahl der Codezeilen", "Am Speicher- und Zeitverbrauch", "An der Schriftgroesse", "Am Namen des Programmierers"], correct: 1, tip: "Zeit und Speicher sind kostbar!" }
+        ];
+
+        function initQuiz() {
+            gameState.quizScore = 0;
+            gameState.currentQuizQuestion = 0;
+            showQuizQuestion();
+        }
+
+        function showQuizQuestion() {
+            quizAttempts = 0; // Versuche zuruecksetzen
+            const q = quizQuestions[gameState.currentQuizQuestion];
+            document.getElementById('quiz-current').textContent = `Frage ${gameState.currentQuizQuestion + 1}/16`;
+            document.getElementById('quiz-progress').style.width = ((gameState.currentQuizQuestion + 1) / 16 * 100) + '%';
+            document.getElementById('quiz-score').textContent = gameState.quizScore + ' Punkte';
+            document.getElementById('quiz-question').textContent = q.q;
+
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'quiz-option';
+                div.textContent = opt;
+                div.onclick = () => selectQuizAnswer(i);
+                container.appendChild(div);
+            });
+
+            document.getElementById('quiz-next-btn').style.display = 'none';
+            document.getElementById('level5-tip').classList.remove('show');
+        }
+
+        let quizAttempts = 0;
+
+        function selectQuizAnswer(idx) {
+            const q = quizQuestions[gameState.currentQuizQuestion];
+            const options = document.querySelectorAll('#quiz-options .quiz-option');
+            const selectedOption = options[idx];
+
+            // Wenn diese Option bereits als falsch markiert wurde, ignorieren
+            if (selectedOption.classList.contains('wrong') || selectedOption.classList.contains('disabled')) {
+                return;
+            }
+
+            if (idx === q.correct) {
+                // Richtige Antwort!
+                options.forEach((opt, i) => {
+                    opt.classList.add('disabled');
+                    opt.onclick = null;
+                });
+                selectedOption.classList.add('correct');
+
+                // Nur beim ersten Versuch Punkte geben
+                if (quizAttempts === 0) {
+                    gameState.quizScore++;
+                    document.getElementById('quiz-score').textContent = gameState.quizScore + ' Punkte';
+                }
+                document.getElementById('level5-bot').className = 'algobot small happy';
+                document.getElementById('level5-tip').classList.remove('show');
+
+                document.getElementById('quiz-next-btn').style.display = 'inline-block';
+                document.getElementById('quiz-next-btn').textContent = gameState.currentQuizQuestion < 15 ? 'Naechste Frage' : 'Ergebnis';
+            } else {
+                // Falsche Antwort - nur diese Option rot markieren
+                quizAttempts++;
+                selectedOption.classList.add('wrong');
+                selectedOption.classList.add('disabled');
+                selectedOption.onclick = null;
+
+                document.getElementById('level5-tip').textContent = q.tip;
+                document.getElementById('level5-tip').classList.add('show');
+                document.getElementById('level5-bot').className = 'algobot small confused';
+            }
+        }
+
+        function nextQuizQuestion() {
+            gameState.currentQuizQuestion++;
+            if (gameState.currentQuizQuestion >= 16) {
+                showVictory();
+            } else {
+                showQuizQuestion();
+                document.getElementById('level5-bot').className = 'algobot small idle';
+            }
+        }
+
+        function showVictory() {
+            completeLevel(5);
+            document.getElementById('final-score').textContent = gameState.quizScore;
+            const stars = gameState.quizScore >= 14 ? '⭐⭐⭐' : gameState.quizScore >= 11 ? '⭐⭐' : '⭐';
+            document.getElementById('victory-stars').textContent = stars;
+            showScreen('victory-screen');
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#4f46e5', '#f97316', '#22c55e', '#eab308', '#ef4444', '#a855f7'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const c = document.createElement('div');
+                    c.className = 'confetti';
+                    c.style.left = Math.random() * 100 + 'vw';
+                    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    document.body.appendChild(c);
+                    setTimeout(() => c.remove(), 4000);
+                }, i * 100);
+            }
+        }
+
+        function restartGame() {
+            gameState = { currentLevel: 0, unlockedLevels: [0, 1], completedLevels: [], quizScore: 0, currentQuizQuestion: 0 };
+            saveState();
+            introStep = 0;
+            document.getElementById('intro-speech').innerHTML = introDialogs[0].text;
+            showScreen('intro-screen');
+        }
+
+        // ========== HELPERS ==========
+        function showFeedback(id, type, msg) {
+            const el = document.getElementById(id);
+            el.className = 'info-box ' + (type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'error');
+            el.innerHTML = msg;
+            el.style.display = 'block';
+        }
+
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            const template = document.getElementById('algobot-template');
+            document.querySelectorAll('svg.algobot').forEach(svg => {
+                svg.innerHTML = template.content.querySelector('svg').innerHTML;
+            });
+
+            initDragDrop();
+            updateLevelIndicator();
+
+            if (gameState.completedLevels.length > 0) showScreen('level-select');
+        });
+    </script>
+</body>
+</html>
