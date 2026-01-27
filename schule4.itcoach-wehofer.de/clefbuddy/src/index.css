@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
+/* =====================================================
+   VexFlow Note Highlighting Styles
+   ===================================================== */
+
+/* Highlighted note during playback */
+.note-highlighted {
+  filter: drop-shadow(0 0 6px #4f46e5) drop-shadow(0 0 2px #4f46e5);
+}
+
+.note-highlighted path,
+.note-highlighted ellipse,
+.note-highlighted rect {
+  fill: #4f46e5 !important;
+  stroke: #4f46e5 !important;
+}
+
+/* Animation for highlight */
+@keyframes note-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px #4f46e5);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #6366f1);
+  }
+}
+
+.note-highlighted {
+  animation: note-pulse 0.5s ease-in-out;
+}
+
+/* Transition for smooth highlight changes */
+.vf-stavenote {
+  transition: filter 0.1s ease-out;
+}
+
+.vf-stavenote path,
+.vf-stavenote ellipse {
+  transition: fill 0.1s ease-out, stroke 0.1s ease-out;
+}

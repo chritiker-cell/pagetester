@@ -1,0 +1,3 @@
+# Stores
+
+Zustand state management stores will be implemented here.

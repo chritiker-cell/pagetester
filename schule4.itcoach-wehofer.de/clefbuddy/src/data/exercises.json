@@ -1,0 +1,1423 @@
+{
+  "exercises": [
+    {
+      "id": "l1_ex1",
+      "level": 1,
+      "name": "Erste Schritte",
+      "description": "Aufsteigende Tonleiter im Fünffingerraum",
+      "difficulty": "beginner",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["c/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["g/4"], "duration": "h"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["c/4"], "duration": "h"},
+            {"keys": ["d/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Einführung der fünf Grundtöne mit stufenweiser Bewegung. Symmetrische Phrasenstruktur (Auf-Ab-Kadenz)."
+    },
+    {
+      "id": "l1_ex2",
+      "level": 1,
+      "name": "Kleine Schritte",
+      "description": "Sekundschritte mit Tonwiederholung",
+      "difficulty": "beginner",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["g/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["d/4"], "duration": "h"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Wiederholungsmuster zur Festigung der Tonhöhenerkennung. Langsame rhythmische Variation."
+    },
+    {
+      "id": "l1_ex3",
+      "level": 1,
+      "name": "Tonleiterspiel",
+      "description": "Wechselnde Richtungen im Fünftonraum",
+      "difficulty": "beginner",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["e/4"], "duration": "h"},
+            {"keys": ["d/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["e/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Sequenzmuster (Auf-Ab-Bewegung) zur Förderung des melodischen Gedächtnisses. Tonikaschluss am Ende."
+    },
+    {
+      "id": "l2_ex1",
+      "level": 2,
+      "name": "Oktavsprung",
+      "description": "Erweiterung auf die volle Oktave",
+      "difficulty": "easy",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["c/5"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["e/4"], "duration": "h"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["b/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["d/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Einführung der ganzen Note und des Oktavraums. C-Dur-Dreiklang als melodische Linie zur tonalen Orientierung."
+    },
+    {
+      "id": "l2_ex2",
+      "level": 2,
+      "name": "Ganze Noten",
+      "description": "Üben langer Notenwerte",
+      "difficulty": "easy",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["e/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["g/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["c/5"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["b/4"], "duration": "h"},
+            {"keys": ["a/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["g/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["d/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["e/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["a/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["g/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Reine Tonhöhenübung ohne rhythmische Komplexität. C-Dur-Dreiklang aufwärts zur Festigung der Dreiklangsstruktur."
+    },
+    {
+      "id": "l2_ex3",
+      "level": 2,
+      "name": "Terzsprünge",
+      "description": "Melodische Terzen in der Oktave",
+      "difficulty": "easy",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["c/5"], "duration": "h"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["a/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Terzen-Sequenzen aufwärts mit Rahmung durch Oktave (C4-C5). Stärkere melodische Kontur zur Vorbereitung größerer Sprünge."
+    },
+    {
+      "id": "l3_ex1",
+      "level": 3,
+      "name": "Punktierte Rhythmen",
+      "description": "Einführung der punktierten Halben",
+      "difficulty": "intermediate",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "hd"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["e/4"], "duration": "hd"},
+            {"keys": ["f/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "h"},
+            {"keys": ["b/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["c/5"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/5"], "duration": "hd"},
+            {"keys": ["c/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["b/4"], "duration": "hd"},
+            {"keys": ["a/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["d/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["e/4"], "duration": "hd"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["e/4"], "duration": "hd"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Punktierte Halbe (3 Schläge) plus Viertel – klassisches Rhythmuspattern. Aufsteigende Tonleiter mit neuem Rhythmus."
+    },
+    {
+      "id": "l3_ex2",
+      "level": 3,
+      "name": "Quintensprünge",
+      "description": "Übung melodischer Quinten",
+      "difficulty": "intermediate",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["d/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["e/5"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["e/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["d/5"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["g/4"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["e/5"], "duration": "q"},
+            {"keys": ["d/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Quinten-Arpeggien zur Schulung größerer Intervalle. Sequenziell aufsteigend, dann absteigend zum Grundton."
+    },
+    {
+      "id": "l3_ex3",
+      "level": 3,
+      "name": "Erweiterter Tonraum",
+      "description": "Melodie bis E5",
+      "difficulty": "intermediate",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["d/5"], "duration": "hd"},
+            {"keys": ["e/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["e/5"], "duration": "q"},
+            {"keys": ["d/5"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["a/4"], "duration": "h"},
+            {"keys": ["c/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["d/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["e/5"], "duration": "hd"},
+            {"keys": ["d/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["e/5"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["d/5"], "duration": "hd"},
+            {"keys": ["c/5"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Kombination aller Level-3-Elemente: erweiterter Tonraum, punktierte Rhythmen, größere Sprünge. Authentischer Ganzschluss (V-I)."
+    },
+    {
+      "id": "l1_grand_ex1",
+      "level": 1,
+      "name": "Klaviersystem Einführung",
+      "description": "Erste Schritte mit beiden Händen - Wechsel alle 2 Takte",
+      "difficulty": "beginner",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "grandStaff": true,
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["g/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "h"},
+            {"keys": ["e/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["d/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["e/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"},
+            {"keys": ["g/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["e/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "h"},
+            {"keys": ["c/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["d/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["d/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["e/4"], "duration": "h"},
+            {"keys": ["d/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "h"},
+            {"keys": ["g/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Einführung des Klaviersystems. Melodie wechselt alle 2 Takte zwischen rechter und linker Hand, während die andere Hand lange Noten hält."
+    },
+    {
+      "id": "l2_grand_ex1",
+      "level": 2,
+      "name": "Klaviersystem Oktave",
+      "description": "Erweiterter Tonraum in beiden Händen",
+      "difficulty": "easy",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "grandStaff": true,
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "h"},
+            {"keys": ["g/2"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["b/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["a/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["f/2"], "duration": "q"},
+            {"keys": ["a/2"], "duration": "q"},
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["g/4"], "duration": "h"},
+            {"keys": ["e/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "h"},
+            {"keys": ["c/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["d/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["c/5"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/2"], "duration": "q"},
+            {"keys": ["b/2"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["b/4"], "duration": "h"},
+            {"keys": ["a/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"},
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["b/2"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["g/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["a/2"], "duration": "h"},
+            {"keys": ["g/2"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["f/3"], "duration": "w"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["e/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/2"], "duration": "q"},
+            {"keys": ["a/2"], "duration": "q"},
+            {"keys": ["b/2"], "duration": "q"},
+            {"keys": ["c/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["f/4"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["d/3"], "duration": "h"},
+            {"keys": ["g/2"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Erweiterter Tonraum (Oktave) in beiden Händen. Melodie wechselt flüssiger zwischen den Stimmen."
+    },
+    {
+      "id": "l3_grand_ex1",
+      "level": 3,
+      "name": "Klaviersystem Zusammenspiel",
+      "description": "Parallele Bewegung und Gegenbewegung",
+      "difficulty": "intermediate",
+      "timeSignature": "4/4",
+      "keySignature": "C",
+      "clef": "treble",
+      "grandStaff": true,
+      "tempo": 60,
+      "bars": [
+        {
+          "number": 1,
+          "notes": [
+            {"keys": ["c/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 2,
+          "notes": [
+            {"keys": ["g/4"], "duration": "hd"},
+            {"keys": ["a/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "hd"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 3,
+          "notes": [
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["c/5"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "h"},
+            {"keys": ["f/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 4,
+          "notes": [
+            {"keys": ["g/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 5,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "q"},
+            {"keys": ["c/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["f/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 6,
+          "notes": [
+            {"keys": ["d/4"], "duration": "hd"},
+            {"keys": ["e/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["g/3"], "duration": "h"},
+            {"keys": ["g/2"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 7,
+          "notes": [
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["b/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["a/2"], "duration": "q"},
+            {"keys": ["b/2"], "duration": "q"},
+            {"keys": ["c/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 8,
+          "notes": [
+            {"keys": ["c/5"], "duration": "h"},
+            {"keys": ["g/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["e/3"], "duration": "h"},
+            {"keys": ["c/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 9,
+          "notes": [
+            {"keys": ["a/4"], "duration": "q"},
+            {"keys": ["g/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["f/3"], "duration": "q"},
+            {"keys": ["e/3"], "duration": "q"},
+            {"keys": ["d/3"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 10,
+          "notes": [
+            {"keys": ["e/4"], "duration": "hd"},
+            {"keys": ["d/4"], "duration": "q"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "hd"},
+            {"keys": ["b/2"], "duration": "q"}
+          ]
+        },
+        {
+          "number": 11,
+          "notes": [
+            {"keys": ["e/4"], "duration": "q"},
+            {"keys": ["f/4"], "duration": "q"},
+            {"keys": ["d/4"], "duration": "h"}
+          ],
+          "bassNotes": [
+            {"keys": ["a/2"], "duration": "q"},
+            {"keys": ["b/2"], "duration": "q"},
+            {"keys": ["g/2"], "duration": "h"}
+          ]
+        },
+        {
+          "number": 12,
+          "notes": [
+            {"keys": ["c/4"], "duration": "w"}
+          ],
+          "bassNotes": [
+            {"keys": ["c/3"], "duration": "w"}
+          ]
+        }
+      ],
+      "pedagogicalNotes": "Parallele und Gegenbewegung zwischen den Händen. Punktierte Rhythmen in beiden Stimmen, komplexere Koordination."
+    }
+  ],
+  "metadata": {
+    "version": "1.2.0",
+    "created": "2026-01-26",
+    "updated": "2026-01-27",
+    "totalExercises": 12,
+    "barsPerExercise": 12,
+    "notationSystem": "VexFlow",
+    "author": "ClefBuddy Music Theory Agent",
+    "notes": "Alle Übungen sind pädagogisch progressiv aufgebaut und folgen den Prinzipien der melodischen Stimmführung. Erweitert auf 12 Takte mit Struktur: Einführung (1-4), Sequenzierung (5-8), Schluss (9-12)."
+  }
+}

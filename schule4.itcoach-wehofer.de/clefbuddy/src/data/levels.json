@@ -1,0 +1,113 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "name": "Absolute Anfänger",
+      "description": "Erste Schritte im Notenlesen: Fünffingerraum in C-Dur",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "parameters": {
+        "noteRange": {
+          "min": "c/4",
+          "max": "g/4",
+          "description": "Fünffingerraum: C4, D4, E4, F4, G4"
+        },
+        "allowedDurations": ["q", "h"],
+        "allowedIntervals": {
+          "melodic": ["unison", "second"],
+          "maxJump": "second",
+          "description": "Nur stufenweise Bewegung und Tonwiederholung"
+        },
+        "barCount": 8,
+        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4"],
+        "rhythmicPatterns": [
+          "q q q q",
+          "h h",
+          "q q h"
+        ]
+      },
+      "pedagogicalFocus": "Tonhöhen-Erkennung im engsten Raum, einfachste Rhythmen",
+      "unlockCriteria": {
+        "accuracy": 0.7,
+        "exercisesCompleted": 3
+      }
+    },
+    {
+      "id": 2,
+      "name": "Leicht Fortgeschritten",
+      "description": "Erweiterung auf eine Oktave mit ganzen Noten",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "parameters": {
+        "noteRange": {
+          "min": "c/4",
+          "max": "c/5",
+          "description": "Eine Oktave: C4 bis C5"
+        },
+        "allowedDurations": ["q", "h", "w"],
+        "allowedIntervals": {
+          "melodic": ["unison", "second", "third", "fourth"],
+          "maxJump": "fourth",
+          "description": "Stufenweise Bewegung plus Terzen und Quarten"
+        },
+        "barCount": 8,
+        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5"],
+        "rhythmicPatterns": [
+          "q q q q",
+          "h h",
+          "w",
+          "h q q",
+          "q q q q"
+        ]
+      },
+      "pedagogicalFocus": "Oktaverkennung, ganze Noten, kleine Sprünge",
+      "unlockCriteria": {
+        "accuracy": 0.75,
+        "exercisesCompleted": 3
+      }
+    },
+    {
+      "id": 3,
+      "name": "Fortgeschrittener Anfänger",
+      "description": "Einführung punktierter Rhythmen und größerer Sprünge",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "parameters": {
+        "noteRange": {
+          "min": "c/4",
+          "max": "e/5",
+          "description": "Erweitert bis E5"
+        },
+        "allowedDurations": ["q", "h", "w", "hd"],
+        "allowedIntervals": {
+          "melodic": ["unison", "second", "third", "fourth", "fifth"],
+          "maxJump": "fifth",
+          "description": "Sprünge bis zur Quinte erlaubt"
+        },
+        "barCount": 8,
+        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5"],
+        "rhythmicPatterns": [
+          "q q q q",
+          "h h",
+          "w",
+          "hd q",
+          "q h q"
+        ]
+      },
+      "pedagogicalFocus": "Punktierte Halbe, Quinten-Sprünge, erweiterter Tonraum",
+      "unlockCriteria": {
+        "accuracy": 0.8,
+        "exercisesCompleted": 3
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "created": "2026-01-26",
+    "notationSystem": "VexFlow",
+    "author": "ClefBuddy Music Theory Agent"
+  }
+}
