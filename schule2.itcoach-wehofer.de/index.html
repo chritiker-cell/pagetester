@@ -78,6 +78,36 @@
         .level-dot.locked { opacity: 0.5; cursor: not-allowed; }
         .level-dot.locked::after { content: '🔒'; font-size: 0.8rem; }
 
+        /* ========== LEVEL CARDS ========== */
+        .level-card {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: var(--success);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .level-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            box-shadow: 12px 12px 0 var(--panel-border);
+        }
+        .level-card.locked {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: var(--danger);
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+        .level-card.locked::before {
+            content: '🔒 ';
+        }
+        .level-card.completed {
+            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+            border-color: #16a34a;
+        }
+        .level-card.completed::after {
+            content: ' ✓';
+            color: var(--success);
+            font-weight: bold;
+        }
+
         /* ========== ALGO-BOT ========== */
         .algobot-container { display: flex; justify-content: center; margin: 1rem 0; }
         .algobot { width: 150px; height: 180px; }
@@ -936,7 +966,12 @@
             });
             document.querySelectorAll('.level-card').forEach(card => {
                 const level = parseInt(card.dataset.level);
-                card.classList.toggle('locked', !gameState.unlockedLevels.includes(level));
+                card.classList.remove('locked', 'completed');
+                if (gameState.completedLevels.includes(level)) {
+                    card.classList.add('completed');
+                } else if (!gameState.unlockedLevels.includes(level)) {
+                    card.classList.add('locked');
+                }
             });
         }
 
@@ -1093,6 +1128,16 @@
         }
 
         let task1_2_selected = [];
+        let task1_2_shuffledOptions = [];
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
 
         function showTask1_2Question() {
             if (task1_2_questionIndex >= task1_2_questions.length) {
@@ -1110,12 +1155,17 @@
 
             task1_2_selected = [];
             const q = task1_2_questions[task1_2_questionIndex];
+
+            // Erstelle Array mit Optionen und Original-Indizes, dann mischen
+            task1_2_shuffledOptions = q.options.map((opt, i) => ({ text: opt, originalIndex: i }));
+            task1_2_shuffledOptions = shuffleArray(task1_2_shuffledOptions);
+
             let html = `<p style="font-size: 1.2rem; margin-bottom: 1rem;"><strong>${q.q}</strong></p><div class="quiz-options">`;
-            q.options.forEach((opt, i) => {
+            task1_2_shuffledOptions.forEach((opt, i) => {
                 if (q.multiSelect) {
-                    html += `<div class="quiz-option" onclick="toggleTask1_2Answer(${i})" data-idx="${i}">☐ ${opt}</div>`;
+                    html += `<div class="quiz-option" onclick="toggleTask1_2Answer(${i})" data-idx="${i}">☐ ${opt.text}</div>`;
                 } else {
-                    html += `<div class="quiz-option" onclick="selectTask1_2Answer(${i})">${opt}</div>`;
+                    html += `<div class="quiz-option" onclick="selectTask1_2Answer(${i})">${opt.text}</div>`;
                 }
             });
             html += '</div>';
@@ -1130,14 +1180,15 @@
             const option = document.querySelector(`#task1-2-quiz .quiz-option[data-idx="${idx}"]`);
             if (option.classList.contains('disabled')) return;
 
-            if (task1_2_selected.includes(idx)) {
-                task1_2_selected = task1_2_selected.filter(i => i !== idx);
+            const originalIdx = task1_2_shuffledOptions[idx].originalIndex;
+            if (task1_2_selected.includes(originalIdx)) {
+                task1_2_selected = task1_2_selected.filter(i => i !== originalIdx);
                 option.classList.remove('selected');
-                option.innerHTML = '☐ ' + task1_2_questions[task1_2_questionIndex].options[idx];
+                option.innerHTML = '☐ ' + task1_2_shuffledOptions[idx].text;
             } else {
-                task1_2_selected.push(idx);
+                task1_2_selected.push(originalIdx);
                 option.classList.add('selected');
-                option.innerHTML = '☑ ' + task1_2_questions[task1_2_questionIndex].options[idx];
+                option.innerHTML = '☑ ' + task1_2_shuffledOptions[idx].text;
             }
         }
 
@@ -1147,7 +1198,8 @@
             options.forEach((opt, i) => {
                 opt.classList.add('disabled');
                 opt.onclick = null;
-                if (q.correct.includes(i)) opt.classList.add('correct');
+                const originalIdx = task1_2_shuffledOptions[i].originalIndex;
+                if (q.correct.includes(originalIdx)) opt.classList.add('correct');
             });
 
             const correctSet = new Set(q.correct);
@@ -1157,9 +1209,10 @@
             if (isCorrect) {
                 task1_2_correct++;
             } else {
-                task1_2_selected.forEach(idx => {
-                    if (!q.correct.includes(idx)) {
-                        options[idx].classList.add('wrong');
+                options.forEach((opt, i) => {
+                    const originalIdx = task1_2_shuffledOptions[i].originalIndex;
+                    if (task1_2_selected.includes(originalIdx) && !q.correct.includes(originalIdx)) {
+                        opt.classList.add('wrong');
                     }
                 });
             }
@@ -1169,12 +1222,16 @@
         function selectTask1_2Answer(idx) {
             const q = task1_2_questions[task1_2_questionIndex];
             const options = document.querySelectorAll('#task1-2-quiz .quiz-option');
+            const selectedOriginalIdx = task1_2_shuffledOptions[idx].originalIndex;
+
             options.forEach((opt, i) => {
                 opt.classList.add('disabled');
                 opt.onclick = null;
-                if (i === q.correct) opt.classList.add('correct');
+                const originalIdx = task1_2_shuffledOptions[i].originalIndex;
+                if (originalIdx === q.correct) opt.classList.add('correct');
             });
-            if (idx === q.correct) task1_2_correct++;
+
+            if (selectedOriginalIdx === q.correct) task1_2_correct++;
             else options[idx].classList.add('wrong');
             document.getElementById('task1-2-next').style.display = 'inline-block';
         }
