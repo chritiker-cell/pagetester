@@ -273,8 +273,14 @@ export class PlaybackController {
   /**
    * Start or resume playback
    */
-  play(): void {
+  async play(): Promise<void> {
     if (!this.exercise || !isAudioReady()) return;
+
+    // Ensure audio context is running (may be suspended after practice mode)
+    const Tone = await import('tone');
+    if (Tone.context.state !== 'running') {
+      await Tone.context.resume();
+    }
 
     // Clear any existing scheduled events
     this.clearEvents();

@@ -55,7 +55,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   disabled = false,
   className = '',
 }) => {
-  const { status, config, togglePlayPause, stop, toggleLoop, toggleMetronome, isReady } =
+  const { status, config, togglePlayPause, stop, toggleLoop, toggleMetronome } =
     usePlaybackStore();
 
   const isPlaying = status === 'playing';
@@ -122,7 +122,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         variant="primary"
         size="md"
         onClick={handlePlayPause}
-        disabled={disabled || !isReady}
+        disabled={disabled}
         aria-label={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
         title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
       >

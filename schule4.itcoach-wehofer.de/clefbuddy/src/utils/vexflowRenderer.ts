@@ -5,7 +5,7 @@
  * Includes note highlighting for playback visualization
  */
 
-import { Renderer, Stave, StaveNote, Voice, Formatter, StaveConnector } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, StaveConnector, Beam, Annotation } from 'vexflow';
 import type { Exercise, Bar } from '../types/music';
 
 interface RenderConfig {
@@ -63,9 +63,19 @@ function createNotesFromBar(
       keys: note.keys,
       duration: durationToVexFlow(note.duration),
       clef: useBassNotes ? 'bass' : 'treble',
+      autoStem: true,
     });
 
     const noteId = `${exerciseId}-bar${bar.number}-${voice}-note${index}`;
+
+    // Add fingering annotation if present
+    if (note.fingering) {
+      const annotation = new Annotation(String(note.fingering));
+      annotation.setVerticalJustification(
+        useBassNotes ? Annotation.VerticalJustify.BOTTOM : Annotation.VerticalJustify.TOP
+      );
+      staveNote.addModifier(annotation);
+    }
 
     // Add custom attribute for identification (VexFlow 5.x)
     staveNote.setStyle({ fillStyle: '#0f172a', strokeStyle: '#0f172a' });
@@ -118,6 +128,9 @@ function renderSingleStaff(
         stave.addClef(exercise.clef);
       }
       if (isFirstBar) {
+        if (exercise.keySignature && exercise.keySignature !== 'C') {
+          stave.addKeySignature(exercise.keySignature);
+        }
         stave.addTimeSignature(exercise.timeSignature);
       }
 
@@ -131,9 +144,15 @@ function renderSingleStaff(
       const noteEndX = stave.getNoteEndX();
       const availableWidth = noteEndX - noteStartX;
 
+      // Generate beams BEFORE drawing so flags are suppressed on beamed notes
+      const beams = Beam.generateBeams(staveNotes);
+
       const formatter = new Formatter();
       formatter.joinVoices([voice]).format([voice], Math.max(availableWidth - 10, 50));
       voice.draw(context, stave);
+
+      // Draw beams after voice
+      beams.forEach(b => b.setContext(context).draw());
 
       // Store SVG elements for highlighting
       staveNotes.forEach((note, idx) => {
@@ -166,7 +185,7 @@ function renderGrandStaff(
 
   // Grand staff needs more vertical space
   const trebleStaveHeight = 80;
-  const bassStaveOffset = 70; // Distance between treble and bass stave
+  const bassStaveOffset = 90; // Distance between treble and bass stave
   const systemHeight = trebleStaveHeight + bassStaveOffset + 50; // Total height per system
 
   const allNoteInfos: RenderedNoteInfo[] = [];
@@ -190,6 +209,9 @@ function renderGrandStaff(
         trebleStave.addClef('treble');
       }
       if (isFirstBar) {
+        if (exercise.keySignature && exercise.keySignature !== 'C') {
+          trebleStave.addKeySignature(exercise.keySignature);
+        }
         trebleStave.addTimeSignature(exercise.timeSignature);
       }
       trebleStave.setContext(context).draw();
@@ -200,6 +222,9 @@ function renderGrandStaff(
         bassStave.addClef('bass');
       }
       if (isFirstBar) {
+        if (exercise.keySignature && exercise.keySignature !== 'C') {
+          bassStave.addKeySignature(exercise.keySignature);
+        }
         bassStave.addTimeSignature(exercise.timeSignature);
       }
       bassStave.setContext(context).draw();
@@ -220,18 +245,47 @@ function renderGrandStaff(
       lineRight.setType('singleRight');
       lineRight.setContext(context).draw();
 
-      // Render treble notes
+      // Create treble notes and voice
       const { staveNotes: trebleNotes, noteInfos: trebleNoteInfos } = createNotesFromBar(bar, false, exercise.id);
       const trebleVoice = new Voice({ numBeats: beats, beatValue: beatValue });
       trebleVoice.addTickables(trebleNotes);
 
-      const trebleNoteStartX = trebleStave.getNoteStartX();
-      const trebleNoteEndX = trebleStave.getNoteEndX();
-      const trebleAvailableWidth = trebleNoteEndX - trebleNoteStartX;
+      // Generate beams BEFORE drawing so flags are suppressed on beamed notes
+      const trebleBeams = Beam.generateBeams(trebleNotes);
 
-      const trebleFormatter = new Formatter();
-      trebleFormatter.joinVoices([trebleVoice]).format([trebleVoice], Math.max(trebleAvailableWidth - 10, 50));
+      // Use available width from treble stave (both staves have same width)
+      const noteStartX = trebleStave.getNoteStartX();
+      const noteEndX = trebleStave.getNoteEndX();
+      const availableWidth = Math.max(noteEndX - noteStartX - 10, 50);
+
+      // Create bass notes and voice if they exist
+      const hasBass = bar.bassNotes && bar.bassNotes.length > 0;
+      let bassNotes: StaveNote[] = [];
+      let bassNoteInfos: RenderedNoteInfo[] = [];
+      let bassVoice: Voice | null = null;
+      let bassBeams: any[] = [];
+
+      if (hasBass) {
+        const bassResult = createNotesFromBar(bar, true, exercise.id);
+        bassNotes = bassResult.staveNotes;
+        bassNoteInfos = bassResult.noteInfos;
+        bassVoice = new Voice({ numBeats: beats, beatValue: beatValue });
+        bassVoice.addTickables(bassNotes);
+        bassBeams = Beam.generateBeams(bassNotes);
+      }
+
+      // Use a single Formatter for both voices so notes align horizontally
+      const formatter = new Formatter();
+      formatter.joinVoices([trebleVoice]);
+      if (bassVoice) {
+        formatter.joinVoices([bassVoice]);
+        formatter.format([trebleVoice, bassVoice], availableWidth);
+      } else {
+        formatter.format([trebleVoice], availableWidth);
+      }
+
       trebleVoice.draw(context, trebleStave);
+      trebleBeams.forEach(b => b.setContext(context).draw());
 
       // Store SVG elements for treble notes
       trebleNotes.forEach((note, idx) => {
@@ -242,19 +296,9 @@ function renderGrandStaff(
       });
       allNoteInfos.push(...trebleNoteInfos);
 
-      // Render bass notes if they exist
-      if (bar.bassNotes && bar.bassNotes.length > 0) {
-        const { staveNotes: bassNotes, noteInfos: bassNoteInfos } = createNotesFromBar(bar, true, exercise.id);
-        const bassVoice = new Voice({ numBeats: beats, beatValue: beatValue });
-        bassVoice.addTickables(bassNotes);
-
-        const bassNoteStartX = bassStave.getNoteStartX();
-        const bassNoteEndX = bassStave.getNoteEndX();
-        const bassAvailableWidth = bassNoteEndX - bassNoteStartX;
-
-        const bassFormatter = new Formatter();
-        bassFormatter.joinVoices([bassVoice]).format([bassVoice], Math.max(bassAvailableWidth - 10, 50));
+      if (bassVoice) {
         bassVoice.draw(context, bassStave);
+        bassBeams.forEach(b => b.setContext(context).draw());
 
         // Store SVG elements for bass notes
         bassNotes.forEach((note, idx) => {
@@ -292,7 +336,7 @@ export function renderExercise(
   // Calculate height based on staff type
   let totalHeight: number;
   if (exercise.grandStaff) {
-    const systemHeight = 200; // Height for grand staff system
+    const systemHeight = 230; // Height for grand staff system
     totalHeight = finalConfig.padding.top + (linesNeeded * systemHeight) + finalConfig.padding.bottom;
   } else {
     const staveHeight = 120;
@@ -356,6 +400,19 @@ export function highlightNote(noteId: string): void {
 }
 
 /**
+ * Highlight multiple notes by their IDs (for grand staff simultaneous notes)
+ */
+export function highlightNotes(noteIds: string[]): void {
+  clearNoteHighlights();
+  noteIds.forEach(noteId => {
+    const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
+    if (noteElement) {
+      noteElement.classList.add('note-highlighted');
+    }
+  });
+}
+
+/**
  * Clear all note highlights
  */
 export function clearNoteHighlights(): void {
@@ -363,6 +420,99 @@ export function clearNoteHighlights(): void {
   highlightedNotes.forEach((note) => {
     note.classList.remove('note-highlighted');
   });
+}
+
+/**
+ * Practice feedback highlight types
+ */
+export type PracticeFeedbackType = 'correct' | 'incorrect' | 'missed' | 'current';
+
+/**
+ * Highlight a note with practice feedback styling
+ */
+export function highlightNotePractice(noteId: string, feedbackType: PracticeFeedbackType): void {
+  const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
+  if (!noteElement) return;
+
+  // Remove any existing practice feedback classes
+  noteElement.classList.remove(
+    'note-correct',
+    'note-incorrect',
+    'note-missed',
+    'note-current',
+    'note-highlighted'
+  );
+
+  // Add the appropriate class
+  switch (feedbackType) {
+    case 'correct':
+      noteElement.classList.add('note-correct');
+      break;
+    case 'incorrect':
+      noteElement.classList.add('note-incorrect');
+      break;
+    case 'missed':
+      noteElement.classList.add('note-missed');
+      break;
+    case 'current':
+      noteElement.classList.add('note-current');
+      break;
+  }
+}
+
+/**
+ * Highlight multiple notes with practice feedback
+ */
+export function highlightNotesPractice(
+  noteIds: string[],
+  feedbackType: PracticeFeedbackType
+): void {
+  noteIds.forEach((noteId) => highlightNotePractice(noteId, feedbackType));
+}
+
+/**
+ * Clear all practice feedback highlights
+ */
+export function clearPracticeFeedback(): void {
+  const feedbackClasses = ['note-correct', 'note-incorrect', 'note-missed', 'note-current'];
+  feedbackClasses.forEach((className) => {
+    const elements = document.querySelectorAll(`.${className}`);
+    elements.forEach((el) => el.classList.remove(className));
+  });
+}
+
+/**
+ * Get note element by its ID
+ */
+export function getNoteElement(noteId: string): SVGElement | null {
+  return document.querySelector(`[data-note-id="${noteId}"]`);
+}
+
+/**
+ * Get note info by index (for matching with scheduled notes)
+ */
+export function getNoteInfoByIndex(
+  barNumber: number,
+  noteIndex: number,
+  voice: 'treble' | 'bass' = 'treble'
+): RenderedNoteInfo | null {
+  return (
+    renderedNotes.find(
+      (n) =>
+        n.barNumber === barNumber &&
+        n.noteIndex === noteIndex &&
+        n.voice === voice
+    ) || null
+  );
+}
+
+/**
+ * Get all note IDs for a specific bar
+ */
+export function getNoteIdsForBar(barNumber: number): string[] {
+  return renderedNotes
+    .filter((n) => n.barNumber === barNumber)
+    .map((n) => n.noteId);
 }
 
 /**
@@ -384,7 +534,7 @@ export function calculateOptimalDimensions(
   const linesNeeded = Math.ceil(barCount / barsPerLine);
   const padding = { top: 40, bottom: 20 };
 
-  const heightPerLine = isGrandStaff ? 200 : 120;
+  const heightPerLine = isGrandStaff ? 230 : 120;
 
   return {
     width: Math.max(containerWidth, 600),

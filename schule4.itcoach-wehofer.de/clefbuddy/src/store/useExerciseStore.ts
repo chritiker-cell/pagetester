@@ -25,6 +25,7 @@ interface ExerciseState {
   // Actions
   setLevel: (level: number) => void;
   setExercise: (exerciseId: string) => void;
+  addExercise: (exercise: Exercise) => void;
   getExerciseById: (id: string) => Exercise | undefined;
   getSelectedExercise: () => Exercise | undefined;
 }
@@ -59,6 +60,14 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   // Set selected exercise
   setExercise: (exerciseId: string) => {
     set({ selectedExerciseId: exerciseId });
+  },
+
+  // Add a dynamically generated exercise
+  addExercise: (exercise: Exercise) => {
+    const exercises = [...get().exercises, exercise];
+    const { selectedLevel } = get();
+    const filteredExercises = exercises.filter((ex) => ex.level === selectedLevel);
+    set({ exercises, filteredExercises });
   },
 
   // Get exercise by ID

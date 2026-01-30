@@ -35,13 +35,13 @@ npm run lint
 ## Projektstruktur
 
 ```
-neokeys/
+clefbuddy/
 ├── src/
 │   ├── components/
 │   │   ├── ui/          # Wiederverwendbare UI-Komponenten
 │   │   └── notation/    # VexFlow-basierte Notationskomponenten
 │   ├── data/            # JSON-Übungsdaten
-│   ├── stores/          # Zustand State Management
+│   ├── store/           # Zustand State Management
 │   ├── types/           # TypeScript Type Definitions
 │   ├── utils/           # Utility Functions
 │   ├── App.tsx          # Haupt-App-Komponente
@@ -57,16 +57,10 @@ neokeys/
 - [x] TailwindCSS Integration
 - [x] Dependencies installiert (VexFlow, Tone.js, Tonal, Zustand)
 - [x] Basis-Ordnerstruktur
-- [ ] VexFlow Integration
-- [ ] Zustand State Management
-- [ ] UI-Komponenten
-- [ ] Audio-Playback
-- [ ] Übungsdaten
-
-## Nächste Schritte
-
-1. VexFlow Notations-Rendering implementieren
-2. Zustand Stores für Übungsparameter erstellen
-3. UI-Komponenten für Controls entwickeln
-4. Tone.js Integration für Audio-Playback
-5. Übungsgenerierungs-Logik
+- [x] VexFlow Integration
+- [x] Zustand State Management
+- [x] UI-Komponenten
+- [x] Audio-Playback (Tone.js PolySynth + Metronom)
+- [x] Übungsdaten (12 Übungen, 3 Levels)
+- [x] MIDI-Eingabe & Bewertung
+- [x] Navigation & Zufalls-Übungsgenerator

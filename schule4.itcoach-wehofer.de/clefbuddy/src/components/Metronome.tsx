@@ -10,12 +10,17 @@ import { usePlaybackStore } from '../store/usePlaybackStore';
 
 interface MetronomeProps {
   className?: string;
+  /** Force metronome to be active (for practice mode) */
+  isActive?: boolean;
 }
 
-const Metronome: React.FC<MetronomeProps> = ({ className = '' }) => {
+const Metronome: React.FC<MetronomeProps> = ({ className = '', isActive: forceActive }) => {
   const { config, metronome, status } = usePlaybackStore();
   const { beatsPerMeasure } = config;
   const { currentBeat, isActive } = metronome;
+
+  // Metronome is playing if either in playback mode ('playing') or forced active (practice mode)
+  const isMetronomePlaying = forceActive || status === 'playing';
 
   // Generate beat indicators
   const beats = Array.from({ length: beatsPerMeasure }, (_, i) => i + 1);
@@ -25,7 +30,7 @@ const Metronome: React.FC<MetronomeProps> = ({ className = '' }) => {
       <span className="text-sm font-medium text-neutral-600 mr-2">Beat:</span>
       <div className="flex items-center gap-2">
         {beats.map((beat) => {
-          const isCurrentBeat = status === 'playing' && currentBeat === beat;
+          const isCurrentBeat = isMetronomePlaying && currentBeat === beat;
           const isDownbeat = beat === 1;
 
           // Determine beat styling
@@ -50,7 +55,7 @@ const Metronome: React.FC<MetronomeProps> = ({ className = '' }) => {
             <div
               key={beat}
               className={`
-                w-6 h-6 rounded-full flex items-center justify-center
+                w-8 h-8 rounded-full flex items-center justify-center
                 transition-all duration-150 ease-out
                 ${bgColor} ${ringColor} ${scale}
               `}

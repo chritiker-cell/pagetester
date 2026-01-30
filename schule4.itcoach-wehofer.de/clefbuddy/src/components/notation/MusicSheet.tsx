@@ -9,7 +9,7 @@ import type { Exercise } from '../../types/music';
 import {
   renderExercise,
   calculateOptimalDimensions,
-  highlightNote,
+  highlightNotes,
   clearNoteHighlights,
 } from '../../utils/vexflowRenderer';
 
@@ -23,8 +23,8 @@ interface MusicSheetProps {
   /** Number of bars per line */
   barsPerLine?: number;
 
-  /** ID of the currently highlighted note */
-  highlightedNoteId?: string | null;
+  /** IDs of the currently highlighted notes */
+  highlightedNoteIds?: string[];
 
   /** Additional CSS classes */
   className?: string;
@@ -37,7 +37,7 @@ export function MusicSheet({
   exercise,
   width = 900,
   barsPerLine = 4,
-  highlightedNoteId = null,
+  highlightedNoteIds = [],
   className = '',
 }: MusicSheetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,12 +79,12 @@ export function MusicSheet({
 
   // Handle note highlighting
   useEffect(() => {
-    if (highlightedNoteId) {
-      highlightNote(highlightedNoteId);
+    if (highlightedNoteIds.length > 0) {
+      highlightNotes(highlightedNoteIds);
     } else {
       clearNoteHighlights();
     }
-  }, [highlightedNoteId]);
+  }, [highlightedNoteIds]);
 
   // Clear highlights on unmount
   useEffect(() => {

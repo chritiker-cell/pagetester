@@ -21,6 +21,9 @@ export interface Note {
    * - "16" = sixteenth note
    */
   duration: string;
+
+  /** Optional fingering number (1-5, thumb to pinky) */
+  fingering?: number;
 }
 
 /**

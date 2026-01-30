@@ -2,7 +2,7 @@
  * Audio Engine
  *
  * Manages Tone.js audio context, synths, and playback.
- * Uses PolySynth for polyphonic piano-like sounds.
+ * Uses PolySynth with concert piano-like sound and low latency.
  */
 
 import * as Tone from 'tone';
@@ -14,6 +14,10 @@ let polySynth: Tone.PolySynth | null = null;
 let metronomePlayer: Tone.Player | null = null;
 let metronomeSynth: Tone.MembraneSynth | null = null;
 
+// Effects for richer piano sound
+let reverb: Tone.Reverb | null = null;
+let compressor: Tone.Compressor | null = null;
+
 /**
  * Initialize the audio engine
  * Must be called after a user interaction (browser autoplay policy)
@@ -22,41 +26,81 @@ export async function initAudioEngine(): Promise<void> {
   if (isInitialized) return;
 
   try {
+    // Configure Tone.js for low latency
+    Tone.setContext(
+      new Tone.Context({
+        latencyHint: 'interactive',
+        lookAhead: 0.01, // 10ms lookAhead for lower latency
+      })
+    );
+
     // Start Tone.js audio context
     await Tone.start();
 
-    // Create a PolySynth with piano-like sound
-    polySynth = new Tone.PolySynth(Tone.Synth, {
+    // Create compressor for dynamics
+    compressor = new Tone.Compressor({
+      threshold: -20,
+      ratio: 3,
+      attack: 0.003,
+      release: 0.25,
+    }).toDestination();
+
+    // Create subtle reverb for concert hall feel
+    reverb = new Tone.Reverb({
+      decay: 1.5,
+      wet: 0.15,
+    }).connect(compressor);
+
+    // Wait for reverb to generate its impulse response
+    await reverb.ready;
+
+    // Create a PolySynth with realistic concert piano sound
+    // Using FMSynth for richer harmonics like a real piano
+    polySynth = new Tone.PolySynth(Tone.FMSynth, {
+      harmonicity: 3,
+      modulationIndex: 1.5,
       oscillator: {
-        type: 'triangle8',
+        type: 'sine',
       },
       envelope: {
-        attack: 0.02,
-        decay: 0.3,
-        sustain: 0.4,
-        release: 0.8,
+        attack: 0.001,   // Very fast attack like hammer hitting string
+        decay: 0.5,      // Natural decay
+        sustain: 0.3,    // Sustain level
+        release: 1.2,    // Long release like piano strings
       },
-      volume: -6,
-    }).toDestination();
+      modulation: {
+        type: 'square',
+      },
+      modulationEnvelope: {
+        attack: 0.002,
+        decay: 0.2,
+        sustain: 0.2,
+        release: 0.5,
+      },
+      volume: -8,
+    }).connect(reverb);
+
+    // Set max polyphony for piano playing
+    polySynth.maxPolyphony = 32;
 
     // Create metronome synth (short click sound)
     metronomeSynth = new Tone.MembraneSynth({
-      pitchDecay: 0.01,
-      octaves: 2,
+      pitchDecay: 0.008,
+      octaves: 4,
       oscillator: {
         type: 'sine',
       },
       envelope: {
         attack: 0.001,
-        decay: 0.1,
+        decay: 0.08,
         sustain: 0,
-        release: 0.05,
+        release: 0.03,
       },
-      volume: -10,
+      volume: -8,
     }).toDestination();
 
     isInitialized = true;
-    console.log('Audio engine initialized');
+    console.log('Audio engine initialized with low latency');
   } catch (error) {
     console.error('Failed to initialize audio engine:', error);
     throw error;
@@ -114,29 +158,27 @@ export function playNotesAtTime(
     return;
   }
 
+  // Ensure audio context is running (may be suspended after practice mode)
+  if (Tone.context.state !== 'running') {
+    Tone.context.resume();
+  }
+
   polySynth.triggerAttackRelease(notes, duration, time);
 }
 
 /**
  * Play a metronome click
  * @param isDownbeat Whether this is the first beat of a measure
- * @param time Time to trigger
  */
-export function playMetronomeClick(
-  isDownbeat: boolean,
-  time?: Tone.Unit.Time
-): void {
+export function playMetronomeClick(isDownbeat: boolean): void {
   if (!metronomeSynth) return;
 
   // Higher pitch for downbeat
   const pitch = isDownbeat ? 'G5' : 'C5';
   const duration = '32n';
 
-  if (time !== undefined) {
-    metronomeSynth.triggerAttackRelease(pitch, duration, time);
-  } else {
-    metronomeSynth.triggerAttackRelease(pitch, duration);
-  }
+  // Play immediately - scheduling is handled by Transport.schedule()
+  metronomeSynth.triggerAttackRelease(pitch, duration);
 }
 
 /**
@@ -197,7 +239,8 @@ export function scheduleMetronome(
     const isDownbeat = currentBeat === 0;
 
     const eventId = Tone.Transport.schedule((t) => {
-      playMetronomeClick(isDownbeat, t);
+      // Play immediately when callback fires
+      playMetronomeClick(isDownbeat);
 
       if (onBeat) {
         Tone.Draw.schedule(() => {
@@ -301,6 +344,28 @@ export function disposeAudio(): void {
     metronomePlayer.dispose();
     metronomePlayer = null;
   }
+  if (reverb) {
+    reverb.dispose();
+    reverb = null;
+  }
+  if (compressor) {
+    compressor.dispose();
+    compressor = null;
+  }
   Tone.Transport.cancel();
   isInitialized = false;
+}
+
+/**
+ * Play notes immediately (for MIDI input with minimal latency)
+ * Uses Tone.now() for immediate playback
+ */
+export function playNotesImmediate(notes: string[], duration: number): void {
+  if (!polySynth) {
+    console.warn('Audio engine not initialized');
+    return;
+  }
+
+  // Use Tone.now() for immediate playback with minimal latency
+  polySynth.triggerAttackRelease(notes, duration, Tone.now());
 }

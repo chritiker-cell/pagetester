@@ -7,9 +7,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #213547;
+  background-color: #fafafa;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -19,8 +19,6 @@
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -31,12 +29,7 @@ body {
   text-align: center;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-}
+/* Light theme is the default */
 
 /* =====================================================
    VexFlow Note Highlighting Styles
@@ -76,4 +69,67 @@ body {
 .vf-stavenote path,
 .vf-stavenote ellipse {
   transition: fill 0.1s ease-out, stroke 0.1s ease-out;
+}
+
+/* =====================================================
+   Practice Mode Feedback Styles
+   ===================================================== */
+
+/* Current note to play (pulsing blue) */
+.note-current {
+  filter: drop-shadow(0 0 8px #3b82f6) drop-shadow(0 0 4px #3b82f6);
+  animation: current-pulse 0.8s ease-in-out infinite;
+}
+
+.note-current path,
+.note-current ellipse,
+.note-current rect {
+  fill: #3b82f6 !important;
+  stroke: #3b82f6 !important;
+}
+
+@keyframes current-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px #3b82f6);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px #60a5fa);
+  }
+}
+
+/* Correct note (green) */
+.note-correct {
+  filter: drop-shadow(0 0 6px #22c55e);
+}
+
+.note-correct path,
+.note-correct ellipse,
+.note-correct rect {
+  fill: #22c55e !important;
+  stroke: #22c55e !important;
+}
+
+/* Incorrect note (red) */
+.note-incorrect {
+  filter: drop-shadow(0 0 6px #ef4444);
+}
+
+.note-incorrect path,
+.note-incorrect ellipse,
+.note-incorrect rect {
+  fill: #ef4444 !important;
+  stroke: #ef4444 !important;
+}
+
+/* Missed note (orange/gray) */
+.note-missed {
+  filter: drop-shadow(0 0 4px #f97316);
+  opacity: 0.7;
+}
+
+.note-missed path,
+.note-missed ellipse,
+.note-missed rect {
+  fill: #f97316 !important;
+  stroke: #f97316 !important;
 }
