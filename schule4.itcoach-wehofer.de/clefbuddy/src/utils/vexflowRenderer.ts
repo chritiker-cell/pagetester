@@ -8,11 +8,48 @@
 import { Renderer, Stave, StaveNote, Voice, Formatter, StaveConnector, Beam, Annotation, Barline, Dot, Tuplet } from 'vexflow';
 import type { Exercise, Bar } from '../types/music';
 
+/**
+ * Convert chord degree to chord name based on key signature
+ * @param chordDegree - Chord degree (1-7)
+ * @param keySignature - Key signature (e.g., 'C', 'G', 'F', 'D')
+ * @returns Chord name (e.g., 'C', 'Dm', 'G7', 'Bdim')
+ */
+function getChordName(chordDegree: number, keySignature: string): string {
+  // Map key signatures to major scale roots
+  const keyMap: Record<string, string[]> = {
+    'C': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    'G': ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
+    'F': ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'],
+    'D': ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'],
+    'Bb': ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'],
+    'A': ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
+    'Eb': ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'],
+    'E': ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'],
+    'Ab': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'],
+    'B': ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'],
+    'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'],
+    'F#': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'],
+    'Gb': ['Gb', 'Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F'],
+    'C#': ['C#', 'D#', 'E#', 'F#', 'G#', 'A#', 'B#'],
+  };
+
+  const scale = keyMap[keySignature] || keyMap['C'];
+  const rootIndex = (chordDegree - 1) % 7;
+  const root = scale[rootIndex];
+
+  // Chord qualities in major scale: I, ii, iii, IV, V, vi, vii°
+  const qualities = ['', 'm', 'm', '', '', 'm', 'dim'];
+  const quality = qualities[rootIndex];
+
+  return `${root}${quality}`;
+}
+
 interface RenderConfig {
   width: number;
   height: number;
   barsPerLine: number;
   padding: { top: number; left: number; right: number; bottom: number };
+  showChordSymbols?: boolean;
 }
 
 /**
@@ -144,8 +181,11 @@ function renderSingleStaff(
   const staveHeight = 120;
 
   const allNoteInfos: RenderedNoteInfo[] = [];
+  const chordPositions: { x: number; y: number; chord: string }[] = [];
 
   let barIndex = 0;
+  let prevChordDegree: number | undefined = undefined;
+
   for (let line = 0; line < linesNeeded; line++) {
     const barsInThisLine = Math.min(config.barsPerLine, totalBars - barIndex);
 
@@ -162,11 +202,11 @@ function renderSingleStaff(
 
       if (isFirstInLine) {
         stave.addClef(exercise.clef);
-      }
-      if (isFirstBar) {
         if (exercise.keySignature && exercise.keySignature !== 'C') {
           stave.addKeySignature(exercise.keySignature);
         }
+      }
+      if (isFirstBar) {
         stave.addTimeSignature(exercise.timeSignature);
       }
 
@@ -177,8 +217,22 @@ function renderSingleStaff(
 
       stave.setContext(context).draw();
 
+      // Store chord position if chord changed
+      if (config.showChordSymbols && bar.chordDegree !== undefined && bar.chordDegree !== prevChordDegree) {
+        const chordName = getChordName(bar.chordDegree, exercise.keySignature);
+        chordPositions.push({ x: x + 10, y: y - 10, chord: chordName });
+        prevChordDegree = bar.chordDegree;
+      }
+
       const { staveNotes, noteInfos, tupletGroups } = createNotesFromBar(bar, false, exercise.id);
-      const voice = new Voice({ numBeats: beats, beatValue: beatValue });
+
+      // Create tuplets BEFORE adding to voice so VexFlow adjusts tick counts
+      const tupletObjects: Tuplet[] = [];
+      tupletGroups.forEach(group => {
+        tupletObjects.push(new Tuplet(group, { numNotes: group.length, notesOccupied: 2 }));
+      });
+
+      const voice = new Voice({ numBeats: beats, beatValue: beatValue }).setMode(Voice.Mode.SOFT);
       voice.addTickables(staveNotes);
 
       const noteStartX = stave.getNoteStartX();
@@ -196,10 +250,7 @@ function renderSingleStaff(
       beams.forEach(b => b.setContext(context).draw());
 
       // Draw tuplet brackets
-      tupletGroups.forEach(group => {
-        const tuplet = new Tuplet(group, { numNotes: group.length, notesOccupied: 2 });
-        tuplet.setContext(context).draw();
-      });
+      tupletObjects.forEach(t => t.setContext(context).draw());
 
       // Store SVG elements for highlighting
       staveNotes.forEach((note, idx) => {
@@ -212,6 +263,22 @@ function renderSingleStaff(
       allNoteInfos.push(...noteInfos);
       barIndex++;
     }
+  }
+
+  // Render chord symbols as SVG text
+  if (config.showChordSymbols && chordPositions.length > 0) {
+    const svg = context.svg;
+    chordPositions.forEach(({ x, y, chord }) => {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x.toString());
+      text.setAttribute('y', y.toString());
+      text.setAttribute('font-family', 'Arial, sans-serif');
+      text.setAttribute('font-size', '16');
+      text.setAttribute('font-weight', 'bold');
+      text.setAttribute('fill', '#374151');
+      text.textContent = chord;
+      svg.appendChild(text);
+    });
   }
 
   return allNoteInfos;
@@ -236,8 +303,11 @@ function renderGrandStaff(
   const systemHeight = trebleStaveHeight + bassStaveOffset + 50; // Total height per system
 
   const allNoteInfos: RenderedNoteInfo[] = [];
+  const chordPositions: { x: number; y: number; chord: string }[] = [];
 
   let barIndex = 0;
+  let prevChordDegree: number | undefined = undefined;
+
   for (let line = 0; line < linesNeeded; line++) {
     const barsInThisLine = Math.min(config.barsPerLine, totalBars - barIndex);
 
@@ -251,15 +321,22 @@ function renderGrandStaff(
       const yTreble = config.padding.top + (line * systemHeight);
       const yBass = yTreble + bassStaveOffset;
 
+      // Store chord position if chord changed
+      if (config.showChordSymbols && bar.chordDegree !== undefined && bar.chordDegree !== prevChordDegree) {
+        const chordName = getChordName(bar.chordDegree, exercise.keySignature);
+        chordPositions.push({ x: x + 10, y: yTreble - 15, chord: chordName });
+        prevChordDegree = bar.chordDegree;
+      }
+
       // Create treble stave
       const trebleStave = new Stave(x, yTreble, staveWidth);
       if (isFirstInLine) {
         trebleStave.addClef('treble');
-      }
-      if (isFirstBar) {
         if (exercise.keySignature && exercise.keySignature !== 'C') {
           trebleStave.addKeySignature(exercise.keySignature);
         }
+      }
+      if (isFirstBar) {
         trebleStave.addTimeSignature(exercise.timeSignature);
       }
       // Add repeat barline at the end of the last bar
@@ -272,11 +349,11 @@ function renderGrandStaff(
       const bassStave = new Stave(x, yBass, staveWidth);
       if (isFirstInLine) {
         bassStave.addClef('bass');
-      }
-      if (isFirstBar) {
         if (exercise.keySignature && exercise.keySignature !== 'C') {
           bassStave.addKeySignature(exercise.keySignature);
         }
+      }
+      if (isFirstBar) {
         bassStave.addTimeSignature(exercise.timeSignature);
       }
       // Add repeat barline at the end of the last bar
@@ -303,7 +380,14 @@ function renderGrandStaff(
 
       // Create treble notes and voice
       const { staveNotes: trebleNotes, noteInfos: trebleNoteInfos, tupletGroups: trebleTuplets } = createNotesFromBar(bar, false, exercise.id);
-      const trebleVoice = new Voice({ numBeats: beats, beatValue: beatValue });
+
+      // Create tuplets BEFORE adding to voice so VexFlow adjusts tick counts
+      const trebleTupletObjects: Tuplet[] = [];
+      trebleTuplets.forEach(group => {
+        trebleTupletObjects.push(new Tuplet(group, { numNotes: group.length, notesOccupied: 2 }));
+      });
+
+      const trebleVoice = new Voice({ numBeats: beats, beatValue: beatValue }).setMode(Voice.Mode.SOFT);
       trebleVoice.addTickables(trebleNotes);
 
       // Generate beams BEFORE drawing so flags are suppressed on beamed notes
@@ -320,14 +404,17 @@ function renderGrandStaff(
       let bassNoteInfos: RenderedNoteInfo[] = [];
       let bassVoice: Voice | null = null;
       let bassBeams: any[] = [];
-      let bassTuplets: StaveNote[][] = [];
+      const bassTupletObjects: Tuplet[] = [];
 
       if (hasBass) {
         const bassResult = createNotesFromBar(bar, true, exercise.id);
         bassNotes = bassResult.staveNotes;
         bassNoteInfos = bassResult.noteInfos;
-        bassTuplets = bassResult.tupletGroups;
-        bassVoice = new Voice({ numBeats: beats, beatValue: beatValue });
+        // Create bass tuplets BEFORE adding to voice
+        bassResult.tupletGroups.forEach(group => {
+          bassTupletObjects.push(new Tuplet(group, { numNotes: group.length, notesOccupied: 2 }));
+        });
+        bassVoice = new Voice({ numBeats: beats, beatValue: beatValue }).setMode(Voice.Mode.SOFT);
         bassVoice.addTickables(bassNotes);
         bassBeams = Beam.generateBeams(bassNotes);
       }
@@ -346,10 +433,7 @@ function renderGrandStaff(
       trebleBeams.forEach(b => b.setContext(context).draw());
 
       // Draw treble tuplets
-      trebleTuplets.forEach(group => {
-        const tuplet = new Tuplet(group, { numNotes: group.length, notesOccupied: 2 });
-        tuplet.setContext(context).draw();
-      });
+      trebleTupletObjects.forEach(t => t.setContext(context).draw());
 
       // Store SVG elements for treble notes
       trebleNotes.forEach((note, idx) => {
@@ -365,12 +449,7 @@ function renderGrandStaff(
         bassBeams.forEach(b => b.setContext(context).draw());
 
         // Draw bass tuplets
-        if (bassTuplets) {
-          bassTuplets.forEach(group => {
-            const tuplet = new Tuplet(group, { numNotes: group.length, notesOccupied: 2 });
-            tuplet.setContext(context).draw();
-          });
-        }
+        bassTupletObjects.forEach(t => t.setContext(context).draw());
 
         // Store SVG elements for bass notes
         bassNotes.forEach((note, idx) => {
@@ -384,6 +463,22 @@ function renderGrandStaff(
 
       barIndex++;
     }
+  }
+
+  // Render chord symbols as SVG text
+  if (config.showChordSymbols && chordPositions.length > 0) {
+    const svg = context.svg;
+    chordPositions.forEach(({ x, y, chord }) => {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x.toString());
+      text.setAttribute('y', y.toString());
+      text.setAttribute('font-family', 'Arial, sans-serif');
+      text.setAttribute('font-size', '16');
+      text.setAttribute('font-weight', 'bold');
+      text.setAttribute('fill', '#374151');
+      text.textContent = chord;
+      svg.appendChild(text);
+    });
   }
 
   return allNoteInfos;

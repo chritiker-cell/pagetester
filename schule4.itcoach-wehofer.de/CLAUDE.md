@@ -19,8 +19,9 @@ Grosse Ueberarbeitung des `exerciseGenerator.ts` fuer musikpaedagogisch korrekte
 |-----|-------------|--------|
 | Intervall-Kontrolle | `fixLargeIntervals()` + `fixLargeIntervalsMultiPass()` mit Octave-Clamping | ✓ fertig |
 | Cross-Bar Fixing | `fixCrossBarNote()`, `propagateShift()`, `findLastNonRest()` | ✓ fertig |
-| Akkord-Frequenz Stufe 3 | 92% Chance auf Akkord bei non-beat-1 (Ziel ~51% gesamt) | ✓ fertig |
+| Akkord-Frequenz Stufe 3 | 45% Chance auf Akkord bei non-beat-1 (Ziel ~40-45% gesamt) | ✓ fertig |
 | Akkord-Frequenz Stufe 4 | 50% Chance auf Akkord bei non-beat-1 (Ziel ~33% gesamt) | ✓ fertig |
+| Keine Akkorde auf schnellen Noten | Achtel/16tel/32tel immer Einzeltoene | ✓ fertig |
 | Stufe 3 Oktav-Begrenzung | Treble max Oktave 4, Clamping in fixLargeIntervals | ✓ fertig |
 | Einfache Progressionen Stufe 3 | `CHORD_PROGRESSIONS_3_SHORT/LONG` (meist Tonika) | ✓ fertig |
 | Pattern-Validierung Stufe 3 | Beat 1 muss Akkord-taugliche Dauer haben (h/hd/q/w) | ✓ fertig |
@@ -29,40 +30,29 @@ Grosse Ueberarbeitung des `exerciseGenerator.ts` fuer musikpaedagogisch korrekte
 | Aggressive Sprung-Reduktion | Stufe 3: 95% stufenweise, Intervall-Weights angepasst | ✓ fertig |
 | Akkord-Wechsel Stufe 3 | Maximal alle 2 Takte (`Math.floor(i/2)`) | ✓ fertig |
 | maxSemitones angepasst | Stufe 3:7, 4:12, 5:14, 6:16 | ✓ fertig |
-
-#### Aktuelle Metriken (200 Uebungen je Stufe)
-
-| Metrik | Stufe 3 | Stufe 4 | Stufe 5 |
-|--------|---------|---------|---------|
-| Akkorde | 51.1% | 33.0% | 2.3% |
-| Triolen | 5.4% | 7.6% | 0% |
-| Spruenge >7 Halbtoene | 8.4% | 16.5% | 18.2% |
-| Spruenge >12 Halbtoene | ~0% | ~0% | 5% |
-| Max Sprung | 14st | 15st | 31st |
+| Triolen global verteilt | Pre-calculated statt per-Takt-Zufall (Fisher-Yates) | ✓ fertig |
+| Stufe 5 Key-Stage begrenzt | Max keyStage 3 (keine 6-7# Tonarten) | ✓ fertig |
 
 #### Offene Fixes aus STUFE_3_4_CODE_FIXES.md
 
 | Fix# | Beschreibung | Prioritaet |
 |------|-------------|------------|
 | #2 | 60:40 Ratio geblockt:gebrochen enforced | Critical |
-| #4 | Globale Triolen-Verteilung (nicht pro-Takt-Zufall) | Critical |
 | #6 | Achtel-Intervalle Stufe 3 strikt Sekunden | High |
 | #7 | Bass-Pattern Variationen Stufe 3 | High |
 | #9 | Fortgeschrittene Triolen-Patterns Stufe 4 | High |
 | #14 | Gebrochene Oktaven Stufe 4 Bass | Medium |
 | #15-20 | Diverse Feinschliff-Fixes | Medium |
 
-#### Analyse-Dokumente (von Agenten erstellt)
+#### Referenz-Dokumente
 
 - `STUFE_3_4_REWORK_PLAN.md` — PM-Plan mit 5 Phasen
 - `STUFE_3_4_MUSIC_SPEC.md` — Musikpaedagogische Spezifikation (Akkord-Typen, Patterns, Bass)
 - `STUFE_3_4_CODE_FIXES.md` — 20 priorisierte Code-Fixes mit Zeilennummern
-- `GENERATOR_ANALYSIS.md` — Fruehe Analyse
-- `GENERATOR_IMPROVEMENTS.md` — Aeltere Verbesserungen
 
 #### Naechste Schritte
 
-1. Offene Fixes #2, #4, #6, #7, #9 implementieren
+1. Offene Fixes #2, #6, #7, #9 implementieren
 2. 50-Iterationen-Analyse: je Stufe 20-30 Uebungen generieren und einzeln pruefen
 3. Browser-Testing der aktuellen Version
 4. Stufe 5-6 Feinschliff (16tel-Laeufe, Chromatik, Dreiklang-Umkehrungen)

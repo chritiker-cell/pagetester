@@ -70,7 +70,7 @@ export const AVAILABLE_KEY_STAGES: Record<Difficulty, KeyStage[]> = {
   2: [1],       // C, G, F
   3: [1, 2],    // + D, Bb
   4: [1, 2],    // alle bis 3 Vorzeichen
-  5: [1, 2, 3, 4, 5],
+  5: [1, 2, 3],    // max 5 Vorzeichen (keine F#-Dur/C#-Dur mit 6-7#)
   6: [1, 2, 3, 4, 5],
 };
 
@@ -1616,11 +1616,16 @@ function fillBar(
 
     const fingering = getFingering(state.degree, isBass, difficulty, noteIndex);
 
+    // Fix: No chords/dyads on fast notes (8th, 16th, 32nd) — pedagogically incorrect
+    const isFastNote = duration === '8' || duration === '8d' || duration === '16' || duration === '32';
+
     let keys: string[];
-    if (pi === chordNoteIndex && difficulty >= 3) {
+    if (isFastNote) {
+      keys = [result.key];
+    } else if (pi === chordNoteIndex && difficulty >= 3) {
       keys = generateChord(result.key, scaleNotes, difficulty);
-    } else if (difficulty === 3 && !isBass && pi > 0 && Math.random() < 0.92) {
-      // REWORK Stufe 3: 60% chord target — also place chords on non-beat-1 positions
+    } else if (difficulty === 3 && !isBass && pi > 0 && Math.random() < 0.45) {
+      // REWORK Stufe 3: ~40-45% chord target on non-beat-1 positions
       keys = generateChord(result.key, scaleNotes, difficulty);
     } else if (difficulty === 4 && !isBass && pi > 0 && Math.random() < 0.50) {
       // REWORK Stufe 4: chords on various beats (~40% total target)
@@ -1955,6 +1960,21 @@ export function generateExercise(config: GeneratorConfig): Exercise {
   let activeHand: 'treble' | 'bass' = 'treble';
   let barsUntilSwitch = config.difficulty === 1 ? randInt(2, 3) : 0;
 
+  // Fix: Pre-calculate triplet bars for consistent distribution instead of per-bar random
+  const tripletChance = TRIPLET_CHANCE[config.difficulty] || 0;
+  const targetTripletBars = Math.max(0, Math.round(barCount * tripletChance));
+  const tripletBarIndices = new Set<number>();
+  if (targetTripletBars > 0) {
+    const indices = Array.from({ length: barCount }, (_, idx) => idx);
+    for (let j = indices.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [indices[j], indices[k]] = [indices[k], indices[j]];
+    }
+    for (let j = 0; j < targetTripletBars && j < indices.length; j++) {
+      tripletBarIndices.add(indices[j]);
+    }
+  }
+
   for (let i = 0; i < barCount; i++) {
     // Check for phrase repetition
     const shouldRepeat = i >= 2 && i % 2 === 0 && Math.random() < repeatProbability && phraseMemory.length >= 2;
@@ -1992,14 +2012,14 @@ export function generateExercise(config: GeneratorConfig): Exercise {
         const result = fillBar(timeSignature, beatsPerBar, scaleNotes, trebleRange, config.difficulty, trebleState, false, barInPhrase, currentPhraseLength, phraseNoteEstimate, trebleNoteInPhrase, currentChord);
         trebleState = result.lastState;
         trebleNoteInPhrase += result.notesGenerated;
-        const bar = { number: i + 1, notes: result.notes, bassNotes: buildBarRest(true) };
+        const bar = { number: i + 1, notes: result.notes, bassNotes: buildBarRest(true), chordDegree: currentChord };
         bars.push(bar);
         phraseMemory.push(bar);
       } else {
         const result = fillBar(timeSignature, beatsPerBar, scaleNotes, bassRange, config.difficulty, bassState, true, barInPhrase, currentPhraseLength, phraseNoteEstimate, bassNoteInPhrase, currentChord);
         bassState = result.lastState;
         bassNoteInPhrase += result.notesGenerated;
-        const bar = { number: i + 1, notes: buildBarRest(false), bassNotes: result.notes };
+        const bar = { number: i + 1, notes: buildBarRest(false), bassNotes: result.notes, chordDegree: currentChord };
         bars.push(bar);
         phraseMemory.push(bar);
       }
@@ -2014,7 +2034,7 @@ export function generateExercise(config: GeneratorConfig): Exercise {
       bassState = bassResult.lastState;
       bassNoteInPhrase += bassResult.notes.length;
 
-      const bar = { number: i + 1, notes: trebleResult.notes, bassNotes: bassResult.notes };
+      const bar = { number: i + 1, notes: trebleResult.notes, bassNotes: bassResult.notes, chordDegree: currentChord };
       bars.push(bar);
       phraseMemory.push(bar);
     } else if (config.difficulty === 3) {
@@ -2025,7 +2045,7 @@ export function generateExercise(config: GeneratorConfig): Exercise {
 
       // REWORK: Inject triplet (5-10% chance) — replace last quarter note with triplet group
       let trebleNotes = trebleResult.notes;
-      if (Math.random() < TRIPLET_CHANCE[3] && trebleState) {
+      if (tripletBarIndices.has(i) && trebleState) {
         let qIdx = -1;
         for (let j = trebleNotes.length - 1; j >= 0; j--) {
           if (trebleNotes[j].duration === 'q') { qIdx = j; break; }
@@ -2041,7 +2061,7 @@ export function generateExercise(config: GeneratorConfig): Exercise {
       bassState = bassResult.lastState;
       bassNoteInPhrase += bassResult.notes.length;
 
-      const bar = { number: i + 1, notes: trebleNotes, bassNotes: bassResult.notes };
+      const bar = { number: i + 1, notes: trebleNotes, bassNotes: bassResult.notes, chordDegree: currentChord };
       bars.push(bar);
       phraseMemory.push(bar);
     } else {
@@ -2052,7 +2072,7 @@ export function generateExercise(config: GeneratorConfig): Exercise {
 
       // REWORK: Inject triplet for Stufe 4 (15-25% chance)
       let trebleNotes = trebleResult.notes;
-      if (config.difficulty === 4 && Math.random() < TRIPLET_CHANCE[4] && trebleState) {
+      if (config.difficulty === 4 && tripletBarIndices.has(i) && trebleState) {
         let qIdx = -1;
         for (let j = trebleNotes.length - 1; j >= 0; j--) {
           if (trebleNotes[j].duration === 'q') { qIdx = j; break; }
@@ -2068,7 +2088,7 @@ export function generateExercise(config: GeneratorConfig): Exercise {
       bassState = bassResult.lastState;
       bassNoteInPhrase += bassResult.notes.length;
 
-      const bar = { number: i + 1, notes: trebleNotes, bassNotes: bassResult.notes };
+      const bar = { number: i + 1, notes: trebleNotes, bassNotes: bassResult.notes, chordDegree: currentChord };
       bars.push(bar);
       phraseMemory.push(bar);
     }

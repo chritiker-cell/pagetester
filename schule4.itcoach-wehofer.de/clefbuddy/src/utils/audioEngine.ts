@@ -276,6 +276,11 @@ export function pausePlayback(): void {
 export function stopPlayback(): void {
   Tone.Transport.stop();
   Tone.Transport.position = 0;
+
+  // Release all synth voices to prevent voice exhaustion on next play
+  if (polySynth) {
+    polySynth.releaseAll();
+  }
 }
 
 /**

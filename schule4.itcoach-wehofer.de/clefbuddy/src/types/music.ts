@@ -47,6 +47,9 @@ export interface Bar {
 
   /** Array of notes for bass clef (only used in grand staff mode) */
   bassNotes?: Note[];
+
+  /** Chord degree for this bar (1-7, e.g., 1=I, 4=IV, 5=V) */
+  chordDegree?: number;
 }
 
 /**

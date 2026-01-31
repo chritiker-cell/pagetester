@@ -3,6 +3,7 @@ import Navigation from './components/Navigation';
 import DashboardView from './components/DashboardView';
 import NoteReaderView from './components/NoteReaderView';
 import ComingSoonView from './components/ComingSoonView';
+import TheorieView from './components/TheorieView';
 import { LayoutSection } from './components/Layout';
 import { useNavigationStore } from './store/useNavigationStore';
 
@@ -33,6 +34,7 @@ function App() {
       <LayoutSection maxWidth="notation" padding={activeSection === 'notereader' ? 'none' : 'lg'}>
         {activeSection === 'dashboard' && <DashboardView />}
         {activeSection === 'notereader' && <NoteReaderView />}
+        {activeSection === 'theory' && <TheorieView />}
         {activeSection === 'scales' && (
           <ComingSoonView title="Scales" description="Tonleitern ueben in allen Tonarten und Modi." />
         )}

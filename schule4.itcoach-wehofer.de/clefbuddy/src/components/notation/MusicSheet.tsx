@@ -7,6 +7,7 @@ import {
   clearNoteHighlights,
   removePlaybackCursor,
 } from '../../utils/vexflowRenderer';
+import { useNoteReaderSettingsStore } from '../../store/useNoteReaderSettingsStore';
 
 interface MusicSheetProps {
   exercise: Exercise;
@@ -26,6 +27,7 @@ export function MusicSheet({
   fullscreen = false,
 }: MusicSheetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const showChordSymbols = useNoteReaderSettingsStore(state => state.showChordSymbols);
 
   // Measure + render in a single effect so we always use the actual container width
   useEffect(() => {
@@ -49,6 +51,7 @@ export function MusicSheet({
           width: dimensions.width,
           height: dimensions.height,
           barsPerLine,
+          showChordSymbols,
         });
       } catch (error) {
         console.error('Error rendering music notation:', error);
@@ -75,7 +78,7 @@ export function MusicSheet({
         containerRef.current.innerHTML = '';
       }
     };
-  }, [exercise, fullscreen, width, barsPerLine]);
+  }, [exercise, fullscreen, width, barsPerLine, showChordSymbols]);
 
   // Note highlighting (practice mode)
   useEffect(() => {
