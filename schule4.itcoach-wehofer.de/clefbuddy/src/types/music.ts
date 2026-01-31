@@ -24,6 +24,15 @@ export interface Note {
 
   /** Optional fingering number (1-5, thumb to pinky) */
   fingering?: number;
+
+  /** Optional tuplet grouping (e.g., 3 = triplet: 3 notes in the time of 2)
+   * When set, this note is part of a tuplet group.
+   * The tupletId links notes that belong to the same tuplet group.
+   */
+  tuplet?: number;
+
+  /** Links notes belonging to the same tuplet group */
+  tupletId?: string;
 }
 
 /**
@@ -57,7 +66,7 @@ export interface Exercise {
   description: string;
 
   /** Difficulty category */
-  difficulty: 'beginner' | 'easy' | 'intermediate';
+  difficulty: 'beginner' | 'easy' | 'elementary' | 'intermediate' | 'intermediate-advanced' | 'advanced' | 'expert';
 
   /** Time signature (e.g., "4/4", "3/4", "6/8") */
   timeSignature: string;

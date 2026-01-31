@@ -1,9 +1,3 @@
-/**
- * MusicSheet Component
- * Renders musical notation using VexFlow
- * Supports note highlighting during playback
- */
-
 import { useEffect, useRef } from 'react';
 import type { Exercise } from '../../types/music';
 import {
@@ -11,73 +5,79 @@ import {
   calculateOptimalDimensions,
   highlightNotes,
   clearNoteHighlights,
+  removePlaybackCursor,
 } from '../../utils/vexflowRenderer';
 
 interface MusicSheetProps {
-  /** Exercise data to render */
   exercise: Exercise;
-
-  /** Width in pixels */
   width?: number;
-
-  /** Number of bars per line */
   barsPerLine?: number;
-
-  /** IDs of the currently highlighted notes */
   highlightedNoteIds?: string[];
-
-  /** Additional CSS classes */
   className?: string;
+  fullscreen?: boolean;
 }
 
-/**
- * MusicSheet component renders musical notation from exercise data
- */
 export function MusicSheet({
   exercise,
-  width = 900,
+  width,
   barsPerLine = 4,
   highlightedNoteIds = [],
   className = '',
+  fullscreen = false,
 }: MusicSheetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Render the exercise
+  // Measure + render in a single effect so we always use the actual container width
   useEffect(() => {
-    if (!containerRef.current) return;
+    const el = containerRef.current;
+    if (!el) return;
 
-    const dimensions = calculateOptimalDimensions(
-      exercise.bars.length,
-      barsPerLine,
-      width,
-      exercise.grandStaff
-    );
+    const doRender = () => {
+      const renderWidth = fullscreen
+        ? (el.clientWidth || 900)
+        : (width ?? 900);
 
-    try {
-      renderExercise(containerRef.current, exercise, {
-        width: dimensions.width,
-        height: dimensions.height,
+      const dimensions = calculateOptimalDimensions(
+        exercise.bars.length,
         barsPerLine,
-      });
-    } catch (error) {
-      console.error('Error rendering music notation:', error);
-      if (containerRef.current) {
-        containerRef.current.innerHTML = `
+        renderWidth,
+        exercise.grandStaff
+      );
+
+      try {
+        renderExercise(el, exercise, {
+          width: dimensions.width,
+          height: dimensions.height,
+          barsPerLine,
+        });
+      } catch (error) {
+        console.error('Error rendering music notation:', error);
+        el.innerHTML = `
           <div style="color: red; padding: 20px; text-align: center;">
             Fehler beim Rendern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}
           </div>
         `;
       }
+    };
+
+    doRender();
+
+    // Re-render on resize in fullscreen mode
+    let ro: ResizeObserver | null = null;
+    if (fullscreen) {
+      ro = new ResizeObserver(() => doRender());
+      ro.observe(el);
     }
 
     return () => {
+      ro?.disconnect();
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
     };
-  }, [exercise, width, barsPerLine]);
+  }, [exercise, fullscreen, width, barsPerLine]);
 
-  // Handle note highlighting
+  // Note highlighting (practice mode)
   useEffect(() => {
     if (highlightedNoteIds.length > 0) {
       highlightNotes(highlightedNoteIds);
@@ -86,10 +86,10 @@ export function MusicSheet({
     }
   }, [highlightedNoteIds]);
 
-  // Clear highlights on unmount
   useEffect(() => {
     return () => {
       clearNoteHighlights();
+      removePlaybackCursor();
     };
   }, []);
 
@@ -97,7 +97,10 @@ export function MusicSheet({
     <div
       ref={containerRef}
       className={`music-sheet-container ${className}`}
-      style={{
+      style={fullscreen ? {
+        width: '100%',
+        height: '100%',
+      } : {
         overflow: 'auto',
         border: '1px solid #e5e7eb',
         borderRadius: '8px',

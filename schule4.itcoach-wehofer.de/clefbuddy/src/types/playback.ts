@@ -107,8 +107,8 @@ export const DEFAULT_PLAYBACK_CONFIG: PlaybackConfig = {
   tempo: 80,
   beatsPerMeasure: 4,
   beatUnit: 4,
-  loop: false,
-  metronomeEnabled: false,
+  loop: true, // Loop standardmäßig aktiviert
+  metronomeEnabled: true, // Metronom standardmäßig aktiviert
   countIn: 0,
 };
 

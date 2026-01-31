@@ -5,25 +5,83 @@
 **ClefBuddy** ist eine interaktive Web-App zum Erlernen von Notenlesen.
 **Projektpfad:** `/home/chris/WebseiteFTP/schule4.itcoach-wehofer.de/clefbuddy/`
 
-## Aktueller Status (Stand: 2026-01-28)
+## Aktueller Status (Stand: 2026-01-31)
 
-### Sprint 4 - Navigation & Random Generator: IN ARBEIT
+### Generator-Rework Stufe 3-5: IN ARBEIT
+
+Grosse Ueberarbeitung des `exerciseGenerator.ts` fuer musikpaedagogisch korrekte Uebungen.
+
+**Ziel:** 50 Iterationen zur Verbesserung der Musikalitaet (siehe Plan: `enumerated-prancing-hellman.md`)
+
+#### Implementierte Verbesserungen
+
+| Fix | Beschreibung | Status |
+|-----|-------------|--------|
+| Intervall-Kontrolle | `fixLargeIntervals()` + `fixLargeIntervalsMultiPass()` mit Octave-Clamping | ✓ fertig |
+| Cross-Bar Fixing | `fixCrossBarNote()`, `propagateShift()`, `findLastNonRest()` | ✓ fertig |
+| Akkord-Frequenz Stufe 3 | 92% Chance auf Akkord bei non-beat-1 (Ziel ~51% gesamt) | ✓ fertig |
+| Akkord-Frequenz Stufe 4 | 50% Chance auf Akkord bei non-beat-1 (Ziel ~33% gesamt) | ✓ fertig |
+| Stufe 3 Oktav-Begrenzung | Treble max Oktave 4, Clamping in fixLargeIntervals | ✓ fertig |
+| Einfache Progressionen Stufe 3 | `CHORD_PROGRESSIONS_3_SHORT/LONG` (meist Tonika) | ✓ fertig |
+| Pattern-Validierung Stufe 3 | Beat 1 muss Akkord-taugliche Dauer haben (h/hd/q/w) | ✓ fertig |
+| Rhythmische Patterns Stufe 3 | Vereinfacht, max 2 Achtel hintereinander | ✓ fertig |
+| Gewichtete Bass-Patterns | Alberti dominant bei Stufe 4 (40%) | ✓ fertig |
+| Aggressive Sprung-Reduktion | Stufe 3: 95% stufenweise, Intervall-Weights angepasst | ✓ fertig |
+| Akkord-Wechsel Stufe 3 | Maximal alle 2 Takte (`Math.floor(i/2)`) | ✓ fertig |
+| maxSemitones angepasst | Stufe 3:7, 4:12, 5:14, 6:16 | ✓ fertig |
+
+#### Aktuelle Metriken (200 Uebungen je Stufe)
+
+| Metrik | Stufe 3 | Stufe 4 | Stufe 5 |
+|--------|---------|---------|---------|
+| Akkorde | 51.1% | 33.0% | 2.3% |
+| Triolen | 5.4% | 7.6% | 0% |
+| Spruenge >7 Halbtoene | 8.4% | 16.5% | 18.2% |
+| Spruenge >12 Halbtoene | ~0% | ~0% | 5% |
+| Max Sprung | 14st | 15st | 31st |
+
+#### Offene Fixes aus STUFE_3_4_CODE_FIXES.md
+
+| Fix# | Beschreibung | Prioritaet |
+|------|-------------|------------|
+| #2 | 60:40 Ratio geblockt:gebrochen enforced | Critical |
+| #4 | Globale Triolen-Verteilung (nicht pro-Takt-Zufall) | Critical |
+| #6 | Achtel-Intervalle Stufe 3 strikt Sekunden | High |
+| #7 | Bass-Pattern Variationen Stufe 3 | High |
+| #9 | Fortgeschrittene Triolen-Patterns Stufe 4 | High |
+| #14 | Gebrochene Oktaven Stufe 4 Bass | Medium |
+| #15-20 | Diverse Feinschliff-Fixes | Medium |
+
+#### Analyse-Dokumente (von Agenten erstellt)
+
+- `STUFE_3_4_REWORK_PLAN.md` — PM-Plan mit 5 Phasen
+- `STUFE_3_4_MUSIC_SPEC.md` — Musikpaedagogische Spezifikation (Akkord-Typen, Patterns, Bass)
+- `STUFE_3_4_CODE_FIXES.md` — 20 priorisierte Code-Fixes mit Zeilennummern
+- `GENERATOR_ANALYSIS.md` — Fruehe Analyse
+- `GENERATOR_IMPROVEMENTS.md` — Aeltere Verbesserungen
+
+#### Naechste Schritte
+
+1. Offene Fixes #2, #4, #6, #7, #9 implementieren
+2. 50-Iterationen-Analyse: je Stufe 20-30 Uebungen generieren und einzeln pruefen
+3. Browser-Testing der aktuellen Version
+4. Stufe 5-6 Feinschliff (16tel-Laeufe, Chromatik, Dreiklang-Umkehrungen)
+
+### Sprint 4 - Navigation & Random Generator: ABGESCHLOSSEN
 
 | Task | Status |
 |------|--------|
 | 1. useNavigationStore.ts | ✓ fertig |
-| 2. Navigation.tsx (5 Tabs: Dashboard, NoteReader, Scales, Arpeggio, Chords) | ✓ fertig |
-| 3. NoteReaderView.tsx (extrahiert aus App.tsx) | ✓ fertig |
-| 4. App.tsx umgebaut (Navigation + Section-Switch) | ✓ fertig |
-| 5. ComingSoonView.tsx (Platzhalter) | ✓ fertig |
-| 6. exerciseGenerator.ts (Zufalls-Noten-Algorithmus, Grand Staff) | ✓ fertig |
-| 7. RandomExerciseGenerator.tsx (UI: Schwierigkeit/Taktart/Tonart-Stufe) | ✓ fertig |
-| 8. DashboardView.tsx (Statistiken, Schnellstart, letzte Uebungen) | ✓ fertig |
-| 9. Build erfolgreich (npm run build) | ✓ fertig |
-| 10. Manuelles Testen im Browser | ✓ fertig |
-| 11. Feinschliff / Bugfixes nach Test | ✓ fertig |
-
-**Hinweis:** Alle Dateien erstellt und Build laeuft durch. Naechster Schritt: manuelles Testen im Browser (npm run dev), dann ggf. Bugfixes.
+| 2. Navigation.tsx (5 Tabs) | ✓ fertig |
+| 3. NoteReaderView.tsx | ✓ fertig |
+| 4. App.tsx umgebaut | ✓ fertig |
+| 5. ComingSoonView.tsx | ✓ fertig |
+| 6. exerciseGenerator.ts | ✓ fertig |
+| 7. RandomExerciseGenerator.tsx | ✓ fertig |
+| 8. DashboardView.tsx | ✓ fertig |
+| 9. Build erfolgreich | ✓ fertig |
+| 10. Manuelles Testen | ✓ fertig |
+| 11. Feinschliff / Bugfixes | ✓ fertig |
 
 ### Sprint 3 - MIDI Eingabe & Bewertung: ABGESCHLOSSEN
 
@@ -190,10 +248,22 @@ npm run build
 - `DESIGN_SYSTEM.md` - UI Design-System
 - `VEXFLOW_INTEGRATION.md` - VexFlow Dokumentation
 - `MIDI_INTEGRATION.md` - MIDI Dokumentation
+- `STUFE_3_4_REWORK_PLAN.md` - PM-Plan Generator-Rework
+- `STUFE_3_4_MUSIC_SPEC.md` - Musikpaedagogische Spezifikation
+- `STUFE_3_4_CODE_FIXES.md` - 20 Code-Fixes mit Prioritaeten
+- `GENERATOR_ANALYSIS.md` - Generator-Analyse (Phase 1)
+- `GENERATOR_IMPROVEMENTS.md` - Generator-Verbesserungen Log
+- `SIGHT_READING_LEVELS_SPEC.md` - Level-Spezifikation
 
-## Nächste Schritte (Sprint 4)
+## Naechste Schritte
 
-- Pitch Detection (Mikrofon) für Gesang/Instrumente
+### Generator-Rework fortsetzen
+- Offene Fixes #2, #4, #6, #7, #9 aus `STUFE_3_4_CODE_FIXES.md`
+- 50 Iterationen: Einzelanalyse generierter Uebungen
+- Stufe 5-6 Feinschliff
+
+### Spaeter
+- Pitch Detection (Mikrofon) fuer Gesang/Instrumente
 - Fortschritts-Tracking Dashboard
 - Level-Freischaltung basierend auf Leistung
 - Backend-Integration (Benutzer-Accounts, Cloud-Sync)

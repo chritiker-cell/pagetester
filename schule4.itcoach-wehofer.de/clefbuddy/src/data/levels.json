@@ -2,111 +2,143 @@
   "levels": [
     {
       "id": 1,
-      "name": "Absolute Anfänger",
-      "description": "Erste Schritte im Notenlesen: Fünffingerraum in C-Dur",
+      "name": "Anfaenger",
+      "description": "Erste Schritte: Ganze, Halbe und Viertelnoten, Haende abwechselnd",
       "clef": "treble",
       "keySignature": "C",
       "timeSignature": "4/4",
+      "color": "emerald",
       "parameters": {
-        "noteRange": {
-          "min": "c/4",
-          "max": "g/4",
-          "description": "Fünffingerraum: C4, D4, E4, F4, G4"
-        },
-        "allowedDurations": ["q", "h"],
-        "allowedIntervals": {
-          "melodic": ["unison", "second"],
-          "maxJump": "second",
-          "description": "Nur stufenweise Bewegung und Tonwiederholung"
-        },
-        "barCount": 8,
+        "noteRange": { "min": "c/4", "max": "g/4", "description": "5-Finger-Position C4-G4 / C3-G3" },
+        "allowedDurations": ["w", "h", "q"],
+        "allowedIntervals": { "melodic": ["second", "third"], "maxJump": "third", "description": "Max. Terz, 90% Sekunden" },
+        "barCount": 4,
         "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4"],
-        "rhythmicPatterns": [
-          "q q q q",
-          "h h",
-          "q q h"
-        ]
+        "rhythmicPatterns": ["q q q q", "h h", "h q q", "q q h", "w"],
+        "allowedTimeSignatures": ["4/4"],
+        "allowedKeys": ["C"],
+        "handMode": "alternating"
       },
-      "pedagogicalFocus": "Tonhöhen-Erkennung im engsten Raum, einfachste Rhythmen",
-      "unlockCriteria": {
-        "accuracy": 0.7,
-        "exercisesCompleted": 3
-      }
+      "pedagogicalFocus": "Notenlesen, Rhythmusgefuehl, eine Hand, 5-Finger-Position fest",
+      "unlockCriteria": { "accuracy": 0.7, "exercisesCompleted": 3 }
     },
     {
       "id": 2,
-      "name": "Leicht Fortgeschritten",
-      "description": "Erweiterung auf eine Oktave mit ganzen Noten",
+      "name": "Elementar",
+      "description": "Beide Haende zusammen, punktierte Halbe, KEINE Achtel",
       "clef": "treble",
       "keySignature": "C",
       "timeSignature": "4/4",
+      "color": "blue",
       "parameters": {
-        "noteRange": {
-          "min": "c/4",
-          "max": "c/5",
-          "description": "Eine Oktave: C4 bis C5"
-        },
-        "allowedDurations": ["q", "h", "w"],
-        "allowedIntervals": {
-          "melodic": ["unison", "second", "third", "fourth"],
-          "maxJump": "fourth",
-          "description": "Stufenweise Bewegung plus Terzen und Quarten"
-        },
-        "barCount": 8,
-        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5"],
-        "rhythmicPatterns": [
-          "q q q q",
-          "h h",
-          "w",
-          "h q q",
-          "q q q q"
-        ]
+        "noteRange": { "min": "c/4", "max": "g/4", "description": "5-Finger-Position fest (kein Lagenwechsel)" },
+        "allowedDurations": ["w", "hd", "h", "q"],
+        "allowedIntervals": { "melodic": ["second", "third"], "maxJump": "third", "description": "Max. Terz, 85% Sekunden" },
+        "barCount": 4,
+        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4"],
+        "rhythmicPatterns": ["q q q q", "h h", "hd q", "q hd", "w", "h q q", "q q h"],
+        "allowedTimeSignatures": ["4/4", "3/4"],
+        "allowedKeys": ["C", "G", "F"],
+        "handMode": "together-simple"
       },
-      "pedagogicalFocus": "Oktaverkennung, ganze Noten, kleine Sprünge",
-      "unlockCriteria": {
-        "accuracy": 0.75,
-        "exercisesCompleted": 3
-      }
+      "pedagogicalFocus": "Hand-Koordination, beide Haende gleichzeitig, 5-Finger-Position fest",
+      "unlockCriteria": { "accuracy": 0.75, "exercisesCompleted": 3 }
     },
     {
       "id": 3,
-      "name": "Fortgeschrittener Anfänger",
-      "description": "Einführung punktierter Rhythmen und größerer Sprünge",
+      "name": "Mittelstufe I",
+      "description": "Erste Achtel, punktierte Viertel, Lagenwechsel erlaubt",
       "clef": "treble",
       "keySignature": "C",
       "timeSignature": "4/4",
+      "color": "amber",
       "parameters": {
-        "noteRange": {
-          "min": "c/4",
-          "max": "e/5",
-          "description": "Erweitert bis E5"
-        },
-        "allowedDurations": ["q", "h", "w", "hd"],
-        "allowedIntervals": {
-          "melodic": ["unison", "second", "third", "fourth", "fifth"],
-          "maxJump": "fifth",
-          "description": "Sprünge bis zur Quinte erlaubt"
-        },
-        "barCount": 8,
-        "allowedNotes": ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5"],
-        "rhythmicPatterns": [
-          "q q q q",
-          "h h",
-          "w",
-          "hd q",
-          "q h q"
-        ]
+        "noteRange": { "min": "c/4", "max": "e/5", "description": "Treble C4-E5, Bass G2-C4" },
+        "allowedDurations": ["w", "hd", "h", "qd", "q", "8"],
+        "allowedIntervals": { "melodic": ["second", "third", "fourth", "fifth"], "maxJump": "fifth", "description": "Max. Quinte" },
+        "barCount": 6,
+        "allowedNotes": [],
+        "rhythmicPatterns": ["q q q q", "8 8 q q q", "8 8 8 8 h", "hd q", "qd 8 h", "8 8 q h"],
+        "allowedTimeSignatures": ["4/4", "3/4", "2/4"],
+        "allowedKeys": ["C", "G", "F", "D", "Bb"],
+        "handMode": "together-independent"
       },
-      "pedagogicalFocus": "Punktierte Halbe, Quinten-Sprünge, erweiterter Tonraum",
-      "unlockCriteria": {
-        "accuracy": 0.8,
-        "exercisesCompleted": 3
-      }
+      "pedagogicalFocus": "Achtelnoten, Lagenwechsel, erweiterter Tonraum, max. Quinte",
+      "unlockCriteria": { "accuracy": 0.8, "exercisesCompleted": 3 }
+    },
+    {
+      "id": 4,
+      "name": "Mittelstufe II",
+      "description": "Punktierte Achtel, erste Zweiklaenge, rhythmische Komplexitaet",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "color": "orange",
+      "parameters": {
+        "noteRange": { "min": "c/4", "max": "g/5", "description": "Treble C4-G5, Bass C2-C4" },
+        "allowedDurations": ["w", "hd", "h", "qd", "q", "8d", "8"],
+        "allowedIntervals": { "melodic": ["unison", "second", "third", "fourth", "fifth", "sixth"], "maxJump": "sixth", "description": "Max. Sexte + Zweiklaenge" },
+        "barCount": 8,
+        "allowedNotes": [],
+        "rhythmicPatterns": ["8 8 8 8 q q", "qd 8 qd 8", "q 8 8 q 8 8", "8d 16 q h"],
+        "allowedTimeSignatures": ["4/4", "3/4", "2/4", "6/8"],
+        "allowedKeys": ["C", "G", "F", "D", "Bb", "A", "Eb"],
+        "chords": { "type": "dyads", "intervals": ["third", "fifth"], "maxPerBar": 1 },
+        "handMode": "together-independent"
+      },
+      "pedagogicalFocus": "Punktierte Achtel, erste Akkorde (Zweiklaenge), rhythmische Komplexitaet",
+      "unlockCriteria": { "accuracy": 0.8, "exercisesCompleted": 5 }
+    },
+    {
+      "id": 5,
+      "name": "Fortgeschritten",
+      "description": "16tel-Laeufe, Dreiklaenge, grosse Spruenge",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "color": "red",
+      "parameters": {
+        "noteRange": { "min": "a/3", "max": "c/6", "description": "Treble A3-C6, Bass C2-E4" },
+        "allowedDurations": ["w", "hd", "h", "qd", "q", "8d", "8", "16"],
+        "allowedIntervals": { "melodic": ["unison", "second", "third", "fourth", "fifth", "sixth", "seventh", "octave"], "maxJump": "octave", "description": "Max. Oktave + Dreiklaenge" },
+        "barCount": 10,
+        "allowedNotes": [],
+        "rhythmicPatterns": [],
+        "allowedTimeSignatures": ["4/4", "3/4", "2/4", "6/8"],
+        "allowedKeys": ["C", "G", "F", "D", "Bb", "A", "Eb", "E", "Ab", "B", "Db"],
+        "chords": { "type": "triads", "inversions": true },
+        "handMode": "together-independent"
+      },
+      "pedagogicalFocus": "16tel-Laeufe, Dreiklaenge (Grundstellung + Umkehrungen), grosse Spruenge",
+      "unlockCriteria": { "accuracy": 0.85, "exercisesCompleted": 5 }
+    },
+    {
+      "id": 6,
+      "name": "Experte",
+      "description": "32tel, Vierklang, Cluster, voller Umfang",
+      "clef": "treble",
+      "keySignature": "C",
+      "timeSignature": "4/4",
+      "color": "purple",
+      "parameters": {
+        "noteRange": { "min": "a/1", "max": "c/7", "description": "Voller Klavierumfang" },
+        "allowedDurations": ["w", "hd", "h", "qd", "q", "8d", "8", "16", "32"],
+        "allowedIntervals": { "melodic": ["all"], "maxJump": "any", "description": "Unbegrenzt + Vierklang, Cluster" },
+        "barCount": 14,
+        "allowedNotes": [],
+        "rhythmicPatterns": [],
+        "allowedTimeSignatures": ["4/4", "3/4", "2/4", "6/8"],
+        "allowedKeys": ["all"],
+        "chords": { "type": "seventh-chords", "clusters": true },
+        "handMode": "together-independent"
+      },
+      "pedagogicalFocus": "32tel, polymetrische Elemente, Vierklang, Cluster, maximale Komplexitaet",
+      "unlockCriteria": { "accuracy": 0.9, "exercisesCompleted": 8 }
     }
   ],
   "metadata": {
-    "version": "1.0.0",
-    "created": "2026-01-26",
+    "version": "3.0.0",
+    "created": "2026-01-30",
     "notationSystem": "VexFlow",
     "author": "ClefBuddy Music Theory Agent"
   }

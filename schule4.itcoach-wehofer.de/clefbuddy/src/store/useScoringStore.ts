@@ -12,7 +12,9 @@ import type {
   ScoringState,
   ExerciseBestScore,
   SessionSummary,
+  LevelProgress,
 } from '../types/scoring';
+import levelsData from '../data/levels.json';
 import {
   calculatePracticeScore,
   generateSessionSummary,
@@ -41,6 +43,7 @@ interface ScoringStore extends ScoringState {
   // Getters
   getBestScore: (exerciseId: string) => ExerciseBestScore | null;
   getSessionSummary: () => SessionSummary | null;
+  getLevelProgress: () => LevelProgress[];
 
   // Actions - Reset
   reset: () => void;
@@ -127,6 +130,57 @@ export const useScoringStore = create<ScoringStore>()(
       // Get best score for an exercise
       getBestScore: (exerciseId) => {
         return get().bestScores.get(exerciseId) || null;
+      },
+
+      // Calculate level progress from best scores
+      getLevelProgress: (): LevelProgress[] => {
+        const { bestScores } = get();
+        const levels = levelsData.levels;
+
+        return levels.map((level, index) => {
+          // Count exercises completed at this difficulty level
+          // Exercise IDs from generator are like "random-diff3-..." where diff number maps to level
+          const levelScores = Array.from(bestScores.values()).filter(bs =>
+            bs.exerciseId.includes(`diff${level.id}`)
+          );
+          const completedExercises = levelScores.length;
+          const totalRequired = level.unlockCriteria.exercisesCompleted;
+          const averageScore = levelScores.length > 0
+            ? Math.round(levelScores.reduce((sum, s) => sum + s.bestScore, 0) / levelScores.length)
+            : 0;
+          const averageStars = levelScores.length > 0
+            ? Math.round(levelScores.reduce((sum, s) => sum + s.bestStars, 0) / levelScores.length * 10) / 10
+            : 0;
+
+          // Level 1 is always unlocked; others require previous level criteria met
+          let isUnlocked = index === 0;
+          if (index > 0) {
+            const prevLevel = levels[index - 1];
+            const prevScores = Array.from(bestScores.values()).filter(bs =>
+              bs.exerciseId.includes(`diff${prevLevel.id}`)
+            );
+            const prevCompleted = prevScores.length >= prevLevel.unlockCriteria.exercisesCompleted;
+            const prevAvg = prevScores.length > 0
+              ? prevScores.reduce((sum, s) => sum + s.bestScore, 0) / prevScores.length / 100
+              : 0;
+            isUnlocked = prevCompleted && prevAvg >= prevLevel.unlockCriteria.accuracy;
+          }
+
+          const isCompleted = completedExercises >= totalRequired &&
+            averageScore / 100 >= level.unlockCriteria.accuracy;
+
+          return {
+            levelId: level.id,
+            levelName: level.name,
+            color: level.color,
+            completedExercises,
+            totalRequired,
+            averageScore,
+            averageStars,
+            isUnlocked,
+            isCompleted,
+          };
+        });
       },
 
       // Get session summary for current score

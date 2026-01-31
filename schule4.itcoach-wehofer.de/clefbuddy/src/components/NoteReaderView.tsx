@@ -1,15 +1,9 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { MusicSheet } from './notation/MusicSheet';
-import ExerciseSelector from './ExerciseSelector';
-import { TwoColumnLayout } from './Layout';
-import PlaybackControls from './PlaybackControls';
-import TempoSlider from './TempoSlider';
-import Metronome from './Metronome';
 import ModeSelector, { type AppMode } from './ModeSelector';
 import MidiDeviceSelector from './MidiDeviceSelector';
 import PracticeVisualizer from './PracticeVisualizer';
 import ResultsModal from './ResultsModal';
-import RandomExerciseGenerator from './RandomExerciseGenerator';
 import Button from './ui/Button';
 import { useExerciseStore } from '../store/useExerciseStore';
 import { usePlaybackStore } from '../store/usePlaybackStore';
@@ -25,6 +19,11 @@ import {
   clearNoteHighlights,
   highlightNotePractice,
   clearPracticeFeedback,
+  getNotePosition,
+  showCursorAtPosition,
+  animateCursorTimeline,
+  hidePlaybackCursor,
+  type CursorTimelineEntry,
 } from '../utils/vexflowRenderer';
 import { isWebAudioSupported, getAudioErrorMessage } from '../utils/audioCompat';
 import {
@@ -35,28 +34,54 @@ import {
   getRunningAccuracy,
   type PracticeModeState,
 } from '../utils/practiceMode';
+import {
+  generateExercise,
+  DIFFICULTY_LABELS,
+  DIFFICULTY_INFO,
+  KEY_STAGE_INFO,
+  AVAILABLE_KEY_STAGES,
+  type Difficulty,
+  type TimeSignatureOption,
+  type KeyStage,
+} from '../utils/exerciseGenerator';
+import type { Exercise } from '../types/music';
 import type { NoteComparison } from '../types/comparison';
 import type { SessionSummary } from '../types/scoring';
 
+type Phase = 'setup' | 'practice';
+
 export default function NoteReaderView() {
-  const {
-    selectedExerciseId,
-    filteredExercises,
-    setExercise,
-    getSelectedExercise,
-  } = useExerciseStore();
+  // Setup state
+  const [phase, setPhase] = useState<Phase>('setup');
+  const [difficulty, setDifficulty] = useState<Difficulty>(1);
+  const [keyStage, setKeyStage] = useState<KeyStage>(1);
+  const [timeSignature, setTimeSignature] = useState<TimeSignatureOption>('random');
+  const [barCount, setBarCount] = useState(4);
+  const barCountOptions = [4, 8, 12, 16, 20, 24];
+  const [generatedExercise, setGeneratedExercise] = useState<Exercise | null>(null);
+  const [progressionStep, setProgressionStep] = useState(0);
+
+  // Tempo editing
+  const [editingTempo, setEditingTempo] = useState(false);
+  const [tempoInput, setTempoInput] = useState('');
+  const tempoInputRef = useRef<HTMLInputElement>(null);
+
+  const { setExercise } = useExerciseStore();
 
   const {
     config,
     isReady,
     scheduledNotes,
+    status,
     setReady,
     setScheduledNotes,
     setTotalDuration,
     setCurrentNoteIndex,
     setMetronomeBeat,
     setConfig,
+    setTempo,
     toggleMetronome,
+    toggleLoop,
     stop,
     play,
     pause,
@@ -91,13 +116,21 @@ export default function NoteReaderView() {
 
   useEffect(() => {
     if (!isWebAudioSupported()) {
-      setAudioError(
-        'Dein Browser unterstuetzt keine Audio-Wiedergabe. Bitte verwende einen modernen Browser wie Chrome, Firefox oder Safari.'
-      );
+      setAudioError('Dein Browser unterstuetzt keine Audio-Wiedergabe. Bitte verwende einen modernen Browser.');
     }
   }, []);
 
-  const currentExercise = getSelectedExercise();
+  // Stop playback/metronome when component unmounts (e.g. tab switch to Dashboard)
+  useEffect(() => {
+    return () => {
+      getPlaybackController().stop();
+      stopPractice();
+      hidePlaybackCursor();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const currentExercise = generatedExercise;
 
   const initializeAudio = useCallback(async () => {
     if (isReady) return;
@@ -106,12 +139,7 @@ export default function NoteReaderView() {
     setReady(success);
   }, [isReady, setReady]);
 
-  useEffect(() => {
-    if (!selectedExerciseId && filteredExercises.length > 0) {
-      setExercise(filteredExercises[0].id);
-    }
-  }, [selectedExerciseId, filteredExercises, setExercise]);
-
+  // When exercise changes, set up playback
   useEffect(() => {
     if (!currentExercise) return;
     stop();
@@ -128,8 +156,8 @@ export default function NoteReaderView() {
       tempo: currentExercise.tempo,
       beatsPerMeasure,
       beatUnit,
-      loop: false,
-      metronomeEnabled: false,
+      loop: true, // Loop standardmäßig aktiviert
+      metronomeEnabled: true, // Metronom standardmäßig aktiviert
       countIn: 0,
     };
     const notes = exerciseToScheduledNotes(currentExercise, exerciseConfig);
@@ -139,6 +167,46 @@ export default function NoteReaderView() {
     setTotalDuration(duration);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentExercise]);
+
+  // Reset keyStage if not available for selected difficulty
+  useEffect(() => {
+    const available = AVAILABLE_KEY_STAGES[difficulty];
+    if (!available.includes(keyStage)) {
+      setKeyStage(available[available.length - 1] < keyStage ? available[available.length - 1] : 1);
+    }
+  }, [difficulty, keyStage]);
+
+  const handleStartExercise = useCallback(() => {
+    const exercise = generateExercise({ difficulty, timeSignature, keyStage, barCount, progressionStep: 0 });
+    setGeneratedExercise(exercise);
+    setExercise(exercise.id);
+    setProgressionStep(0);
+    setPhase('practice');
+  }, [difficulty, timeSignature, keyStage, barCount, setExercise]);
+
+  const handleBackToSetup = useCallback(() => {
+    stop();
+    stopPractice();
+    clearNoteHighlights();
+    clearPracticeFeedback();
+    setHighlightedNoteIds([]);
+    hidePlaybackCursor();
+    setPracticeState('idle');
+    setGeneratedExercise(null);
+    setProgressionStep(0);
+    setPhase('setup');
+  }, [stop]);
+
+  const handleNextExercise = useCallback(() => {
+    hideResultsModal();
+    clearCurrentScore();
+    setSessionSummary(null);
+    const nextStep = progressionStep + 1;
+    setProgressionStep(nextStep);
+    const exercise = generateExercise({ difficulty, timeSignature, keyStage, barCount, progressionStep: nextStep });
+    setGeneratedExercise(exercise);
+    setExercise(exercise.id);
+  }, [hideResultsModal, clearCurrentScore, difficulty, timeSignature, keyStage, barCount, progressionStep, setExercise]);
 
   const handlePlay = useCallback(async () => {
     try {
@@ -150,32 +218,55 @@ export default function NoteReaderView() {
 
       const controller = getPlaybackController(config);
       if (!controller.isReady()) {
-        setAudioError('Audio-Engine konnte nicht initialisiert werden. Bitte versuche es erneut.');
+        setAudioError('Audio-Engine konnte nicht initialisiert werden.');
         return;
       }
 
       controller.loadExercise(
         currentExercise,
-        (noteId, noteIndex) => {
-          // Find all notes with the same startTime (treble + bass in grand staff)
-          const allScheduled = controller.getScheduledNotes();
-          const thisNote = allScheduled.find(n => n.id === noteId);
-          if (thisNote) {
-            const siblingIds = allScheduled
-              .filter(n => Math.abs(n.startTime - thisNote.startTime) < 0.001 && n.toneNotes.length > 0)
-              .map(n => n.id);
-            setHighlightedNoteIds(siblingIds);
-          } else {
-            setHighlightedNoteIds([noteId]);
-          }
+        (_noteId, noteIndex) => {
           setCurrentNoteIndex(noteIndex);
+          // No color highlighting in listen mode — cursor line is sufficient
         },
         (beat, isDownbeat) => { setMetronomeBeat(beat, isDownbeat); },
-        () => { stop(); setHighlightedNoteIds([]); }
+        () => { stop(); setHighlightedNoteIds([]); hidePlaybackCursor(); }
       );
 
+      // Build cursor timeline from ALL treble notes (including rests) in time order
+      const allScheduled = controller.getScheduledNotes();
+      const trebleNotes = allScheduled
+        .filter(n => n.voice === 'treble')
+        .sort((a, b) => a.startTime - b.startTime);
+
+      const timeline: CursorTimelineEntry[] = [];
+      for (const n of trebleNotes) {
+        const pos = getNotePosition(n.id);
+        if (pos) {
+          timeline.push({
+            x: pos.x,
+            time: n.startTime,
+            lineTop: pos.lineTop,
+            lineBottom: pos.lineBottom,
+            noteId: n.id,
+            duration: n.durationSeconds,
+          });
+        }
+      }
+
+      // Show cursor at first note position immediately (before count-in)
+      if (timeline.length > 0) {
+        showCursorAtPosition(timeline[0].x, timeline[0].lineTop, timeline[0].lineBottom);
+      }
+
+      // Play (includes count-in) - cursor stays still during count-in
       await controller.play();
       play();
+
+      // NOW start cursor animation - music has just begun
+      if (timeline.length > 0) {
+        const totalDuration = controller.getTotalDuration();
+        animateCursorTimeline(timeline, totalDuration, config.loop);
+      }
     } catch (error) {
       console.error('Playback error:', error);
       setAudioError(getAudioErrorMessage(error));
@@ -194,7 +285,16 @@ export default function NoteReaderView() {
     stop();
     clearNoteHighlights();
     setHighlightedNoteIds([]);
+    hidePlaybackCursor();
   }, [stop]);
+
+  const handlePlayPause = useCallback(() => {
+    if (status === 'playing') {
+      handlePause();
+    } else {
+      handlePlay();
+    }
+  }, [status, handlePlay, handlePause]);
 
   const handleStartPractice = useCallback(async () => {
     if (!currentExercise || scheduledNotes.length === 0) return;
@@ -270,16 +370,6 @@ export default function NoteReaderView() {
     clearPracticeFeedback();
   }, [hideResultsModal, clearCurrentScore]);
 
-  const handleNextExercise = useCallback(() => {
-    hideResultsModal();
-    clearCurrentScore();
-    setSessionSummary(null);
-    const currentIndex = filteredExercises.findIndex((e) => e.id === currentExercise?.id);
-    if (currentIndex >= 0 && currentIndex < filteredExercises.length - 1) {
-      setExercise(filteredExercises[currentIndex + 1].id);
-    }
-  }, [hideResultsModal, clearCurrentScore, filteredExercises, currentExercise, setExercise]);
-
   useEffect(() => {
     if (practiceState === 'playing' && playedNotes.length > 0) {
       const latestNote = playedNotes[playedNotes.length - 1];
@@ -304,152 +394,383 @@ export default function NoteReaderView() {
     });
   }, [config.tempo, config.metronomeEnabled, config.loop]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (phase !== 'practice') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          handlePlayPause();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          handleStop();
+          break;
+        case 'l':
+        case 'L':
+          e.preventDefault();
+          toggleLoop();
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          toggleMetronome();
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [phase, handlePlayPause, handleStop, toggleLoop, toggleMetronome]);
+
+  const handleTempoClick = () => {
+    setTempoInput(String(config.tempo));
+    setEditingTempo(true);
+    setTimeout(() => tempoInputRef.current?.select(), 0);
+  };
+
+  const commitTempo = () => {
+    const val = parseInt(tempoInput, 10);
+    if (!isNaN(val) && val >= 40 && val <= 200) {
+      setTempo(val);
+    }
+    setEditingTempo(false);
+  };
+
   const currentSessionSummary = sessionSummary || getSessionSummary();
+
+  // ========================
+  // SETUP PHASE
+  // ========================
+  if (phase === 'setup') {
+    const tsOptions: { value: TimeSignatureOption; label: string }[] = [
+      { value: 'random', label: 'Zufaellig' },
+      { value: '4/4', label: '4/4' },
+      { value: '3/4', label: '3/4' },
+      { value: '2/4', label: '2/4' },
+      { value: '6/8', label: '6/8' },
+    ];
+
+    const availableKeyStages = AVAILABLE_KEY_STAGES[difficulty];
+    const diffInfo = DIFFICULTY_INFO[difficulty];
+    const ksInfo = KEY_STAGE_INFO[keyStage];
+
+    return (
+      <div className="flex items-start justify-center min-h-[60vh] p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-4xl">
+          {/* LEFT: Selection Panel */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 space-y-5">
+            <h2 className="text-xl font-bold text-neutral-900">Neue Uebung</h2>
+
+            {/* Difficulty - 6 vertical buttons */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Schwierigkeitsstufe</label>
+              <div className="flex flex-col gap-1.5">
+                {DIFFICULTY_LABELS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setDifficulty(opt.value)}
+                    className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium text-left transition-colors ${
+                      difficulty === opt.value
+                        ? 'bg-primary-600 text-white shadow-sm'
+                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                    }`}
+                  >
+                    <span className="font-bold mr-2">{opt.label}.</span>{opt.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Stage - horizontal */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Tonart-Stufe</label>
+              <div className="flex gap-1.5">
+                {([1, 2, 3, 4, 5] as KeyStage[]).map(ks => {
+                  const available = availableKeyStages.includes(ks);
+                  return (
+                    <button
+                      key={ks}
+                      onClick={() => available && setKeyStage(ks)}
+                      disabled={!available}
+                      className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors ${
+                        keyStage === ks
+                          ? 'bg-primary-600 text-white'
+                          : available
+                            ? 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                            : 'bg-neutral-100 text-neutral-300 cursor-not-allowed border border-neutral-100'
+                      }`}
+                    >
+                      {ks}
+                    </button>
+                  );
+                })}
+              </div>
+              {!availableKeyStages.includes(4 as KeyStage) && (
+                <p className="text-xs text-neutral-400 mt-1">Stufen 4-5 ab Schwierigkeit 5 verfuegbar</p>
+              )}
+            </div>
+
+            {/* Time Signature - horizontal buttons */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Taktart</label>
+              <div className="flex gap-1.5 flex-wrap">
+                {tsOptions.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTimeSignature(opt.value)}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                      timeSignature === opt.value
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar Count - horizontal buttons */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Anzahl Takte</label>
+              <div className="flex gap-1.5 flex-wrap">
+                {barCountOptions.map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setBarCount(n)}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                      barCount === n
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button variant="primary" size="lg" onClick={handleStartExercise} className="w-full">
+              Uebung starten
+            </Button>
+          </div>
+
+          {/* RIGHT: Info Panel */}
+          <div className="lg:sticky lg:top-4 space-y-4">
+            {/* Difficulty Info */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <h3 className="text-lg font-bold text-neutral-900 mb-3">{diffInfo.name}</h3>
+              <ul className="space-y-1.5">
+                {diffInfo.bullets.map((b, i) => (
+                  <li key={i} className="text-sm text-neutral-600 flex items-start gap-2">
+                    <span className="text-primary-500 mt-0.5">&#8226;</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Key Stage Info */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <h3 className="text-lg font-bold text-neutral-900 mb-3">{ksInfo.name}</h3>
+              <ul className="space-y-1.5">
+                {ksInfo.bullets.map((b, i) => (
+                  <li key={i} className="text-sm text-neutral-600 flex items-start gap-2">
+                    <span className="text-primary-500 mt-0.5">&#8226;</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Summary */}
+            <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200">
+              <h4 className="text-sm font-medium text-neutral-500 mb-2">Zusammenfassung</h4>
+              <div className="text-sm text-neutral-700 space-y-1">
+                <p><span className="font-medium">Stufe:</span> {diffInfo.name}</p>
+                <p><span className="font-medium">Tonart:</span> {ksInfo.name}</p>
+                <p><span className="font-medium">Taktart:</span> {timeSignature === 'random' ? 'Zufaellig' : timeSignature}</p>
+                <p><span className="font-medium">Takte:</span> {barCount}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========================
+  // PRACTICE PHASE
+  // ========================
+  const isPlaying = status === 'playing';
+
+  const PlayIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+  );
+  const PauseIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+  );
+  const StopIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z" /></svg>
+  );
+  const LoopIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" /></svg>
+  );
+  const MetronomeIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5c-.55 0-1 .45-1 1v1.09C7.72 4.09 5 7.12 5 10.5c0 3.87 2.69 7.12 6.31 7.91L10 22h4l-1.31-3.59C16.31 17.62 19 14.37 19 10.5c0-3.38-2.72-6.41-6-6.91V2.5c0-.55-.45-1-1-1zm0 5c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1s-1-.45-1-1v-4c0-.55.45-1 1-1z" /></svg>
+  );
+
+  const iconBtn = (active: boolean) =>
+    `p-2 rounded-lg transition-colors ${active ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`;
 
   return (
     <>
-      <TwoColumnLayout
-        sidebarPosition="left"
-        main={
-          <div className="bg-white rounded-2xl shadow-2xl p-8 h-full">
-            {currentExercise ? (
-              <>
-                <div className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-neutral-900">{currentExercise.name}</h2>
-                    <span className="text-lg font-semibold text-neutral-700">{currentExercise.tempo} BPM</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-600 rounded-full">Level {currentExercise.level}</span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-600 rounded-full">{currentExercise.timeSignature}</span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-600 rounded-full">{currentExercise.keySignature}-Dur</span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-600 rounded-full">{currentExercise.bars.length} Takte</span>
-                  </div>
-                </div>
+      <div className="flex flex-col h-[calc(100vh-120px)]">
+        {/* Compact Toolbar */}
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-neutral-200 shrink-0 flex-wrap">
+          {appMode === 'listen' ? (
+            <>
+              <button onClick={handlePlayPause} className={iconBtn(isPlaying)} title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}>
+                {isPlaying ? <PauseIcon /> : <PlayIcon />}
+              </button>
+              <button onClick={handleStop} className={iconBtn(false)} title="Stop (Esc)" disabled={status === 'stopped'}>
+                <StopIcon />
+              </button>
+              <button onClick={toggleLoop} className={iconBtn(config.loop)} title="Loop (L)">
+                <LoopIcon />
+              </button>
+              <button onClick={toggleMetronome} className={iconBtn(config.metronomeEnabled)} title="Metronom (M)">
+                <MetronomeIcon />
+              </button>
+            </>
+          ) : (
+            <>
+              {practiceState === 'idle' || practiceState === 'finished' ? (
+                <button
+                  onClick={handleStartPractice}
+                  disabled={midiConnectionStatus !== 'connected' || !midiDeviceId}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {practiceState === 'finished' ? 'Nochmal' : 'Start'}
+                </button>
+              ) : (
+                <button onClick={handleStopPractice} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-200 text-neutral-700 hover:bg-neutral-300">
+                  Stopp
+                </button>
+              )}
+              <button onClick={toggleMetronome} className={iconBtn(config.metronomeEnabled)} title="Metronom (M)"
+                disabled={practiceState === 'playing' || practiceState === 'countdown'}>
+                <MetronomeIcon />
+              </button>
+              <MidiDeviceSelector compact />
+            </>
+          )}
 
-                <div className="mb-4">
-                  <ModeSelector
-                    mode={appMode}
-                    onModeChange={setAppMode}
-                    midiConnected={midiConnectionStatus === 'connected' && !!midiDeviceId}
-                    className="mb-3"
-                  />
-                </div>
-                <div className="mb-4 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
-                  {appMode === 'listen' ? (
-                    <>
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <PlaybackControls onPlay={handlePlay} onPause={handlePause} onStop={handleStop} disabled={!currentExercise} />
-                        <Metronome />
-                      </div>
-                      <div className="mt-4 max-w-xs">
-                        <TempoSlider min={40} max={180} step={5} />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          {practiceState === 'idle' || practiceState === 'finished' ? (
-                            <Button
-                              variant="primary"
-                              onClick={handleStartPractice}
-                              disabled={!currentExercise || midiConnectionStatus !== 'connected' || !midiDeviceId}
-                            >
-                              {practiceState === 'finished' ? 'Nochmal' : 'Uebung starten'}
-                            </Button>
-                          ) : (
-                            <Button variant="secondary" onClick={handleStopPractice}>Stoppen</Button>
-                          )}
-                          {(practiceState === 'playing' || practiceState === 'countdown') && (
-                            <Metronome isActive={true} />
-                          )}
-                        </div>
-                        <MidiDeviceSelector compact />
-                      </div>
+          {/* Divider */}
+          <div className="w-px h-6 bg-neutral-200 mx-1" />
 
-                      {(practiceState === 'playing' || practiceState === 'countdown') && (
-                        <PracticeVisualizer
-                          practiceState={practiceState}
-                          correctCount={practiceAccuracy.correct}
-                          incorrectCount={practiceAccuracy.incorrect}
-                          totalNotes={practiceAccuracy.total}
-                          countdownBeat={countdownBeat}
-                          countdownTotal={4}
-                          currentNoteIndex={practiceAccuracy.correct + practiceAccuracy.incorrect}
-                          lastComparison={lastComparison}
-                          className="mt-4"
-                        />
-                      )}
+          {/* Tempo */}
+          {editingTempo ? (
+            <input
+              ref={tempoInputRef}
+              type="number"
+              min={40}
+              max={200}
+              value={tempoInput}
+              onChange={e => setTempoInput(e.target.value)}
+              onBlur={commitTempo}
+              onKeyDown={e => { if (e.key === 'Enter') commitTempo(); if (e.key === 'Escape') setEditingTempo(false); }}
+              className="w-16 px-1 py-0.5 text-sm text-center border border-neutral-300 rounded"
+            />
+          ) : (
+            <button onClick={handleTempoClick} className="text-sm text-neutral-700 hover:text-primary-600 tabular-nums" title="Tempo aendern">
+              &#9833;= {config.tempo}
+            </button>
+          )}
 
-                      {(midiConnectionStatus !== 'connected' || !midiDeviceId) && (
-                        <div className="mt-4 p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                          <p className="text-sm text-warning-dark">Bitte verbinde ein MIDI-Keyboard um zu ueben.</p>
-                        </div>
-                      )}
+          {/* Progression indicator */}
+          {progressionStep > 0 && (
+            <>
+              <div className="w-px h-6 bg-neutral-200 mx-1" />
+              <span className="text-xs text-neutral-500">Schritt {progressionStep + 1}</span>
+            </>
+          )}
 
-                      <div className="mt-4 flex items-end gap-4">
-                        <div className="max-w-xs flex-1">
-                          <TempoSlider min={40} max={180} step={5} />
-                        </div>
-                        <Button
-                          variant={config.metronomeEnabled ? 'primary' : 'outline'}
-                          size="md"
-                          onClick={toggleMetronome}
-                          disabled={practiceState === 'playing' || practiceState === 'countdown'}
-                          title="Metronom ein/aus"
-                        >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 1.5c-.55 0-1 .45-1 1v1.09C7.72 4.09 5 7.12 5 10.5c0 3.87 2.69 7.12 6.31 7.91L10 22h4l-1.31-3.59C16.31 17.62 19 14.37 19 10.5c0-3.38-2.72-6.41-6-6.91V2.5c0-.55-.45-1-1-1zm0 5c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1s-1-.45-1-1v-4c0-.55.45-1 1-1z" />
-                          </svg>
-                        </Button>
-                      </div>
-                    </>
-                  )}
+          {/* Mode toggle */}
+          <div className="w-px h-6 bg-neutral-200 mx-1" />
+          <ModeSelector
+            mode={appMode}
+            onModeChange={setAppMode}
+            midiConnected={midiConnectionStatus === 'connected' && !!midiDeviceId}
+          />
 
-                  {audioError && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-700">{audioError}</p>
-                      <button onClick={() => setAudioError(null)} className="mt-2 text-xs text-red-600 hover:text-red-800 underline">Schliessen</button>
-                    </div>
-                  )}
+          {/* Spacer */}
+          <div className="flex-1" />
 
-                  {appMode === 'listen' && !isReady && !audioError && (
-                    <p className="mt-3 text-xs text-neutral-500 italic">Klicke auf Play, um die Audio-Engine zu starten</p>
-                  )}
-                </div>
+          {/* Next Exercise */}
+          <button
+            onClick={handleNextExercise}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-100 text-primary-700 hover:bg-primary-200"
+          >
+            Naechste Uebung
+          </button>
 
-                <MusicSheet
-                  key={currentExercise.id}
-                  exercise={currentExercise}
-                  width={900}
-                  barsPerLine={4}
-                  highlightedNoteIds={highlightedNoteIds}
-                  className="shadow-sm"
-                />
+          {/* Back to setup */}
+          <button
+            onClick={handleBackToSetup}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+          >
+            Zurueck
+          </button>
+        </div>
 
-                {currentExercise.pedagogicalNotes && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm font-semibold text-blue-900 mb-1">Paedagogischer Hinweis</div>
-                    <p className="text-sm text-blue-800">{currentExercise.pedagogicalNotes}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-neutral-500">
-                Waehle eine Uebung aus der Liste
-              </div>
-            )}
+        {/* Practice visualizer (only when active) */}
+        {appMode === 'practice' && (practiceState === 'playing' || practiceState === 'countdown') && (
+          <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-200 shrink-0">
+            <PracticeVisualizer
+              practiceState={practiceState}
+              correctCount={practiceAccuracy.correct}
+              incorrectCount={practiceAccuracy.incorrect}
+              totalNotes={practiceAccuracy.total}
+              countdownBeat={countdownBeat}
+              countdownTotal={4}
+              currentNoteIndex={practiceAccuracy.correct + practiceAccuracy.incorrect}
+              lastComparison={lastComparison}
+            />
           </div>
-        }
-        sidebar={
-          <div className="space-y-4">
-            <RandomExerciseGenerator />
-            <ExerciseSelector />
-            {appMode === 'practice' && <MidiDeviceSelector />}
+        )}
+
+        {/* Audio error */}
+        {audioError && (
+          <div className="px-4 py-2 bg-red-50 border-b border-red-200 shrink-0">
+            <p className="text-sm text-red-700">{audioError}
+              <button onClick={() => setAudioError(null)} className="ml-2 text-xs underline">Schliessen</button>
+            </p>
           </div>
-        }
-      />
+        )}
+
+        {/* MIDI warning */}
+        {appMode === 'practice' && (midiConnectionStatus !== 'connected' || !midiDeviceId) && (
+          <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 shrink-0">
+            <p className="text-sm text-amber-700">Bitte verbinde ein MIDI-Keyboard um zu ueben.</p>
+          </div>
+        )}
+
+        {/* Fullscreen Music Sheet */}
+        {currentExercise && (
+          <div className="flex-1 min-h-0 overflow-auto bg-white">
+            <MusicSheet
+              key={currentExercise.id}
+              exercise={currentExercise}
+              barsPerLine={4}
+              highlightedNoteIds={highlightedNoteIds}
+              fullscreen
+            />
+          </div>
+        )}
+      </div>
 
       {showResults && currentSessionSummary && (
         <ResultsModal

@@ -168,6 +168,21 @@ export interface ScoringState {
 }
 
 /**
+ * Level progress information for dashboard display
+ */
+export interface LevelProgress {
+  levelId: number;
+  levelName: string;
+  color: string;
+  completedExercises: number;
+  totalRequired: number;
+  averageScore: number;
+  averageStars: number;
+  isUnlocked: boolean;
+  isCompleted: boolean;
+}
+
+/**
  * Category rating labels
  */
 export const CATEGORY_LABELS: Record<string, string> = {

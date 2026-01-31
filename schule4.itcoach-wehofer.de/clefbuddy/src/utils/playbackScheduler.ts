@@ -86,7 +86,11 @@ function scheduleVoiceNotes(
   let currentTime = startTime;
 
   notes.forEach((note, noteIndex) => {
-    const durationSeconds = durationToSeconds(note.duration, tempo, beatUnit);
+    let durationSeconds = durationToSeconds(note.duration, tempo, beatUnit);
+    // Triplet adjustment: 3 notes in the time of 2 → each note = 2/3 duration
+    if (note.tuplet === 3) {
+      durationSeconds = durationSeconds * (2 / 3);
+    }
 
     // Create scheduled note (even for rests, for tracking purposes)
     const scheduledNote: ScheduledNote = {
@@ -282,11 +286,29 @@ export class PlaybackController {
       await Tone.context.resume();
     }
 
+    // Stop transport if still running (e.g. previous play ended naturally)
+    if (Tone.Transport.state === 'started') {
+      Tone.Transport.stop();
+    }
+    Tone.Transport.position = 0;
+
+    // Release any lingering synth voices to prevent voice exhaustion
+    const { getPolySynth } = await import('./audioEngine');
+    const synth = getPolySynth();
+    if (synth) {
+      synth.releaseAll();
+    }
+
     // Clear any existing scheduled events
     this.clearEvents();
 
     // Set tempo
     setTempo(this.config.tempo);
+
+    // Run count-in if metronome is enabled
+    if (this.config.metronomeEnabled) {
+      await this.runCountIn();
+    }
 
     // Calculate total duration
     const totalDuration = this.getTotalDuration();
@@ -312,6 +334,53 @@ export class PlaybackController {
 
     // Start transport
     startPlayback();
+  }
+
+  /**
+   * Run count-in (one measure) before playback starts
+   */
+  private async runCountIn(): Promise<void> {
+    const { playMetronomeClick } = await import('./audioEngine');
+
+    return new Promise<void>((resolve) => {
+      let beat = 0;
+      const beatDuration = (60 / this.config.tempo) * 1000; // ms per beat
+      let countdownInterval: number | null = null;
+
+      const playBeat = () => {
+        beat++;
+        const isDownbeat = beat === 1;
+
+        // Play metronome click sound
+        playMetronomeClick(isDownbeat);
+
+        // Notify beat callback
+        if (this.onBeatChange) {
+          this.onBeatChange(beat, isDownbeat);
+        }
+
+        if (beat >= this.config.beatsPerMeasure) {
+          // Stop interval
+          if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+          }
+          // WICHTIG: Warte die volle Dauer des letzten Beats ab, DANN resolve
+          setTimeout(() => resolve(), beatDuration);
+        }
+      };
+
+      // Play first beat immediately
+      playBeat();
+
+      // Schedule remaining beats
+      if (this.config.beatsPerMeasure > 1) {
+        countdownInterval = window.setInterval(playBeat, beatDuration);
+      } else {
+        // Special case: only 1 beat in measure (e.g. 1/4 time)
+        setTimeout(() => resolve(), beatDuration);
+      }
+    });
   }
 
   /**
@@ -357,8 +426,8 @@ export function getPlaybackController(config?: PlaybackConfig): PlaybackControll
         tempo: 80,
         beatsPerMeasure: 4,
         beatUnit: 4,
-        loop: false,
-        metronomeEnabled: false,
+        loop: true, // Loop standardmäßig aktiviert
+        metronomeEnabled: true, // Metronom standardmäßig aktiviert
         countIn: 0,
       }
     );

@@ -16,6 +16,7 @@ function App() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center">
+              <img src="/clefbuddylogo.jpg" alt="ClefBuddy Logo" className="h-10 w-10 mr-2 rounded" />
               <h1 className="text-2xl font-bold text-neutral-900">ClefBuddy</h1>
               <span className="ml-3 text-sm text-neutral-500 hidden sm:inline">
                 Interaktiver Musiktheorie-Trainer
@@ -29,7 +30,7 @@ function App() {
       <Navigation />
 
       {/* Main Content */}
-      <LayoutSection maxWidth="notation" padding="lg">
+      <LayoutSection maxWidth="notation" padding={activeSection === 'notereader' ? 'none' : 'lg'}>
         {activeSection === 'dashboard' && <DashboardView />}
         {activeSection === 'notereader' && <NoteReaderView />}
         {activeSection === 'scales' && (

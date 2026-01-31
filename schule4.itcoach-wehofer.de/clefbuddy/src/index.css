@@ -71,6 +71,19 @@ body {
   transition: fill 0.1s ease-out, stroke 0.1s ease-out;
 }
 
+/* Ensure music sheet SVG is centered and properly sized */
+.music-sheet-container svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Playback cursor line */
+#playback-cursor {
+  transition: x1 0.1s linear, x2 0.1s linear;
+  filter: drop-shadow(0 0 4px rgba(79, 70, 229, 0.4));
+}
+
 /* =====================================================
    Practice Mode Feedback Styles
    ===================================================== */
