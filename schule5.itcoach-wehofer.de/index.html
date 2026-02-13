@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KI-Lernabenteuer | NMS Informatik</title>
+  <meta name="description" content="Interaktive Lernwebseite zum Thema Kuenstliche Intelligenz fuer NMS-Schueler:innen">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Critical inline styles -->
+  <style>
+    body { background: #0a0e27; color: #fff; font-family: 'Inter', sans-serif; }
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Skip Link -->
+  <a href="#main-content" class="skip-link">Zum Hauptinhalt springen</a>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title">🤖 KI-Lernabenteuer</div>
+      <div class="header-right">
+        <div class="points-display">
+          🏆 <span id="points-value">0</span> Punkte
+        </div>
+        <button class="sound-toggle" id="sound-toggle" aria-label="Sound ein/ausschalten">
+          <span id="sound-icon">🔊</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN LAYOUT ═══ -->
+  <div class="main-layout">
+
+    <!-- ═══ SIDEBAR (Desktop) ═══ -->
+    <nav class="sidebar" aria-label="Hauptnavigation">
+      <div class="nav-section">
+        <button class="nav-item active" data-nav="home">
+          <span class="nav-icon">🏠</span>
+          <span>Start</span>
+        </button>
+        <button class="nav-item" data-nav="grundlagen">
+          <span class="nav-icon">🧠</span>
+          <span>Grundlagen</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="alltag">
+          <span class="nav-icon">📱</span>
+          <span>KI im Alltag</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="kreativitaet">
+          <span class="nav-icon">🎨</span>
+          <span>KI &amp; Kreativitaet</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="mobilitaet">
+          <span class="nav-icon">🚗</span>
+          <span>KI &amp; Mobilitaet</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="industrie">
+          <span class="nav-icon">🏭</span>
+          <span>KI &amp; Industrie</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="ethik">
+          <span class="nav-icon">⚖️</span>
+          <span>KI &amp; Ethik</span>
+          <span class="check-mark">✓</span>
+        </button>
+        <button class="nav-item" data-nav="abschluss">
+          <span class="nav-icon">🎉</span>
+          <span>Abschluss</span>
+        </button>
+      </div>
+      <div class="sidebar-footer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="sidebar-progress-fill" style="width:0%"></div>
+        </div>
+        <p class="progress-text"><span id="completed-count">0</span> / 6 abgeschlossen</p>
+      </div>
+    </nav>
+
+    <!-- ═══ CONTENT AREA ═══ -->
+    <main class="content-area" id="main-content">
+
+      <!-- ════════ HOME ════════ -->
+      <section id="section-home" class="section active">
+        <div class="section-header" style="text-align:center;margin-bottom:24px;">
+          <h1 style="font-size:32px;color:#00d4ff;line-height:1.3;">Willkommen in der Zukunft &ndash; die ist schon da! 🚀</h1>
+        </div>
+
+        <div class="content-text" style="max-width:700px;margin:0 auto 32px;">
+          <p>Dein Smartphone weiss, welche Songs du liebst, bevor du es weisst. Netflix schlaegt dir Serien vor, die genau dein Ding sind. Und auf TikTok scrollst du durch einen Feed, der sich anfuehlt, als haette ihn jemand extra fuer dich zusammengestellt. Spoiler: Hat auch jemand &ndash; aber keine Person. Sondern eine <strong>KI</strong>.</p>
+          <br>
+          <p>Kuenstliche Intelligenz ist ueberall. Sie steckt in deinem Handy, im Auto deiner Eltern, in den Spielen, die du zockst, und sogar in der Fabrik, die deine Lieblingsschuhe produziert. Aber was ist KI eigentlich? Wie funktioniert sie? Und ist das alles cool &ndash; oder auch ein bisschen creepy?</p>
+          <br>
+          <p>Auf dieser Seite tauchst du ein in die Welt der Kuenstlichen Intelligenz. Du wirst staunen, lachen, raetseln und am Ende eine ziemlich gute Idee haben, wie diese Technologie unser Leben veraendert. Also: <strong>Ready? Let's go!</strong></p>
+        </div>
+
+        <!-- Progress -->
+        <div style="max-width:600px;margin:0 auto 32px;">
+          <p style="text-align:center;color:#a0aec0;font-size:14px;margin-bottom:8px;" id="home-progress-label">0 von 6 Bereichen abgeschlossen</p>
+          <div class="progress-bar progress-bar-lg">
+            <div class="progress-fill" id="home-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Area Cards -->
+        <div class="areas-grid">
+          <div class="area-card" data-area="grundlagen">
+            <span class="area-emoji">🧠</span>
+            <div class="area-title">Grundlagen</div>
+            <p class="area-teaser">Was ist KI eigentlich &ndash; und was nicht?</p>
+            <span class="area-badge not-started" id="badge-grundlagen">Noch nicht begonnen</span>
+          </div>
+          <div class="area-card" data-area="alltag">
+            <span class="area-emoji">📱</span>
+            <div class="area-title">KI im Alltag</div>
+            <p class="area-teaser">Wo begegnet dir KI jeden Tag?</p>
+            <span class="area-badge not-started" id="badge-alltag">Noch nicht begonnen</span>
+          </div>
+          <div class="area-card" data-area="kreativitaet">
+            <span class="area-emoji">🎨</span>
+            <div class="area-title">KI &amp; Kreativitaet</div>
+            <p class="area-teaser">Kann eine Maschine Kunst machen?</p>
+            <span class="area-badge not-started" id="badge-kreativitaet">Noch nicht begonnen</span>
+          </div>
+          <div class="area-card" data-area="mobilitaet">
+            <span class="area-emoji">🚗</span>
+            <div class="area-title">KI &amp; Mobilitaet</div>
+            <p class="area-teaser">Autos, die selbst fahren</p>
+            <span class="area-badge not-started" id="badge-mobilitaet">Noch nicht begonnen</span>
+          </div>
+          <div class="area-card" data-area="industrie">
+            <span class="area-emoji">🏭</span>
+            <div class="area-title">KI in der Industrie</div>
+            <p class="area-teaser">Roboter uebernehmen die Arbeit</p>
+            <span class="area-badge not-started" id="badge-industrie">Noch nicht begonnen</span>
+          </div>
+          <div class="area-card" data-area="ethik">
+            <span class="area-emoji">⚖️</span>
+            <div class="area-title">KI &amp; Ethik</div>
+            <p class="area-teaser">Wo wird es kritisch?</p>
+            <span class="area-badge not-started" id="badge-ethik">Noch nicht begonnen</span>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div style="margin-top:32px;">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#b026ff;margin-bottom:12px;text-transform:uppercase;">Deine Badges</h3>
+          <div id="badges-display" class="badges-row"></div>
+        </div>
+
+        <div style="text-align:center;margin-top:32px;">
+          <button class="btn btn-secondary btn-sm" onclick="Storage.reset()" style="opacity:0.5;font-size:12px;">Fortschritt zuruecksetzen</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 1: GRUNDLAGEN ════════ -->
+      <section id="section-grundlagen" class="section">
+        <div class="section-header">
+          <span class="section-emoji">🧠</span>
+          <h2>Grundlagen &ndash; Was ist KI?</h2>
+          <p class="section-subtitle">Alles, was du ueber Kuenstliche Intelligenz wissen musst</p>
+        </div>
+
+        <div class="content-text">
+          <p>KI &ndash; Kuenstliche Intelligenz. Klingt nach Science-Fiction, nach Robotern, die die Weltherrschaft uebernehmen wollen. Aber in Wirklichkeit ist KI viel weniger dramatisch und viel interessanter.</p>
+          <br>
+          <p>Stell dir vor, du lernst Fahrrad fahren. Am Anfang faellst du hin. Aber irgendwann kapiert dein Gehirn: "Aha, wenn ich mich so bewege, bleibe ich im Gleichgewicht!" Du hast aus Erfahrung gelernt. Genau das macht auch eine KI &ndash; nur mit Daten statt mit Stuerzen.</p>
+          <br>
+          <p>Eine KI ist ein Computerprogramm, das aus Beispielen lernt und dann Muster erkennt oder Entscheidungen trifft. Zeigst du einer KI tausende Fotos von Katzen und Hunden, lernt sie irgendwann, den Unterschied zu sehen. Kein Mensch hat ihr gesagt: "Eine Katze hat Schnurrhaare und spitze Ohren." Sie hat es <strong>selbst herausgefunden</strong>.</p>
+          <br>
+          <p>Wichtig: KI ist nicht "schlau" wie ein Mensch. Sie kann keine Gefuehle haben, sie versteht nichts wirklich. Sie ist extrem gut in einer Sache, fuer die sie trainiert wurde &ndash; aber ausserhalb davon? Ziemlich nutzlos. Siri kann dir das Wetter ansagen, aber sie versteht nicht, warum du dich ueber Regen aergerst.</p>
+        </div>
+
+        <div class="merke-box">
+          <strong>Merke:</strong> KI = Lernen aus Daten + Muster erkennen. Nicht mehr, nicht weniger.
+        </div>
+
+        <!-- Interactive: Drag & Drop -->
+        <div class="interactive-section" id="game-grundlagen">
+          <h3>🎮 KI oder keine KI? &ndash; Sortiere richtig!</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">Ziehe die Kaertchen in die richtige Box. Tipp: KI lernt aus Daten, normale Programme folgen nur Regeln.</p>
+
+          <div class="drag-drop-container">
+            <div class="items-pool" role="list" aria-label="Kaertchen zum Sortieren">
+              <!-- Items rendered by JS -->
+            </div>
+            <div class="drop-zones">
+              <div class="drop-zone" data-zone="ki">
+                <h4 style="color:#39ff14;">✅ Das ist KI</h4>
+                <p class="zone-hint">Lernt aus Daten, erkennt Muster</p>
+                <div class="zone-items"></div>
+              </div>
+              <div class="drop-zone" data-zone="no-ki">
+                <h4 style="color:#ff1744;">❌ Das ist keine KI</h4>
+                <p class="zone-hint">Folgt nur festen Regeln/Programmen</p>
+                <div class="zone-items"></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-6" id="dd-check-btn">Loesung pruefen</button>
+          <div id="dd-feedback" class="hidden mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: Grundlagen</h3>
+        <div class="quiz-container" id="quiz-grundlagen" role="region" aria-label="Quiz Grundlagen"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">🤯</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>Die erste KI wurde schon 1956 "geboren"! Damals trafen sich Forscher am Dartmouth College in den USA und nannten ihr Projekt "Artificial Intelligence". Aber Computer waren so gross wie Schraenke und so langsam wie eine Schnecke. Heute hast du in deiner Hosentasche mehr Rechenpower als die NASA beim ersten Mondflug!</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-primary" onclick="navigateTo('alltag')">Weiter: KI im Alltag →</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 2: KI IM ALLTAG ════════ -->
+      <section id="section-alltag" class="section">
+        <div class="section-header">
+          <span class="section-emoji">📱</span>
+          <h2>KI im Alltag</h2>
+          <p class="section-subtitle">Wo begegnet dir KI jeden Tag?</p>
+        </div>
+
+        <div class="content-text">
+          <p>Stell dir einen ganz normalen Tag vor. Du wachst auf, checkst dein Handy. TikTok zeigt dir Videos, die genau dein Humor sind. Spotify startet deine "Daily Mix" &ndash; und jeder Song ist ein Banger. Du schreibst deinem Kumpel eine Nachricht, und die Autokorrektur rettet dich vor peinlichen Tippfehlern (meistens). Abends googelst du "beste Pizza in der Naehe", und Google zeigt dir genau die Laeden, die gerade offen haben.</p>
+          <br>
+          <p>Was haben all diese Dinge gemeinsam? <strong>KI.</strong></p>
+          <br>
+          <p>Du merkst es meistens nicht, aber KI ist staendig im Hintergrund aktiv. Sie analysiert, was du klickst, was du ansiehst, was dir gefaellt &ndash; und passt sich an. Klingt praktisch? Ist es auch. Klingt ein bisschen creepy? Kann auch sein.</p>
+          <br>
+          <p>Die Sache ist: KI macht dein Leben einfacher. Aber sie ist auch ein bisschen wie ein Detektiv, der dich 24/7 beobachtet. Nicht aus Boshaftigkeit, sondern weil sie dadurch lernt, was du brauchst.</p>
+        </div>
+
+        <!-- Interactive: Smartphone -->
+        <div class="interactive-section" id="game-alltag">
+          <h3>📱 Finde die KI! Klick auf die Apps</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">Klicke auf jede App und entdecke, wo KI steckt!</p>
+
+          <div class="smartphone-frame">
+            <div class="smartphone-screen">
+              <div class="app-grid">
+                <div class="app-icon" data-app="tiktok">
+                  <div class="app-icon-circle" style="background:rgba(255,0,80,0.2);">🎵</div>
+                  <span>TikTok</span>
+                </div>
+                <div class="app-icon" data-app="camera">
+                  <div class="app-icon-circle" style="background:rgba(100,100,100,0.2);">📷</div>
+                  <span>Kamera</span>
+                </div>
+                <div class="app-icon" data-app="whatsapp">
+                  <div class="app-icon-circle" style="background:rgba(37,211,102,0.2);">💬</div>
+                  <span>WhatsApp</span>
+                </div>
+                <div class="app-icon" data-app="netflix">
+                  <div class="app-icon-circle" style="background:rgba(229,9,20,0.2);">🎬</div>
+                  <span>Netflix</span>
+                </div>
+                <div class="app-icon" data-app="maps">
+                  <div class="app-icon-circle" style="background:rgba(66,133,244,0.2);">🗺️</div>
+                  <span>Maps</span>
+                </div>
+                <div class="app-icon" data-app="youtube">
+                  <div class="app-icon-circle" style="background:rgba(255,0,0,0.2);">▶️</div>
+                  <span>YouTube</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style="text-align:center;color:#a0aec0;font-size:14px;margin-top:16px;">
+            <span id="alltag-found-count">0</span> / 6 Apps entdeckt
+          </p>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: KI im Alltag</h3>
+        <div class="quiz-container" id="quiz-alltag" role="region" aria-label="Quiz KI im Alltag"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">📊</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>YouTube-Empfehlungen sind fuer 70% der gesamten Watchtime verantwortlich! Das heisst: Du klickst nicht auf Videos, die du suchst &ndash; sondern auf Videos, die YouTube dir vorschlaegt. Die KI kennt dich besser, als du denkst!</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-secondary" onclick="navigateTo('grundlagen')" style="margin-right:8px;">← Zurueck</button>
+          <button class="btn btn-primary" onclick="navigateTo('kreativitaet')">Weiter: KI &amp; Kreativitaet →</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 3: KI & KREATIVITAET ════════ -->
+      <section id="section-kreativitaet" class="section">
+        <div class="section-header">
+          <span class="section-emoji">🎨</span>
+          <h2>KI &amp; Kreativitaet</h2>
+          <p class="section-subtitle">Kann eine Maschine Kunst machen?</p>
+        </div>
+
+        <div class="content-text">
+          <p>Malen, Musikmachen, Geschichten schreiben &ndash; das sind Dinge, die typisch menschlich sind, oder? Man braucht Fantasie, Gefuehl, Inspiration. Kein Computer kann das. Oder etwa doch?</p>
+          <br>
+          <p>Willkommen im verruecktesten Bereich der KI-Welt: <strong>Kreative KI.</strong> Es gibt KI-Systeme, die malen wie Van Gogh, die Musikstuecke komponieren, die Gedichte schreiben &ndash; und manche sind so gut, dass du nicht erkennst, ob ein Mensch oder eine Maschine dahintersteckt.</p>
+          <br>
+          <p>Aber Moment &ndash; ist das wirklich "Kreativitaet"? Oder kopiert die KI einfach nur, was Menschen vorher gemacht haben? Kann ein Computerprogramm wirklich "kreativ" sein, wenn es keine Gefuehle hat?</p>
+          <br>
+          <p>In diesem Bereich wirst du sehen, was KI alles erschaffen kann. Und du wirst dir die Frage stellen: <strong>Wenn eine KI ein Bild malt &ndash; ist das dann Kunst?</strong></p>
+        </div>
+
+        <!-- Interactive: Human or AI -->
+        <div class="interactive-section" id="game-kreativitaet">
+          <h3>🎮 Mensch oder Maschine? Rate mit!</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">Dir werden Texte, Bilder und Musik gezeigt. Rate: Wurde es von einem Menschen oder einer KI erstellt?</p>
+
+          <p style="text-align:center;color:#718096;font-size:13px;margin-bottom:12px;" id="hai-count">1 / 8</p>
+          <div class="game-display" id="hai-display"></div>
+          <div class="choice-buttons">
+            <button class="btn btn-secondary" id="hai-btn-human">👤 Mensch</button>
+            <button class="btn btn-secondary" id="hai-btn-ai">🤖 KI</button>
+          </div>
+          <p style="text-align:center;margin-top:12px;color:#39ff14;font-size:14px;">Richtig: <span id="hai-score">0</span></p>
+          <div id="hai-feedback" class="hidden mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: KI &amp; Kreativitaet</h3>
+        <div class="quiz-container" id="quiz-kreativitaet" role="region" aria-label="Quiz KI und Kreativitaet"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">🎨</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>Ein von KI generiertes Kunstwerk wurde bei einer Auktion fuer 432.500 Dollar verkauft! Das Bild heisst "Edmond de Belamy" und wurde 2018 von Christie's versteigert. Seitdem streiten sich Leute: Ist das echte Kunst &ndash; oder nur ein teurer Algorithmus?</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-secondary" onclick="navigateTo('alltag')" style="margin-right:8px;">← Zurueck</button>
+          <button class="btn btn-primary" onclick="navigateTo('mobilitaet')">Weiter: KI &amp; Mobilitaet →</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 4: KI & MOBILITAET ════════ -->
+      <section id="section-mobilitaet" class="section">
+        <div class="section-header">
+          <span class="section-emoji">🚗</span>
+          <h2>KI &amp; Mobilitaet</h2>
+          <p class="section-subtitle">Autos, die selbst fahren</p>
+        </div>
+
+        <div class="content-text">
+          <p>Stell dir vor: Du steigst ins Auto, sagst "Fahr mich zur Schule", lehnst dich zurueck &ndash; und das Auto faehrt. Von alleine. Kein Lenken, kein Bremsen, kein Gestresst-Sein im Verkehr. Klingt nach Zukunft? Ist es auch &ndash; aber es passiert gerade jetzt.</p>
+          <br>
+          <p>Selbstfahrende Autos sind keine Science-Fiction mehr. Tesla, Google, Mercedes &ndash; alle arbeiten daran. In manchen Staedten fahren schon Robotaxis herum, ohne Fahrer am Steuer.</p>
+          <br>
+          <p>Aber wie funktioniert das? Ganz einfach: <strong>KI.</strong> Das Auto hat Kameras, Sensoren, Radar &ndash; alles sammelt Daten. Die KI analysiert: Wo ist die Strasse? Wo sind andere Autos? Wo sind Fussgaenger? Ist das Ding da vorne ein Muellsack oder ein Hund? Dann trifft die KI eine Entscheidung: Bremsen, ausweichen, weiterfahren.</p>
+          <br>
+          <p>Sounds cool? Ist es auch. Aber es gibt ein Problem: Was, wenn die KI einen Fehler macht? Was, wenn sie in einer Gefahrensituation entscheiden muss: Links ausweichen oder rechts? Wer ist dann schuld?</p>
+        </div>
+
+        <!-- Interactive: Scenarios -->
+        <div class="interactive-section" id="game-mobilitaet">
+          <h3>🎮 Entscheidungssimulation: Was soll die KI tun?</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">3 Szenarien, keine einfachen Antworten. Was wuerdest du entscheiden?</p>
+          <div class="ethics-progress"></div>
+          <div id="mob-scenario"></div>
+          <div id="mob-feedback" class="hidden mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: KI &amp; Mobilitaet</h3>
+        <div class="quiz-container" id="quiz-mobilitaet" role="region" aria-label="Quiz KI und Mobilitaet"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">🚗</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>Ein selbstfahrendes Auto von Google (Waymo) ist mittlerweile ueber 30 Millionen Kilometer auf echten Strassen gefahren! Das ist wie 75-mal um die Erde! Zum Vergleich: Ein Mensch faehrt in seinem ganzen Leben durchschnittlich 1 Million Kilometer.</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-secondary" onclick="navigateTo('kreativitaet')" style="margin-right:8px;">← Zurueck</button>
+          <button class="btn btn-primary" onclick="navigateTo('industrie')">Weiter: KI in der Industrie →</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 5: KI IN DER INDUSTRIE ════════ -->
+      <section id="section-industrie" class="section">
+        <div class="section-header">
+          <span class="section-emoji">🏭</span>
+          <h2>KI in der Industrie</h2>
+          <p class="section-subtitle">Roboter uebernehmen die Arbeit</p>
+        </div>
+
+        <div class="content-text">
+          <p>Stell dir vor, du spielst Fortnite &ndash; und jede einzelne Waffe, jeder Skin, jedes Item in deinem Lieblingsgame wurde in einer echten Fabrik designt, getestet und produziert. Aber nicht von Menschen. Von Robotern.</p>
+          <br>
+          <p>Weltweit arbeiten ueber 4,6 Millionen Industrieroboter in Fabriken. Allein Amazon hat mehr als eine Million Roboter in seinen Lagern &ndash; das sind fast sieben Mal so viele wie die Stadt Salzburg Einwohner hat! Teslas Gigafactory in Shanghai ist zu 95% automatisiert: Alle 60 Sekunden rollt ein fertiges Auto vom Band, geschweisst von Roboter-Armen, die 1.400 Schweisspunkte pro Auto setzen. Und in manchen Fast-Food-Ketten bratet ein Roboter namens "Flippy" bis zu 2.000 Burger am Tag &ndash; ohne Pause, ohne Muedigkeit, ohne schlechte Laune.</p>
+          <br>
+          <p>KI und Roboter machen Arbeit schneller, billiger und praeziser. Aber was passiert mit den Menschen, die diese Jobs vorher gemacht haben? Wenn ein Roboter deinen Job besser und guenstiger macht &ndash; braucht man dich dann noch? Oder entstehen neue, coolere Jobs?</p>
+          <br>
+          <p>Willkommen in der Welt der <strong>Industrie 4.0</strong> &ndash; der vierten industriellen Revolution.</p>
+        </div>
+
+        <div class="interactive-section" id="game-industrie">
+          <h3>🎮 Fabrik-Zeitreise: Vorher vs. Nachher</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">5 Branchen, 5 Revolutionen. Rate, wie KI und Roboter die Arbeit veraendert haben!</p>
+          <div class="timeline-progress"></div>
+          <div id="timeline-scenario"></div>
+          <div id="timeline-feedback" class="hidden mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: KI in der Industrie</h3>
+        <div class="quiz-container" id="quiz-industrie" role="region" aria-label="Quiz KI in der Industrie"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">🤖</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>Amazon hat ueber 1 Million Roboter in seinen Lagern &ndash; fast so viele Roboter wie menschliche Mitarbeiter! Das sind mehr als die Einwohner der Staedte Salzburg, Linz, Graz und Innsbruck zusammen. 75% aller Amazon-Pakete werden inzwischen mit Hilfe von Robotern verpackt und verschickt.</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-secondary" onclick="navigateTo('mobilitaet')" style="margin-right:8px;">← Zurueck</button>
+          <button class="btn btn-primary" onclick="navigateTo('ethik')">Weiter: KI &amp; Ethik →</button>
+        </div>
+      </section>
+
+      <!-- ════════ BEREICH 6: KI & ETHIK ════════ -->
+      <section id="section-ethik" class="section">
+        <div class="section-header">
+          <span class="section-emoji">⚖️</span>
+          <h2>KI &amp; Ethik</h2>
+          <p class="section-subtitle">Wo wird es kritisch?</p>
+        </div>
+
+        <div class="content-text">
+          <p>KI ist cool. KI ist praktisch. Aber KI ist auch manchmal... gruselig.</p>
+          <br>
+          <p>Stell dir vor: Eine KI entscheidet, ob du einen Kredit bekommst. Eine andere KI ueberwacht dich per Gesichtserkennung in der Stadt. Wieder eine andere erstellt ein Video von dir, in dem du Dinge sagst, die du nie gesagt hast (nennt sich <strong>Deepfake</strong>). Und eine KI entscheidet, welche Nachrichten du auf Social Media siehst &ndash; und beeinflusst damit, wie du die Welt siehst.</p>
+          <br>
+          <p>In China gibt es ein "Social Credit System", das das Verhalten von Menschen ueberwacht und bewertet. In manchen Laendern setzen Polizeien KI ein, um vorherzusagen, wo Verbrechen passieren koennten &ndash; aber die KI ist oft rassistisch, weil sie mit rassistischen Daten trainiert wurde.</p>
+          <br>
+          <p>KI ist ein <strong>Werkzeug</strong>. Und wie jedes Werkzeug kann man es fuer Gutes oder Schlechtes nutzen. Ein Hammer kann ein Haus bauen &ndash; oder jemanden verletzen. KI kann Leben retten &ndash; oder Menschen diskriminieren.</p>
+        </div>
+
+        <!-- Interactive: Ethics Scenarios -->
+        <div class="interactive-section" id="game-ethik">
+          <h3>🎮 Was wuerdest du tun?</h3>
+          <p style="color:#a0aec0;font-size:14px;margin-bottom:16px;">4 ethische Dilemmata &ndash; es gibt keine "richtige" Antwort. Denk nach!</p>
+          <div class="ethics-progress"></div>
+          <div id="eth-scenario"></div>
+          <div id="eth-feedback" class="hidden mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#00d4ff;margin:32px 0 16px;text-transform:uppercase;">📝 Quiz: KI &amp; Ethik</h3>
+        <div class="quiz-container" id="quiz-ethik" role="region" aria-label="Quiz KI und Ethik"></div>
+
+        <!-- Fun Fact -->
+        <div class="fun-fact">
+          <div class="fun-fact-icon">⚖️</div>
+          <div>
+            <h4>Wusstest du?</h4>
+            <p>Die EU hat das weltweit erste umfassende KI-Gesetz (den "AI Act") beschlossen! Es teilt KI in Risikostufen ein: "Inakzeptables Risiko" (z.B. Social Credit Systems) wird verboten. "Hochrisiko-KI" (z.B. Bewerbungs-KI) muss strenge Regeln einhalten. Die EU will damit KI foerdern, aber Menschen schuetzen.</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <button class="btn btn-secondary" onclick="navigateTo('industrie')" style="margin-right:8px;">← Zurueck</button>
+          <button class="btn btn-primary" onclick="navigateTo('abschluss')">Zum Abschluss →</button>
+        </div>
+      </section>
+
+      <!-- ════════ ABSCHLUSS ════════ -->
+      <section id="section-abschluss" class="section">
+        <div class="section-header" style="text-align:center;">
+          <span class="section-emoji">🎉</span>
+          <h2>Du hast's geschafft!</h2>
+          <p class="section-subtitle">Glueckwunsch &ndash; du bist jetzt KI-Expert:in (zumindest ein bisschen)!</p>
+        </div>
+
+        <div class="content-text" style="max-width:700px;margin:0 auto;">
+          <p>Du hast alle 6 Bereiche durchgearbeitet. Du weisst jetzt, was KI ist, wo sie ueberall steckt, was sie kann &ndash; und wo es kritisch wird. Das ist mehr, als die meisten Erwachsenen wissen. Respekt!</p>
+          <br>
+          <p>Aber hier kommt die wichtigste Erkenntnis: <strong>KI ist kein Feind. Und kein Freund. Sie ist ein Werkzeug.</strong> Wie wir sie nutzen, liegt an uns. An dir. An der naechsten Generation.</p>
+          <br>
+          <p>Vielleicht wirst du eines Tages selbst KI entwickeln. Vielleicht wirst du in einem Job arbeiten, der durch KI veraendert wird. Vielleicht wirst du Gesetze mitentscheiden, die regeln, was KI darf und was nicht.</p>
+          <br>
+          <p>Was auch immer kommt: <strong>Du bist jetzt vorbereitet.</strong></p>
+        </div>
+
+        <!-- Final Quiz -->
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:18px;color:#ffd700;margin:40px 0 16px;text-transform:uppercase;text-align:center;">🏆 Abschluss-Quiz (10 Fragen)</h3>
+        <p style="text-align:center;color:#a0aec0;font-size:14px;margin-bottom:16px;">10 neue Fragen, die alles verbinden &ndash; bist du bereit?</p>
+        <div class="quiz-container" id="quiz-final" role="region" aria-label="Abschluss-Quiz"></div>
+
+        <!-- Reflection -->
+        <div class="reflection-form" style="margin-top:40px;">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:16px;color:#b026ff;margin-bottom:16px;text-transform:uppercase;">Deine Meinung zaehlt</h3>
+          <div class="form-group">
+            <label>Welcher Bereich hat dich am meisten ueberrascht?</label>
+            <select>
+              <option value="">Bitte waehlen...</option>
+              <option value="grundlagen">Grundlagen</option>
+              <option value="alltag">KI im Alltag</option>
+              <option value="kreativitaet">KI &amp; Kreativitaet</option>
+              <option value="mobilitaet">KI &amp; Mobilitaet</option>
+              <option value="industrie">KI in der Industrie</option>
+              <option value="ethik">KI &amp; Ethik</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Findest du KI eher cool oder eher gruselig?</label>
+            <div class="slider-container">
+              <span class="slider-label">😰 Gruselig</span>
+              <input type="range" min="1" max="10" value="5">
+              <span class="slider-label">😎 Cool</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Was wuerdest du gerne ueber KI noch wissen? (optional)</label>
+            <textarea placeholder="Deine Frage oder dein Kommentar..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" id="reflection-submit" onclick="submitReflection()">Absenden</button>
+        </div>
+
+        <div style="text-align:center;margin-top:32px;">
+          <button class="btn btn-secondary" onclick="navigateTo('home')">← Zurueck zur Startseite</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ═══ BOTTOM NAV (Mobile) ═══ -->
+  <nav class="bottom-nav" aria-label="Mobile Navigation">
+    <button class="bottom-nav-item active" data-nav="home">
+      <span class="bnav-icon">🏠</span>
+      <span>Start</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="grundlagen">
+      <span class="bnav-icon">🧠</span>
+      <span>Lernen</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="abschluss">
+      <span class="bnav-icon">🏆</span>
+      <span>Abschluss</span>
+    </button>
+  </nav>
+
+  <!-- ═══ MODALS ═══ -->
+
+  <!-- Badge Unlock Modal -->
+  <div class="modal-overlay" id="badge-modal" role="dialog" aria-modal="true" aria-label="Badge freigeschaltet">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeBadgeModal()" aria-label="Schliessen">&times;</button>
+      <div class="modal-body">
+        <div class="badge-celebrate">
+          <span class="badge-big-icon" id="badge-modal-icon">🎯</span>
+          <h2>Badge freigeschaltet!</h2>
+          <h3 id="badge-modal-name"></h3>
+          <p id="badge-modal-desc"></p>
+        </div>
+      </div>
+      <div style="padding:0 24px 24px;text-align:center;">
+        <button class="btn btn-primary" onclick="closeBadgeModal()">Cool! 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Info Modal -->
+  <div class="modal-overlay" id="app-modal" role="dialog" aria-modal="true" aria-label="App-Info">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeAppModal()" aria-label="Schliessen">&times;</button>
+      <div class="modal-header">
+        <div class="app-info-icon" id="app-modal-emoji"></div>
+        <h2 style="font-size:24px;color:#00d4ff;" id="app-modal-name"></h2>
+        <div class="ki-level" id="app-modal-level"></div>
+      </div>
+      <div class="modal-body">
+        <p style="color:#cbd5e0;line-height:1.7;" id="app-modal-text"></p>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <button class="btn btn-primary btn-block" onclick="closeAppModal()">Verstanden! 👍</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Announcements (Screen Reader) -->
+  <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
