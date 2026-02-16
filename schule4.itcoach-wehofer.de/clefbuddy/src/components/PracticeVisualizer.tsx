@@ -2,7 +2,8 @@
  * Practice Visualizer Component
  *
  * Shows real-time visual feedback during practice mode.
- * Displays accuracy stats, countdown, and note feedback.
+ * Displays accuracy stats and note feedback.
+ * Note: Visual countdown was removed - audio countdown (metronome clicks) still works.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -14,8 +15,6 @@ interface PracticeVisualizerProps {
   correctCount: number;
   incorrectCount: number;
   totalNotes: number;
-  countdownBeat?: number;
-  countdownTotal?: number;
   currentNoteIndex: number;
   lastComparison?: NoteComparison | null;
   className?: string;
@@ -41,8 +40,6 @@ const PracticeVisualizer: React.FC<PracticeVisualizerProps> = ({
   correctCount,
   incorrectCount,
   totalNotes,
-  countdownBeat = 0,
-  countdownTotal = 4,
   currentNoteIndex,
   lastComparison,
   className = '',
@@ -69,27 +66,40 @@ const PracticeVisualizer: React.FC<PracticeVisualizerProps> = ({
       ? Math.round(((correctCount + incorrectCount) / totalNotes) * 100)
       : 0;
 
-  // Countdown overlay
+  // Countdown: Zeige Fortschrittsleiste bei 0% (verhindert späteren Re-Render)
   if (practiceState === 'countdown') {
     return (
-      <div
-        className={`flex items-center justify-center p-8 bg-neutral-900/90 rounded-xl ${className}`}
-      >
-        <div className="text-center">
-          <div className="text-6xl font-bold text-white mb-2 animate-bounce">
-            {countdownBeat || countdownTotal}
+      <div className={`bg-white rounded-lg border border-neutral-200 px-4 py-2 ${className}`}>
+        <div className="flex items-center gap-4">
+          {/* Progress */}
+          <span className="text-xs font-medium text-neutral-500 whitespace-nowrap">
+            0/{totalNotes}
+          </span>
+
+          {/* Progress bar at 0% */}
+          <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-500 transition-all duration-300"
+              style={{ width: '0%' }}
+            />
           </div>
-          <div className="text-neutral-400 text-lg">Bereit machen...</div>
-          <div className="flex justify-center gap-2 mt-4">
-            {Array.from({ length: countdownTotal }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  i < countdownBeat ? 'bg-primary-500' : 'bg-neutral-600'
-                }`}
-              />
-            ))}
+
+          {/* Stats at 0 */}
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1 text-success font-medium">
+              <CheckIcon className="w-3.5 h-3.5" />
+              0
+            </span>
+            <span className="flex items-center gap-1 text-error font-medium">
+              <XIcon className="w-3.5 h-3.5" />
+              0
+            </span>
           </div>
+
+          {/* Accuracy at 0% */}
+          <span className="text-sm font-bold text-neutral-400">
+            0%
+          </span>
         </div>
       </div>
     );

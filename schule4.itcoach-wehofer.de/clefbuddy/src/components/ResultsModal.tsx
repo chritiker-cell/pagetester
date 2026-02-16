@@ -75,7 +75,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/70">
       <div
-        className={`bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto ${className}`}
+        className={`bg-white dark:bg-neutral-800 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto ${className}`}
       >
         {/* Header */}
         <div className="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-6 rounded-t-2xl">
@@ -88,10 +88,10 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
         {/* Stars */}
         <div className="py-6 text-center">
           <StarRatingDisplay stars={score.stars} />
-          <p className="text-lg font-semibold text-neutral-700 mt-3">
+          <p className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mt-3">
             {STAR_LABELS[score.stars]}
           </p>
-          <p className="text-neutral-500 mt-1">{message}</p>
+          <p className="text-neutral-500 dark:text-neutral-400 mt-1">{message}</p>
 
           {/* Improvement indicator */}
           {improvement.isNewBest && improvement.previousBest !== null && (
@@ -116,19 +116,19 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
               <div className="text-2xl font-bold text-success">
                 {score.stats.correctNotes}
               </div>
-              <div className="text-xs text-neutral-500">Richtig</div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">Richtig</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-error">
                 {score.stats.incorrectNotes}
               </div>
-              <div className="text-xs text-neutral-500">Falsch</div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">Falsch</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-warning">
                 {score.stats.missedNotes}
               </div>
-              <div className="text-xs text-neutral-500">Verpasst</div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">Verpasst</div>
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
         {/* Timing feedback */}
         {score.stats.averageTimingOffset !== 0 && (
           <div className="px-6 pb-4">
-            <div className="text-center text-sm text-neutral-500">
+            <div className="text-center text-sm text-neutral-500 dark:text-neutral-400">
               Durchschnittliches Timing:{' '}
               <span className="font-medium">
                 {score.stats.averageTimingOffset > 0 ? '+' : ''}
@@ -149,7 +149,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
         )}
 
         {/* Actions */}
-        <div className="p-6 border-t border-neutral-100">
+        <div className="p-6 border-t border-neutral-100 dark:border-neutral-700">
           <div className="flex gap-3">
             <Button variant="secondary" fullWidth onClick={onRetry}>
               Nochmal üben
@@ -162,7 +162,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="w-full mt-3 text-sm text-neutral-500 hover:text-neutral-700"
+            className="w-full mt-3 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
           >
             Zurück zur Übersicht
           </button>

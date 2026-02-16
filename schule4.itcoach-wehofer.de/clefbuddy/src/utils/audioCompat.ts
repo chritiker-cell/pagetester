@@ -108,15 +108,15 @@ export function getRecommendedAudioSettings(): {
   if (isMobile) {
     // Mobile devices need more buffer to prevent glitches
     return {
-      lookAhead: 0.2, // 200ms
+      lookAhead: 0.15, // 150ms
       updateInterval: 0.05, // 50ms
       latencyHint: 'balanced',
     };
   }
 
-  // Desktop can use tighter timing
+  // Desktop: balance between latency and reliability
   return {
-    lookAhead: 0.1, // 100ms
+    lookAhead: 0.05, // 50ms - matches audioEngine.ts configuration
     updateInterval: 0.025, // 25ms
     latencyHint: 'interactive',
   };

@@ -11,6 +11,7 @@ import { isWebMIDISupported, getMIDIErrorMessage } from './midiCompat';
 // MIDI message status bytes
 const MIDI_NOTE_ON = 0x90;
 const MIDI_NOTE_OFF = 0x80;
+// CC messages (e.g. sustain pedal) intentionally not handled
 
 // Engine state
 let midiAccess: MIDIAccess | null = null;
@@ -18,6 +19,11 @@ let currentInput: MIDIInput | null = null;
 let noteOnCallback: ((event: MIDIInputEvent) => void) | null = null;
 let noteOffCallback: ((event: MIDIInputEvent) => void) | null = null;
 let deviceChangeCallback: ((devices: MIDIDevice[]) => void) | null = null;
+
+// CRITICAL: Direct audio callback for ultra-low latency
+// Bypasses React state updates for immediate audio response
+let directAudioCallback: ((noteName: string, velocity: number) => void) | null = null;
+let directAudioReleaseCallback: ((noteName: string) => void) | null = null;
 
 /**
  * Initialize the MIDI engine and request access
@@ -142,12 +148,30 @@ export function onDeviceChange(callback: (devices: MIDIDevice[]) => void): void 
 }
 
 /**
+ * Register direct audio callback for ultra-low latency
+ * This bypasses React state updates and triggers audio immediately
+ */
+export function onDirectAudio(callback: (noteName: string, velocity: number) => void): void {
+  directAudioCallback = callback;
+}
+
+/**
+ * Register direct audio release callback for low latency
+ * This releases notes immediately when key is released
+ */
+export function onDirectAudioRelease(callback: (noteName: string) => void): void {
+  directAudioReleaseCallback = callback;
+}
+
+/**
  * Remove all callbacks
  */
 export function removeAllCallbacks(): void {
   noteOnCallback = null;
   noteOffCallback = null;
   deviceChangeCallback = null;
+  directAudioCallback = null;
+  directAudioReleaseCallback = null;
 }
 
 /**
@@ -160,11 +184,21 @@ function handleMIDIMessage(event: MIDIMessageEvent): void {
   const statusByte = data[0];
   const channel = statusByte & 0x0f;
   const messageType = statusByte & 0xf0;
-  const note = data[1];
-  const velocity = data.length > 2 ? data[2] : 0;
+  const data1 = data[1];
+  const data2 = data.length > 2 ? data[2] : 0;
 
   // Note On (velocity > 0) or Note Off (velocity = 0 or explicit Note Off)
+  const note = data1;
+  const velocity = data2;
+
   if (messageType === MIDI_NOTE_ON && velocity > 0) {
+    // CRITICAL: Trigger audio FIRST for minimal latency (before callbacks)
+    if (directAudioCallback) {
+      const noteName = midiNoteToName(note);
+      directAudioCallback(noteName, velocity);
+    }
+
+    // Then notify callbacks (for practice mode, UI updates, etc.)
     const inputEvent: MIDIInputEvent = {
       type: 'noteon',
       note,
@@ -178,6 +212,12 @@ function handleMIDIMessage(event: MIDIMessageEvent): void {
     messageType === MIDI_NOTE_OFF ||
     (messageType === MIDI_NOTE_ON && velocity === 0)
   ) {
+    // Trigger audio release immediately
+    if (directAudioReleaseCallback) {
+      const noteName = midiNoteToName(note);
+      directAudioReleaseCallback(noteName);
+    }
+
     const inputEvent: MIDIInputEvent = {
       type: 'noteoff',
       note,
@@ -188,6 +228,8 @@ function handleMIDIMessage(event: MIDIMessageEvent): void {
 
     noteOffCallback?.(inputEvent);
   }
+
+  // Control Change messages — CC64 (sustain pedal) intentionally ignored
 }
 
 /**

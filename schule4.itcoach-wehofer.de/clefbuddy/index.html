@@ -1,10 +1,17 @@
-/<!doctype html>
+<!doctype html>
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: https://tonejs.github.io; connect-src 'self' https://tonejs.github.io; font-src 'self' data:; worker-src 'self' blob:;" />
     <title>ClefBuddy - Musiktheorie Trainer</title>
+    <script>
+      try {
+        var d = JSON.parse(localStorage.getItem('clefbuddy-theme'));
+        if (!d || !d.state || d.state.theme !== 'light') document.documentElement.classList.add('dark');
+      } catch(e) { document.documentElement.classList.add('dark'); }
+    </script>
   </head>
   <body>
     <div id="root"></div>

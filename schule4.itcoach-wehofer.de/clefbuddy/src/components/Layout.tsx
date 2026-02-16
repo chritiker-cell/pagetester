@@ -13,14 +13,14 @@ export interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
+      <header className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 shadow-sm sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo / Title */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-primary-600">
+              <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                 ClefBuddy
               </h1>
               <span className="ml-3 text-sm text-neutral-500 hidden sm:inline">
@@ -42,9 +42,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       {/* Footer - Optional */}
-      <footer className="bg-white border-t border-neutral-200 mt-auto">
+      <footer className="bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 mt-auto">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p className="text-center text-sm text-neutral-500">
+          <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
             ClefBuddy - Musiktheorie-Trainer für Blattlesen
           </p>
         </div>

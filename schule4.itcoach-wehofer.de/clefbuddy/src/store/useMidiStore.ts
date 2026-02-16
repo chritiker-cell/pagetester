@@ -18,13 +18,21 @@ import {
   onNoteOn,
   onNoteOff,
   onDeviceChange,
+  onDirectAudio,
+  onDirectAudioRelease,
   createPlayedNote,
   disposeMIDI,
   isMIDIInitialized,
-  midiNoteToName,
 } from '../utils/midiEngine';
 import { isWebMIDISupported, getMIDIErrorMessage } from '../utils/midiCompat';
-import { playNotesImmediate, isAudioReady, initAudioEngine } from '../utils/audioEngine';
+import {
+  isAudioReady,
+  initAudioEngine,
+  triggerNoteAttack,
+  triggerNoteRelease,
+  releaseAllLiveInput,
+} from '../utils/audioEngine';
+import * as Tone from 'tone';
 
 interface MIDIStore extends MIDIState {
   // Actions - Connection
@@ -123,7 +131,25 @@ export const useMidiStore = create<MIDIStore>((set, get) => ({
         initAudioEngine().catch(console.error);
       }
 
-      // Set up note handlers
+      // CRITICAL: Set up DIRECT audio callback for ultra-low latency
+      // This triggers audio IMMEDIATELY in the MIDI event handler
+      // Bypasses React state updates for minimal latency
+      onDirectAudio((noteName: string, velocity: number) => {
+        if (Tone.context.state === 'running') {
+          triggerNoteAttack(noteName, velocity);
+        }
+      });
+
+      // CRITICAL: Set up DIRECT audio release callback for low latency
+      onDirectAudioRelease((noteName: string) => {
+        if (Tone.context.state === 'running') {
+          triggerNoteRelease(noteName);
+        }
+      });
+
+      // Sustain pedal: CC64 ignored (no sustain support)
+
+      // Set up note handlers (for practice mode and UI updates)
       const { handleNoteOn, handleNoteOff } = get();
       onNoteOn(handleNoteOn);
       onNoteOff(handleNoteOff);
@@ -138,6 +164,7 @@ export const useMidiStore = create<MIDIStore>((set, get) => ({
 
   // Disconnect from current device
   disconnect: () => {
+    releaseAllLiveInput();
     disconnectFromDevice();
     set({
       selectedDeviceId: null,
@@ -171,6 +198,7 @@ export const useMidiStore = create<MIDIStore>((set, get) => ({
 
   // Stop listening for MIDI input
   stopListening: () => {
+    releaseAllLiveInput();
     set({
       isListening: false,
     });
@@ -188,17 +216,9 @@ export const useMidiStore = create<MIDIStore>((set, get) => ({
   handleNoteOn: (event: MIDIInputEvent) => {
     const { isListening, practiceStartTime, activeNotes, playedNotes } = get();
 
-    // Play the note sound immediately (always, even if not listening/practicing)
-    const noteName = midiNoteToName(event.note);
-    if (isAudioReady()) {
-      // Play with minimal latency
-      playNotesImmediate([noteName], 0.5);
-    } else {
-      // Try to initialize audio and play (user interaction triggers this)
-      initAudioEngine().then(() => {
-        playNotesImmediate([noteName], 0.5);
-      }).catch(console.error);
-    }
+    // NOTE: Audio is now triggered DIRECTLY in midiEngine via directAudioCallback
+    // This happens BEFORE this callback is called, resulting in ultra-low latency
+    // No need to call playNotesImmediate here anymore
 
     if (!isListening || practiceStartTime === null) return;
 

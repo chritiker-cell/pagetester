@@ -6,6 +6,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type {
   PlaybackState,
   PlaybackStatus,
@@ -74,18 +75,26 @@ const initialMetronome: MetronomeState = {
   beatsPerMeasure: 4,
 };
 
-export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
+export const usePlaybackStore = create<PlaybackStore>()(
+  persist((set, get) => ({
   ...initialState,
   metronome: initialMetronome,
 
   // Status actions
   setStatus: (status) => set({ status }),
 
-  play: () => set({ status: 'playing' }),
+  play: () => {
+    // Only allow play if not already playing
+    const { status } = get();
+    if (status === 'playing') {
+      return;
+    }
+    set({ status: 'playing' });
+  },
 
   pause: () => set({ status: 'paused' }),
 
-  stop: () =>
+  stop: () => {
     set({
       status: 'stopped',
       currentTime: 0,
@@ -97,7 +106,8 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
         currentBeat: 1,
         beatType: 'downbeat',
       },
-    }),
+    });
+  },
 
   togglePlayPause: () => {
     const { status } = get();
@@ -182,4 +192,19 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
       ...initialState,
       metronome: initialMetronome,
     }),
-}));
+}),
+  {
+    name: 'clefbuddy-playback',
+    partialize: (state) => ({ config: { tempo: state.config.tempo } }),
+    merge: (persisted: unknown, current) => {
+      const p = persisted as { config?: { tempo?: number } } | undefined;
+      if (p?.config?.tempo) {
+        return {
+          ...current,
+          config: { ...current.config, tempo: p.config.tempo },
+        };
+      }
+      return current;
+    },
+  }
+));

@@ -3,23 +3,18 @@
  *
  * Converts exercise data to scheduled notes with timing information.
  * Handles both single staff and grand staff (piano) exercises.
+ * Uses simplePlayback for audio scheduling (setTimeout-based, no Tone.Transport).
  */
 
 import type { Exercise, Note } from '../types/music';
 import type { ScheduledNote, PlaybackConfig } from '../types/playback';
 import { durationToSeconds, parseTimeSignature, barDurationSeconds } from './timing';
+import { initAudioEngine, isAudioReady, releaseAllVoices } from './audioEngine';
 import {
-  initAudioEngine,
-  isAudioReady,
-  scheduleNotes,
-  scheduleMetronome,
-  startPlayback,
-  pausePlayback,
-  stopPlayback,
-  clearScheduledEvents,
-  setLoop,
-  setTempo,
-} from './audioEngine';
+  startSimplePlayback,
+  stopSimplePlayback,
+  type PlaybackSession,
+} from './simplePlayback';
 
 /**
  * Convert VexFlow note key to Tone.js note format
@@ -186,7 +181,12 @@ export class PlaybackController {
   private config: PlaybackConfig;
   private scheduledNotes: ScheduledNote[] = [];
   private onNoteChange: ((noteId: string, noteIndex: number) => void) | null = null;
-  private onBeatChange: ((beat: number, isDownbeat: boolean) => void) | null = null;
+  // Note: _onBeatChange is stored but not currently used (metronome beat callbacks
+  // are handled internally by simplePlayback, visual beat indicator could be added later)
+  private _onPlaybackEnd: (() => void) | null = null;
+  private session: PlaybackSession | null = null;
+  // Flag to abort play() if stop() is called during async initialization
+  private playAborted: boolean = false;
 
   constructor(config: PlaybackConfig) {
     this.config = config;
@@ -219,17 +219,17 @@ export class PlaybackController {
     exercise: Exercise,
     onNoteChange?: (noteId: string, noteIndex: number) => void,
     onBeatChange?: (beat: number, isDownbeat: boolean) => void,
-    _onPlaybackEnd?: () => void
+    onPlaybackEnd?: () => void
   ): void {
     this.stop();
     this.exercise = exercise;
     this.onNoteChange = onNoteChange ?? null;
-    this.onBeatChange = onBeatChange ?? null;
-    // Note: onPlaybackEnd is kept for API compatibility but not yet implemented
+    // Beat change callback (for future visual beat indicator)
+    void onBeatChange;
+    this._onPlaybackEnd = onPlaybackEnd ?? null;
 
     // Use exercise tempo if not overridden
     if (this.config.tempo === 80) {
-      // 80 is default, use exercise tempo
       this.config.tempo = exercise.tempo;
     }
 
@@ -250,7 +250,7 @@ export class PlaybackController {
   }
 
   /**
-   * Get total duration
+   * Get total duration in seconds
    */
   getTotalDuration(): number {
     if (!this.exercise) return 0;
@@ -263,11 +263,6 @@ export class PlaybackController {
   updateConfig(config: Partial<PlaybackConfig>): void {
     this.config = { ...this.config, ...config };
 
-    // Update tempo in transport
-    if (config.tempo !== undefined) {
-      setTempo(config.tempo);
-    }
-
     // Re-schedule if exercise is loaded and tempo changed
     if (this.exercise && config.tempo !== undefined) {
       this.scheduledNotes = exerciseToScheduledNotes(this.exercise, this.config);
@@ -275,134 +270,102 @@ export class PlaybackController {
   }
 
   /**
-   * Start or resume playback
+   * Start playback with count-in
    */
   async play(): Promise<void> {
-    if (!this.exercise || !isAudioReady()) return;
-
-    // Ensure audio context is running (may be suspended after practice mode)
-    const Tone = await import('tone');
-    if (Tone.context.state !== 'running') {
-      await Tone.context.resume();
+    if (!this.exercise || !isAudioReady()) {
+      return;
     }
 
-    // Stop transport if still running (e.g. previous play ended naturally)
-    if (Tone.Transport.state === 'started') {
-      Tone.Transport.stop();
-    }
-    Tone.Transport.position = 0;
+    // Stop any existing playback
+    this.stop();
 
-    // Release any lingering synth voices to prevent voice exhaustion
-    const { getPolySynth } = await import('./audioEngine');
-    const synth = getPolySynth();
-    if (synth) {
-      synth.releaseAll();
-    }
-
-    // Clear any existing scheduled events
-    this.clearEvents();
-
-    // Set tempo
-    setTempo(this.config.tempo);
-
-    // Run count-in if metronome is enabled
-    if (this.config.metronomeEnabled) {
-      await this.runCountIn();
-    }
+    // Reset abort flag AFTER stop() - this is the flag for the NEW play attempt
+    this.playAborted = false;
 
     // Calculate total duration
     const totalDuration = this.getTotalDuration();
 
-    // Set loop if enabled
-    setLoop(this.config.loop, totalDuration);
+    // Wrap callbacks to check session state before executing
+    const safeOnNoteChange = this.onNoteChange
+      ? (noteId: string, noteIndex: number) => {
+          if (this.session?.isPlaying) {
+            this.onNoteChange?.(noteId, noteIndex);
+          }
+        }
+      : undefined;
 
-    // Schedule all notes
-    scheduleNotes(
+    const safeOnPlaybackEnd = this._onPlaybackEnd
+      ? () => {
+          if (this.session?.isPlaying) {
+            this._onPlaybackEnd?.();
+          }
+        }
+      : undefined;
+
+    // Start playback using simplePlayback
+    this.session = await startSimplePlayback(
       this.scheduledNotes,
-      this.onNoteChange ?? undefined
+      {
+        tempo: this.config.tempo,
+        beatsPerMeasure: this.config.beatsPerMeasure,
+        metronomeEnabled: this.config.metronomeEnabled,
+        loop: this.config.loop,
+      },
+      totalDuration,
+      {
+        onNotePlay: safeOnNoteChange,
+        onPlaybackEnd: safeOnPlaybackEnd,
+      }
     );
 
-    // Schedule metronome if enabled
-    if (this.config.metronomeEnabled) {
-      scheduleMetronome(
-        this.config.beatsPerMeasure,
-        this.config.tempo,
-        totalDuration,
-        this.onBeatChange ?? undefined
-      );
+    // Check if stop() was called during async startSimplePlayback()
+    // If so, stop the newly created session immediately
+    if (this.playAborted) {
+      stopSimplePlayback(this.session);
+      this.session = null;
     }
-
-    // Start transport
-    startPlayback();
   }
 
   /**
-   * Run count-in (one measure) before playback starts
+   * Get the current playback session (for cursor sync)
    */
-  private async runCountIn(): Promise<void> {
-    const { playMetronomeClick } = await import('./audioEngine');
-
-    return new Promise<void>((resolve) => {
-      let beat = 0;
-      const beatDuration = (60 / this.config.tempo) * 1000; // ms per beat
-      let countdownInterval: number | null = null;
-
-      const playBeat = () => {
-        beat++;
-        const isDownbeat = beat === 1;
-
-        // Play metronome click sound
-        playMetronomeClick(isDownbeat);
-
-        // Notify beat callback
-        if (this.onBeatChange) {
-          this.onBeatChange(beat, isDownbeat);
-        }
-
-        if (beat >= this.config.beatsPerMeasure) {
-          // Stop interval
-          if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-          }
-          // WICHTIG: Warte die volle Dauer des letzten Beats ab, DANN resolve
-          setTimeout(() => resolve(), beatDuration);
-        }
-      };
-
-      // Play first beat immediately
-      playBeat();
-
-      // Schedule remaining beats
-      if (this.config.beatsPerMeasure > 1) {
-        countdownInterval = window.setInterval(playBeat, beatDuration);
-      } else {
-        // Special case: only 1 beat in measure (e.g. 1/4 time)
-        setTimeout(() => resolve(), beatDuration);
-      }
-    });
+  getSession(): PlaybackSession | null {
+    return this.session;
   }
 
   /**
-   * Pause playback
+   * Get the count-in duration in seconds
+   */
+  getCountInDuration(): number {
+    if (!this.session) {
+      // Calculate from config
+      const beatDuration = 60 / this.config.tempo;
+      return this.config.beatsPerMeasure * beatDuration;
+    }
+    return this.session.countInDuration / 1000; // Convert ms to seconds
+  }
+
+  /**
+   * Pause playback (not supported in simple mode - use stop instead)
    */
   pause(): void {
-    pausePlayback();
+    // In simple playback mode, pause isn't supported (would need to track time offsets)
+    // Just stop instead
+    this.stop();
   }
 
   /**
    * Stop and reset playback
    */
   stop(): void {
-    this.clearEvents();
-    stopPlayback();
-  }
+    // Set abort flag to prevent play() from continuing after async init
+    // This handles the case where stop() is called DURING startSimplePlayback()
+    this.playAborted = true;
 
-  /**
-   * Clear all scheduled events
-   */
-  private clearEvents(): void {
-    clearScheduledEvents();
+    stopSimplePlayback(this.session);
+    this.session = null;
+    releaseAllVoices();
   }
 
   /**
@@ -426,8 +389,8 @@ export function getPlaybackController(config?: PlaybackConfig): PlaybackControll
         tempo: 80,
         beatsPerMeasure: 4,
         beatUnit: 4,
-        loop: true, // Loop standardmäßig aktiviert
-        metronomeEnabled: true, // Metronom standardmäßig aktiviert
+        loop: true,
+        metronomeEnabled: true,
         countIn: 0,
       }
     );

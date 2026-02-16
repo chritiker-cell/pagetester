@@ -13,6 +13,7 @@ import Select from './ui/Select';
 interface MidiDeviceSelectorProps {
   className?: string;
   compact?: boolean;
+  minimal?: boolean;  // For use in settings panel without heavy styling
 }
 
 // Icons
@@ -51,6 +52,7 @@ const WarningIcon: React.FC<{ className?: string }> = ({
 const MidiDeviceSelector: React.FC<MidiDeviceSelectorProps> = ({
   className = '',
   compact = false,
+  minimal = false,
 }) => {
   const {
     connectionStatus,
@@ -165,53 +167,76 @@ const MidiDeviceSelector: React.FC<MidiDeviceSelectorProps> = ({
     );
   }
 
-  // Full view
+  // Full view (with minimal variant for settings)
   return (
-    <div className={`bg-white rounded-xl shadow-card p-4 ${className}`}>
+    <div className={minimal ? className : `bg-white dark:bg-neutral-800 rounded-xl shadow-card p-4 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              connectionStatus === 'connected' && selectedDeviceId
-                ? 'bg-success/10'
-                : 'bg-neutral-100'
-            }`}
-          >
-            <MidiIcon
-              className={`w-5 h-5 ${
+      {!minimal && (
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                 connectionStatus === 'connected' && selectedDeviceId
-                  ? 'text-success'
-                  : 'text-neutral-500'
+                  ? 'bg-success/10'
+                  : 'bg-neutral-100 dark:bg-neutral-700'
               }`}
-            />
-          </div>
-          <div>
-            <h3 className="font-semibold text-neutral-900">MIDI-Eingang</h3>
-            <div className="flex items-center gap-2 text-sm">
-              <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
-              <span className="text-neutral-600">{getStatusText()}</span>
+            >
+              <MidiIcon
+                className={`w-5 h-5 ${
+                  connectionStatus === 'connected' && selectedDeviceId
+                    ? 'text-success'
+                    : 'text-neutral-500'
+                }`}
+              />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">MIDI-Eingang</h3>
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+                <span className="text-neutral-600 dark:text-neutral-400">{getStatusText()}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={
-            connectionStatus !== 'connected' &&
-            connectionStatus !== 'disconnected'
-          }
-          title="Geräte aktualisieren"
-        >
-          <RefreshIcon className="w-4 h-4" />
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={
+              connectionStatus !== 'connected' &&
+              connectionStatus !== 'disconnected'
+            }
+            title="Geräte aktualisieren"
+          >
+            <RefreshIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Minimal header (for settings) */}
+      {minimal && (
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 text-sm">
+            <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+            <span className="text-neutral-700 dark:text-neutral-300">{getStatusText()}</span>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={
+              connectionStatus !== 'connected' &&
+              connectionStatus !== 'disconnected'
+            }
+            title="Geräte aktualisieren"
+            className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:opacity-50"
+          >
+            <RefreshIcon className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Error message */}
       {error && (
-        <div className="flex items-start gap-2 mb-4 p-3 bg-error/10 rounded-lg text-error text-sm">
+        <div className={`flex items-start gap-2 mb-4 p-3 bg-error/10 rounded-lg text-error text-sm ${minimal ? 'dark:bg-error/20' : ''}`}>
           <WarningIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -219,7 +244,7 @@ const MidiDeviceSelector: React.FC<MidiDeviceSelectorProps> = ({
 
       {/* Unsupported browser message */}
       {connectionStatus === 'unsupported' && (
-        <div className="text-sm text-neutral-600 mb-4">
+        <div className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
           <p>
             Web MIDI wird nur in Chrome, Edge und Opera unterstützt. Bitte
             wechsle den Browser, um MIDI-Keyboards zu verwenden.
@@ -241,7 +266,7 @@ const MidiDeviceSelector: React.FC<MidiDeviceSelectorProps> = ({
 
       {/* No devices found */}
       {connectionStatus === 'connected' && availableDevices.length === 0 && (
-        <div className="text-center py-4 text-neutral-500">
+        <div className="text-center py-4 text-neutral-500 dark:text-neutral-400">
           <p className="text-sm">Keine MIDI-Geräte gefunden.</p>
           <p className="text-sm mt-1">
             Schließe ein MIDI-Keyboard an und klicke auf Aktualisieren.
@@ -251,30 +276,43 @@ const MidiDeviceSelector: React.FC<MidiDeviceSelectorProps> = ({
 
       {/* Connect button for disconnected state */}
       {connectionStatus === 'disconnected' && (
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleConnect}
-          disabled={isConnecting}
-        >
-          {isConnecting ? 'Verbinde...' : 'MIDI-Zugriff erlauben'}
-        </Button>
+        minimal ? (
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="w-full py-2 px-3 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          >
+            {isConnecting ? 'Verbinde...' : 'MIDI-Zugriff erlauben'}
+          </button>
+        ) : (
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={handleConnect}
+            disabled={isConnecting}
+          >
+            {isConnecting ? 'Verbinde...' : 'MIDI-Zugriff erlauben'}
+          </Button>
+        )
       )}
 
       {/* Connected device info */}
       {connectionStatus === 'connected' && selectedDeviceId && (
-        <div className="mt-4 flex items-center justify-between p-3 bg-success/10 rounded-lg">
-          <div className="flex items-center gap-2 text-success">
-            <CheckIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">Bereit für Eingabe</span>
+        <>
+          <div className={`mt-4 flex items-center justify-between p-3 bg-success/10 rounded-lg ${minimal ? 'dark:bg-success/20' : ''}`}>
+            <div className="flex items-center gap-2 text-success">
+              <CheckIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Bereit für Eingabe</span>
+            </div>
+            <button
+              onClick={disconnect}
+              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
+            >
+              Trennen
+            </button>
           </div>
-          <button
-            onClick={disconnect}
-            className="text-sm text-neutral-500 hover:text-neutral-700"
-          >
-            Trennen
-          </button>
-        </div>
+
+        </>
       )}
     </div>
   );

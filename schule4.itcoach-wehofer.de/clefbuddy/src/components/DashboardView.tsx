@@ -1,153 +1,164 @@
-import { useNavigationStore } from '../store/useNavigationStore';
 import { useScoringStore } from '../store/useScoringStore';
-import Button from './ui/Button';
+import { useLastExerciseStore } from '../store/useLastExerciseStore';
+import { useNavigationStore } from '../store/useNavigationStore';
+import { DIFFICULTY_LABELS } from '../utils/exerciseGenerator';
+import type { Difficulty } from '../utils/exerciseGenerator';
+import FavoritesSection from './dashboard/FavoritesSection';
 
-const COLOR_MAP: Record<string, { bg: string; border: string; text: string; bar: string }> = {
-  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', bar: 'bg-emerald-500' },
-  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', bar: 'bg-blue-500' },
-  amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', bar: 'bg-amber-500' },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', bar: 'bg-orange-500' },
-  red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', bar: 'bg-red-500' },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', bar: 'bg-purple-500' },
+const LEVEL_DOT_COLORS: Record<number, string> = {
+  1: 'bg-emerald-500',
+  2: 'bg-blue-500',
+  3: 'bg-amber-500',
+  4: 'bg-orange-500',
+  5: 'bg-red-500',
+  6: 'bg-purple-500',
 };
 
+function StarDisplay({ stars }: { stars: number }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3].map(i => (
+        <svg key={i} className={`w-3.5 h-3.5 ${i <= stars ? 'text-yellow-400' : 'text-neutral-300 dark:text-neutral-600'}`} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
 export default function DashboardView() {
+  const { configs, setShouldContinue, removeConfig } = useLastExerciseStore();
   const { setSection } = useNavigationStore();
-  const { recentScores, getLevelProgress } = useScoringStore();
+  const { getStatsByDifficulty } = useScoringStore();
 
-  const levelProgress = getLevelProgress();
+  const handleContinue = (difficulty: Difficulty) => {
+    setShouldContinue(difficulty);
+    setSection('notereader');
+  };
 
-  // Calculate stats
-  const totalExercises = recentScores.length;
-  const avgAccuracy = totalExercises > 0
-    ? Math.round(recentScores.reduce((sum, s) => sum + s.breakdown.overall, 0) / totalExercises)
-    : 0;
+  const handleSettings = () => {
+    setSection('notereader');
+  };
 
-  // Get recent scores
-  const recentDisplay = recentScores.slice(0, 5);
+  const handleDelete = (difficulty: Difficulty) => {
+    removeConfig(difficulty);
+  };
+
+  const handleFirstExercise = () => {
+    setSection('notereader');
+  };
+
+  const hasConfigs = configs.length > 0;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Welcome */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-1">Willkommen bei ClefBuddy</h2>
-        <p className="text-neutral-500">Dein interaktiver Musiktheorie-Trainer fuer Blattlesen.</p>
-      </div>
+    <div className="max-w-3xl mx-auto px-6 py-8">
+      <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-8 text-center">NoteReading</h2>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
-          <div className="text-sm text-neutral-500 mb-1">Gesamte Uebungen</div>
-          <div className="text-3xl font-bold text-neutral-900">{totalExercises}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
-          <div className="text-sm text-neutral-500 mb-1">Durchschnittliche Genauigkeit</div>
-          <div className="text-3xl font-bold text-neutral-900">
-            {totalExercises > 0 ? `${avgAccuracy}%` : '–'}
+      {/* Content */}
+      {!hasConfigs ? (
+        /* Welcome CTA for first-time users */
+        <div className="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 shadow-lg rounded-xl px-8 py-10 text-center">
+          <div className="mb-4">
+            <svg className="w-12 h-12 mx-auto text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+            </svg>
           </div>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+            Willkommen bei ClefBuddy!
+          </h3>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
+            Lerne Notenlesen Schritt fuer Schritt.
+          </p>
+          <button
+            onClick={handleFirstExercise}
+            className="px-8 py-3 rounded-xl text-base font-semibold bg-primary-600 text-white hover:bg-primary-700 transition-colors shadow-sm"
+          >
+            Erste Uebung starten (Stufe 1)
+          </button>
         </div>
-      </div>
-
-      {/* Quick Start */}
-      <div className="flex gap-3 mb-6">
-        <Button variant="primary" onClick={() => setSection('notereader')}>
-          NoteReader oeffnen
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setSection('notereader');
-          }}
-        >
-          Zufaellige Uebung
-        </Button>
-      </div>
-
-      {/* Level Progress */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-neutral-900 mb-3">Level-Fortschritt</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {levelProgress.map((lp) => {
-            const colors = COLOR_MAP[lp.color] || COLOR_MAP.emerald;
-            const progress = lp.totalRequired > 0
-              ? Math.min(lp.completedExercises / lp.totalRequired, 1)
-              : 0;
+      ) : (
+        <div className="space-y-2">
+          {configs.map((cfg) => {
+            const dotColor = LEVEL_DOT_COLORS[cfg.difficulty] || LEVEL_DOT_COLORS[1];
+            const diffLabel = DIFFICULTY_LABELS.find(d => d.value === cfg.difficulty);
+            const stats = getStatsByDifficulty(cfg.difficulty);
 
             return (
               <div
-                key={lp.levelId}
-                className={`rounded-xl border p-4 shadow-sm ${
-                  lp.isUnlocked ? `${colors.bg} ${colors.border}` : 'bg-neutral-50 border-neutral-200 opacity-60'
-                }`}
+                key={cfg.difficulty}
+                className="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 shadow-md rounded-lg px-4 py-3 flex items-center gap-4 min-h-[56px]"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm font-bold ${lp.isUnlocked ? colors.text : 'text-neutral-400'}`}>
-                    {lp.levelId}. {lp.levelName}
+                {/* Level name */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+                  <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {diffLabel?.name}
                   </span>
-                  {!lp.isUnlocked && (
-                    <svg className="w-4 h-4 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {lp.isCompleted && (
-                    <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                </div>
+
+                {/* Separator */}
+                <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-600 shrink-0" />
+
+                {/* Combined stats + config info */}
+                <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-300 flex-wrap min-w-0">
+                  {stats.completedCount > 0 ? (
+                    <>
+                      <span>{stats.completedCount} Uebungen</span>
+                      <span>{stats.averageScore}%</span>
+                      <StarDisplay stars={Math.round(stats.averageStars)} />
+                    </>
+                  ) : (
+                    <span className="text-neutral-400 dark:text-neutral-500">Noch kein Ergebnis</span>
                   )}
                 </div>
 
-                {/* Progress bar */}
-                <div className="w-full h-2 bg-white/60 rounded-full mb-2">
-                  <div
-                    className={`h-2 rounded-full transition-all ${colors.bar}`}
-                    style={{ width: `${progress * 100}%` }}
-                  />
-                </div>
+                {/* Spacer */}
+                <div className="flex-1" />
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className={lp.isUnlocked ? 'text-neutral-600' : 'text-neutral-400'}>
-                    {lp.completedExercises}/{lp.totalRequired} Uebungen
-                  </span>
-                  {lp.averageScore > 0 && (
-                    <span className={lp.isUnlocked ? 'text-neutral-600' : 'text-neutral-400'}>
-                      {lp.averageScore}% / {lp.averageStars.toFixed(1)} &#9733;
-                    </span>
-                  )}
+                {/* Actions: Play, Settings, Delete */}
+                <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => handleContinue(cfg.difficulty)}
+                    className="p-1.5 rounded-lg text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    title="Weiter ueben"
+                    aria-label="Weiter ueben"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleSettings}
+                    className="p-1.5 rounded-lg text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    title="Einstellungen"
+                    aria-label="Einstellungen"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cfg.difficulty)}
+                    className="p-1.5 rounded-lg text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Loeschen"
+                    aria-label="Loeschen"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Recent Exercises */}
-      {recentDisplay.length > 0 && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-neutral-900 mb-3">Letzte Uebungen</h3>
-          <div className="space-y-2">
-            {recentDisplay.map((score, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-neutral-100 last:border-0">
-                <div>
-                  <span className="text-sm font-medium text-neutral-900">{score.exerciseName}</span>
-                  <span className="ml-2 text-xs text-neutral-500">{score.breakdown.overall}%</span>
-                </div>
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }, (_, j) => (
-                    <svg
-                      key={j}
-                      className={`w-4 h-4 ${j < score.stars ? 'text-yellow-400' : 'text-neutral-200'}`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       )}
+
+      {/* Favorites */}
+      <div className="mt-16">
+        <FavoritesSection />
+      </div>
     </div>
   );
 }

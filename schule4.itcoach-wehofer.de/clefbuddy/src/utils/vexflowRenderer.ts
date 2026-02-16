@@ -5,8 +5,13 @@
  * Includes note highlighting for playback visualization
  */
 
-import { Renderer, Stave, StaveNote, Voice, Formatter, StaveConnector, Beam, Annotation, Barline, Dot, Tuplet } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, StaveConnector, Beam, Annotation, Barline, Dot, Tuplet, Accidental } from 'vexflow';
 import type { Exercise, Bar } from '../types/music';
+import type { PlaybackSession } from './simplePlayback';
+
+// Cursor vertical extension beyond stave lines (in pixels)
+const CURSOR_EXTENSION_GRAND_STAFF = 105;
+const CURSOR_EXTENSION_SINGLE_STAFF = 80;
 
 /**
  * Convert chord degree to chord name based on key signature
@@ -14,7 +19,31 @@ import type { Exercise, Bar } from '../types/music';
  * @param keySignature - Key signature (e.g., 'C', 'G', 'F', 'D')
  * @returns Chord name (e.g., 'C', 'Dm', 'G7', 'Bdim')
  */
-function getChordName(chordDegree: number, keySignature: string): string {
+function getChordName(chordDegree: number, keySignature: string, originalKey?: string): string {
+  // Minor key scale roots and qualities
+  const minorKeyMap: Record<string, string[]> = {
+    'Am':  ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+    'Em':  ['E', 'F#', 'G', 'A', 'B', 'C', 'D'],
+    'Bm':  ['B', 'C#', 'D', 'E', 'F#', 'G', 'A'],
+    'F#m': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E'],
+    'C#m': ['C#', 'D#', 'E', 'F#', 'G#', 'A', 'B'],
+    'G#m': ['G#', 'A#', 'B', 'C#', 'D#', 'E', 'F#'],
+    'Dm':  ['D', 'E', 'F', 'G', 'A', 'Bb', 'C'],
+    'Gm':  ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F'],
+    'Cm':  ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+    'Fm':  ['F', 'G', 'Ab', 'Bb', 'C', 'Db', 'Eb'],
+    'Bbm': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'Ab'],
+    'Ebm': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'Cb', 'Db'],
+  };
+  // Natural minor: i, ii°, III, iv, v, VI, VII
+  const minorQualities = ['m', 'dim', '', 'm', 'm', '', ''];
+
+  if (originalKey && minorKeyMap[originalKey]) {
+    const scale = minorKeyMap[originalKey];
+    const rootIndex = (chordDegree - 1) % 7;
+    return `${scale[rootIndex]}${minorQualities[rootIndex]}`;
+  }
+
   // Map key signatures to major scale roots
   const keyMap: Record<string, string[]> = {
     'C': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
@@ -71,11 +100,20 @@ interface NotePosition {
   x: number;
   lineTop: number;
   lineBottom: number;
+  lineIndex: number;
 }
 
 let notePositionMap = new Map<string, NotePosition>();
 let cursorElement: SVGLineElement | null = null;
 let cursorAnimationId: number | null = null;
+
+// Store active cursor animation state for restoration after re-render
+interface CursorAnimationState {
+  entries: CursorTimelineEntry[];
+  session: PlaybackSession;
+  totalDurationMs: number;
+}
+let activeCursorAnimation: CursorAnimationState | null = null;
 
 const DEFAULT_CONFIG: RenderConfig = {
   width: 1200,
@@ -219,7 +257,7 @@ function renderSingleStaff(
 
       // Store chord position if chord changed
       if (config.showChordSymbols && bar.chordDegree !== undefined && bar.chordDegree !== prevChordDegree) {
-        const chordName = getChordName(bar.chordDegree, exercise.keySignature);
+        const chordName = getChordName(bar.chordDegree, exercise.keySignature, exercise.originalKey);
         chordPositions.push({ x: x + 10, y: y - 10, chord: chordName });
         prevChordDegree = bar.chordDegree;
       }
@@ -234,6 +272,9 @@ function renderSingleStaff(
 
       const voice = new Voice({ numBeats: beats, beatValue: beatValue }).setMode(Voice.Mode.SOFT);
       voice.addTickables(staveNotes);
+
+      // Auto-add accidentals based on key signature (handles sharps/flats outside key sig)
+      Accidental.applyAccidentals([voice], exercise.keySignature || 'C');
 
       const noteStartX = stave.getNoteStartX();
       const noteEndX = stave.getNoteEndX();
@@ -323,7 +364,7 @@ function renderGrandStaff(
 
       // Store chord position if chord changed
       if (config.showChordSymbols && bar.chordDegree !== undefined && bar.chordDegree !== prevChordDegree) {
-        const chordName = getChordName(bar.chordDegree, exercise.keySignature);
+        const chordName = getChordName(bar.chordDegree, exercise.keySignature, exercise.originalKey);
         chordPositions.push({ x: x + 10, y: yTreble - 15, chord: chordName });
         prevChordDegree = bar.chordDegree;
       }
@@ -418,6 +459,11 @@ function renderGrandStaff(
         bassVoice.addTickables(bassNotes);
         bassBeams = Beam.generateBeams(bassNotes);
       }
+
+      // Auto-add accidentals based on key signature
+      const accVoices = [trebleVoice];
+      if (bassVoice) accVoices.push(bassVoice);
+      Accidental.applyAccidentals(accVoices, exercise.keySignature || 'C');
 
       // Use a single Formatter for both voices so notes align horizontally
       const formatter = new Formatter();
@@ -531,6 +577,9 @@ export function renderExercise(
   // Build note position map from actual SVG bounding boxes (reliable for cursor)
   buildNotePositionMap(container, exercise, finalConfig);
 
+  // Restore cursor animation if it was active before re-render
+  restoreCursorIfActive();
+
   return noteInfos;
 }
 
@@ -586,14 +635,14 @@ function buildNotePositionMap(
       const yTreble = config.padding.top + lineIndex * grandSystemHeight;
       const yBass = yTreble + bassStaveOffset;
       lineTop = yTreble;
-      lineBottom = yBass + 105; // extended below bass stave
+      lineBottom = yBass + CURSOR_EXTENSION_GRAND_STAFF;
     } else {
       const y = config.padding.top + lineIndex * singleStaveHeight;
       lineTop = y;
-      lineBottom = y + 80;
+      lineBottom = y + CURSOR_EXTENSION_SINGLE_STAFF;
     }
 
-    notePositionMap.set(noteInfo.noteId, { x, lineTop, lineBottom });
+    notePositionMap.set(noteInfo.noteId, { x, lineTop, lineBottom, lineIndex });
   }
 
   // Store bar end positions (right edge of each bar)
@@ -609,11 +658,11 @@ function buildNotePositionMap(
       const yTreble = config.padding.top + lineIndex * grandSystemHeight;
       const yBass = yTreble + bassStaveOffset;
       lineTop = yTreble;
-      lineBottom = yBass + 105;
+      lineBottom = yBass + CURSOR_EXTENSION_GRAND_STAFF;
     } else {
       const y = config.padding.top + lineIndex * singleStaveHeight;
       lineTop = y;
-      lineBottom = y + 80;
+      lineBottom = y + CURSOR_EXTENSION_SINGLE_STAFF;
     }
 
     barEndPositions.push({ barNumber, lineIndex, xEnd, lineTop, lineBottom });
@@ -816,6 +865,7 @@ export interface CursorTimelineEntry {
   lineBottom: number;
   noteId?: string; // for bar-end position lookup
   duration?: number; // duration of this note in seconds
+  lineIndex?: number; // line index for robust line-change detection
 }
 
 /**
@@ -860,14 +910,18 @@ function getBarNumberFromNoteId(noteId: string): number {
 }
 
 /**
- * Animate the cursor smoothly along a precomputed timeline.
- * Each entry has x, time (seconds), lineTop, lineBottom.
- * The cursor interpolates between consecutive entries on the same line.
- * totalDuration: total exercise duration in seconds (for proper last note handling)
- * loop: if true, the animation will loop indefinitely (cursor jumps back to start)
+ * Animate the cursor using a PlaybackSession (performance.now() based)
+ * This is the new synchronous animation method that uses the same time base as audio.
  */
-export function animateCursorTimeline(entries: CursorTimelineEntry[], totalDuration?: number, loop: boolean = false): void {
+export function animateCursorWithSession(
+  entries: CursorTimelineEntry[],
+  session: PlaybackSession,
+  totalDurationMs: number
+): void {
   if (entries.length === 0) return;
+
+  // Store animation state for restoration after re-render
+  activeCursorAnimation = { entries, session, totalDurationMs };
 
   // Cancel any previous animation
   if (cursorAnimationId) {
@@ -882,23 +936,38 @@ export function animateCursorTimeline(entries: CursorTimelineEntry[], totalDurat
   const augmentedEntries = entries.map(e => ({
     ...e,
     barNumber: getBarNumberFromNoteId(e.noteId || ''),
+    lineIndex: e.lineIndex ?? 0,
   }));
 
-  // Calculate end time: use totalDuration if provided, else estimate from last note + duration
-  const lastEntry = augmentedEntries[augmentedEntries.length - 1];
-  const endTime = totalDuration ?? (lastEntry.time + (lastEntry.duration ?? 0.5));
-
-  const animStart = performance.now();
+  const endTime = totalDurationMs / 1000; // Convert to seconds for comparison with entry.time
 
   const animate = () => {
-    const rawElapsed = (performance.now() - animStart) / 1000; // seconds since playback start
+    // Check if playback is still active
+    if (!session.isPlaying) {
+      return; // Stop animation when playback stops
+    }
 
-    // In loop mode, use modulo to restart animation
-    const elapsed = loop ? (rawElapsed % endTime) : rawElapsed;
+    // Calculate elapsed time using the session's time base
+    const elapsed = performance.now() - session.startTime;
+    const cycleTime = session.currentCountIn + session.totalDuration;
+    const cycleElapsed = session.loop ? elapsed % cycleTime : elapsed;
+    const musicElapsedMs = cycleElapsed - session.currentCountIn;
+    const musicElapsed = musicElapsedMs / 1000; // Convert to seconds
 
-    // Find current segment: last entry whose time <= elapsed
+    // During count-in (musicElapsed < 0): stay at first note
+    if (musicElapsed < 0) {
+      const first = augmentedEntries[0];
+      el.setAttribute('x1', first.x.toString());
+      el.setAttribute('x2', first.x.toString());
+      el.setAttribute('y1', first.lineTop.toString());
+      el.setAttribute('y2', first.lineBottom.toString());
+      cursorAnimationId = requestAnimationFrame(animate);
+      return;
+    }
+
+    // Find current segment: last entry whose time <= musicElapsed
     let idx = 0;
-    while (idx < augmentedEntries.length - 1 && augmentedEntries[idx + 1].time <= elapsed) {
+    while (idx < augmentedEntries.length - 1 && augmentedEntries[idx + 1].time <= musicElapsed) {
       idx++;
     }
 
@@ -909,48 +978,132 @@ export function animateCursorTimeline(entries: CursorTimelineEntry[], totalDurat
     el.setAttribute('y1', current.lineTop.toString());
     el.setAttribute('y2', current.lineBottom.toString());
 
-    if (next && Math.abs(next.lineTop - current.lineTop) < 30) {
-      // Same system line: interpolate x
-      const segDuration = next.time - current.time;
-      const segElapsed = elapsed - current.time;
-      const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
-      const x = current.x + (next.x - current.x) * progress;
-      el.setAttribute('x1', x.toString());
-      el.setAttribute('x2', x.toString());
-    } else if (next) {
-      // Next is on different line: interpolate to end of current bar
+    if (next) {
+      const onSameLine = (current.lineIndex === next.lineIndex);
       const currentBarNumber = current.barNumber || 1;
-      const barEndInfo = barEndPositions.find(b => b.barNumber === currentBarNumber);
-      const barEndX = barEndInfo ? barEndInfo.xEnd : current.x + 60;
+      const nextBarNumber = next.barNumber || 1;
 
-      const segDuration = next.time - current.time;
-      const segElapsed = elapsed - current.time;
-      const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
-      const x = current.x + (barEndX - current.x) * progress;
-      el.setAttribute('x1', x.toString());
-      el.setAttribute('x2', x.toString());
+      if (onSameLine) {
+        if (nextBarNumber > currentBarNumber) {
+          // Crossing bar boundary: interpolate through bar end
+          const barEndInfo = barEndPositions.find(b => b.barNumber === currentBarNumber);
+          const barEndX = barEndInfo ? barEndInfo.xEnd : current.x + 60;
+
+          const segDuration = next.time - current.time;
+          const segElapsed = musicElapsed - current.time;
+          const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
+
+          const leg1 = Math.abs(barEndX - current.x);
+          const leg2 = Math.abs(next.x - barEndX);
+          const totalDistance = leg1 + leg2;
+
+          let x: number;
+          if (totalDistance === 0) {
+            x = current.x;
+          } else {
+            const leg1Fraction = leg1 / totalDistance;
+            if (progress < leg1Fraction) {
+              const leg1Progress = leg1Fraction > 0 ? progress / leg1Fraction : 1;
+              x = current.x + (barEndX - current.x) * leg1Progress;
+            } else {
+              const leg2Progress = leg1Fraction < 1 ? (progress - leg1Fraction) / (1 - leg1Fraction) : 1;
+              x = barEndX + (next.x - barEndX) * leg2Progress;
+            }
+          }
+
+          el.setAttribute('x1', x.toString());
+          el.setAttribute('x2', x.toString());
+        } else {
+          // Same bar: simple interpolation
+          const targetX = Math.max(next.x, current.x);
+          const segDuration = next.time - current.time;
+          const segElapsed = musicElapsed - current.time;
+          const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
+          const x = current.x + (targetX - current.x) * progress;
+          el.setAttribute('x1', x.toString());
+          el.setAttribute('x2', x.toString());
+        }
+      } else {
+        // Different line: interpolate to end of current bar, then jump
+        const barEndInfo = barEndPositions.find(b => b.barNumber === currentBarNumber);
+        const barEndX = barEndInfo ? barEndInfo.xEnd : current.x + 60;
+
+        const segDuration = next.time - current.time;
+        const segElapsed = musicElapsed - current.time;
+        const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
+
+        const x = current.x + (barEndX - current.x) * progress;
+        el.setAttribute('x1', x.toString());
+        el.setAttribute('x2', x.toString());
+
+        if (progress > 0.9) {
+          const yTransitionProgress = (progress - 0.9) / 0.1;
+          const y1 = current.lineTop + (next.lineTop - current.lineTop) * yTransitionProgress;
+          const y2 = current.lineBottom + (next.lineBottom - current.lineBottom) * yTransitionProgress;
+          el.setAttribute('y1', y1.toString());
+          el.setAttribute('y2', y2.toString());
+        }
+      }
     } else {
       // Last entry: interpolate to end of last bar
       const currentBarNumber = current.barNumber || 1;
       const barEndInfo = barEndPositions.find(b => b.barNumber === currentBarNumber);
       const barEndX = barEndInfo ? barEndInfo.xEnd : current.x + 60;
 
-      const segDuration = endTime - current.time;
-      const segElapsed = elapsed - current.time;
+      const noteDur = current.duration ?? 0.5;
+      const segDuration = Math.max(endTime - current.time, noteDur);
+      const segElapsed = musicElapsed - current.time;
       const progress = segDuration > 0 ? Math.min(segElapsed / segDuration, 1) : 0;
       const x = current.x + (barEndX - current.x) * progress;
       el.setAttribute('x1', x.toString());
       el.setAttribute('x2', x.toString());
     }
 
-    // In loop mode: continue animating indefinitely
-    // In non-loop mode: stop after end time
-    if (loop || rawElapsed < endTime + 0.1) {
-      cursorAnimationId = requestAnimationFrame(animate);
-    }
+    cursorAnimationId = requestAnimationFrame(animate);
   };
 
   cursorAnimationId = requestAnimationFrame(animate);
+}
+
+/**
+ * @deprecated Use animateCursorWithSession instead for synchronized playback
+ * Animate the cursor smoothly along a precomputed timeline.
+ * This legacy function uses Tone.Transport for timing (may be out of sync).
+ */
+export function animateCursorTimeline(entries: CursorTimelineEntry[], totalDuration?: number, loop: boolean = false, _countInOffset: number = 0): void {
+  if (entries.length === 0) return;
+
+  // Cancel any previous animation
+  if (cursorAnimationId) {
+    cancelAnimationFrame(cursorAnimationId);
+    cursorAnimationId = null;
+  }
+
+  const el = ensureCursor();
+  if (!el) return;
+
+  // Augment timeline with bar numbers and line indices for each entry
+  const augmentedEntries = entries.map(e => ({
+    ...e,
+    barNumber: getBarNumberFromNoteId(e.noteId || ''),
+    lineIndex: e.lineIndex ?? 0, // Use provided lineIndex or default to 0
+  }));
+
+  // Placeholder: this function is deprecated
+  void totalDuration; // Unused in deprecated version
+  // Just show cursor at first position
+  const first = augmentedEntries[0];
+  el.setAttribute('x1', first.x.toString());
+  el.setAttribute('x2', first.x.toString());
+  el.setAttribute('y1', first.lineTop.toString());
+  el.setAttribute('y2', first.lineBottom.toString());
+
+  console.warn('animateCursorTimeline is deprecated. Use animateCursorWithSession instead.');
+
+  // In loop mode, keep the cursor visible
+  if (loop) {
+    el.setAttribute('visibility', 'visible');
+  }
 }
 
 /**
@@ -964,6 +1117,8 @@ export function hidePlaybackCursor(): void {
   if (cursorElement) {
     cursorElement.setAttribute('visibility', 'hidden');
   }
+  // Clear animation state
+  activeCursorAnimation = null;
 }
 
 /**
@@ -977,5 +1132,23 @@ export function removePlaybackCursor(): void {
   if (cursorElement) {
     cursorElement.remove();
     cursorElement = null;
+  }
+  // Clear animation state
+  activeCursorAnimation = null;
+}
+
+/**
+ * Restore cursor animation after re-render (if it was active)
+ * This is called internally after renderExercise() to continue playback cursor
+ */
+export function restoreCursorIfActive(): void {
+  if (activeCursorAnimation) {
+    const { entries, session, totalDurationMs } = activeCursorAnimation;
+    // Only restore if session is still playing
+    if (session.isPlaying) {
+      // Re-create cursor element and resume animation
+      cursorElement = null; // Force recreation
+      animateCursorWithSession(entries, session, totalDurationMs);
+    }
   }
 }

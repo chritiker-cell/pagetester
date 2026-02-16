@@ -195,11 +195,11 @@ export const CATEGORY_LABELS: Record<string, string> = {
  * Star rating labels
  */
 export const STAR_LABELS: Record<StarRating, string> = {
-  1: 'Weiter üben',
-  2: 'Guter Anfang',
-  3: 'Gut gemacht',
-  4: 'Sehr gut',
-  5: 'Perfekt!',
+  1: 'Guter Anfang! Weiter so!',
+  2: 'Schon besser! Nochmal?',
+  3: 'Gut gemacht!',
+  4: 'Sehr gut! Fast perfekt!',
+  5: 'Perfekt! Fantastisch!',
 };
 
 /**

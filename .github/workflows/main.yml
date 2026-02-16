@@ -1,14 +1,44 @@
 on: push
-name: 🚀 Deploy website on push
+name: Deploy website on push
 jobs:
   web-deploy:
-    name: 🎉 Deploy
+    name: Build & Deploy
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Get latest code
+    - name: Get latest code
       uses: actions/checkout@v4
-    
-    - name: 📂 Sync files
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: schule4.itcoach-wehofer.de/clefbuddy/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: schule4.itcoach-wehofer.de/clefbuddy
+
+    - name: Test
+      run: npm test
+      working-directory: schule4.itcoach-wehofer.de/clefbuddy
+
+    - name: Type-check
+      run: npx tsc --noEmit
+      working-directory: schule4.itcoach-wehofer.de/clefbuddy
+
+    - name: Build
+      run: npm run build
+      working-directory: schule4.itcoach-wehofer.de/clefbuddy
+
+    - name: Copy build output to deploy location
+      run: |
+        rm -rf schule4.itcoach-wehofer.de/clefbuddy/src
+        rm -rf schule4.itcoach-wehofer.de/clefbuddy/node_modules
+        cp -r schule4.itcoach-wehofer.de/clefbuddy/dist/* schule4.itcoach-wehofer.de/clefbuddy/
+        rm -rf schule4.itcoach-wehofer.de/clefbuddy/dist
+
+    - name: Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
         server: ftp://195.242.102.132/

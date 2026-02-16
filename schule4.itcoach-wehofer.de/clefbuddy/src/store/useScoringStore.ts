@@ -44,6 +44,8 @@ interface ScoringStore extends ScoringState {
   getBestScore: (exerciseId: string) => ExerciseBestScore | null;
   getSessionSummary: () => SessionSummary | null;
   getLevelProgress: () => LevelProgress[];
+  getStatsByDifficulty: (difficulty: number) => { completedCount: number; averageScore: number; averageStars: number };
+  getOverallStats: () => { totalExercises: number; averageScore: number; averageStars: number; totalPracticeTime: number };
 
   // Actions - Reset
   reset: () => void;
@@ -190,6 +192,31 @@ export const useScoringStore = create<ScoringStore>()(
 
         const previousBest = bestScores.get(currentScore.exerciseId) || null;
         return generateSessionSummary(currentScore, previousBest);
+      },
+
+      getStatsByDifficulty: (difficulty: number) => {
+        const scores = get().recentScores.filter(s => s.exerciseId.includes(`diff${difficulty}`));
+        const completedCount = scores.length;
+        const averageScore = completedCount > 0
+          ? Math.round(scores.reduce((sum, s) => sum + s.breakdown.overall, 0) / completedCount)
+          : 0;
+        const averageStars = completedCount > 0
+          ? Math.round(scores.reduce((sum, s) => sum + s.stars, 0) / completedCount * 10) / 10
+          : 0;
+        return { completedCount, averageScore, averageStars };
+      },
+
+      getOverallStats: () => {
+        const { recentScores } = get();
+        const totalExercises = recentScores.length;
+        const averageScore = totalExercises > 0
+          ? Math.round(recentScores.reduce((sum, s) => sum + s.breakdown.overall, 0) / totalExercises)
+          : 0;
+        const averageStars = totalExercises > 0
+          ? Math.round(recentScores.reduce((sum, s) => sum + s.stars, 0) / totalExercises * 10) / 10
+          : 0;
+        const totalPracticeTime = recentScores.reduce((sum, s) => sum + s.durationSeconds, 0);
+        return { totalExercises, averageScore, averageStars, totalPracticeTime };
       },
 
       // Reset store

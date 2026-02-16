@@ -2,10 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface NoteReaderSettings {
-  // Uebungs-Parameter
-  barCount: number;
-  timeSignature: string; // '4/4' | '3/4' | '2/4' | '6/8' | 'random'
-
   // Visuelle Hilfen
   showChordSymbols: boolean;
   showFingeringFirstNote: boolean;
@@ -23,8 +19,6 @@ interface NoteReaderSettingsStore extends NoteReaderSettings {
 }
 
 const defaults: NoteReaderSettings = {
-  barCount: 4,
-  timeSignature: 'random',
   showChordSymbols: false,
   showFingeringFirstNote: true,
   showFingeringOnPositionChange: true,

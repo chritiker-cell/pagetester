@@ -129,10 +129,6 @@ export function initPracticeMode(
  * Start practice session
  */
 export async function startPractice(): Promise<void> {
-  console.log('[DEBUG] ===== startPractice() CALLED =====');
-  console.log('[DEBUG] Current state:', currentState);
-  console.trace('[DEBUG] startPractice() call stack');
-
   if (currentState !== 'idle' && currentState !== 'finished') {
     console.warn('[DEBUG] Practice already in progress, aborting');
     return;
@@ -157,19 +153,15 @@ export async function startPractice(): Promise<void> {
 
   // Start countdown (with metronome clicks)
   if (config.countdownBeats > 0) {
-    console.log('[DEBUG] Starting countdown with', config.countdownBeats, 'beats');
     try {
       await runCountdown();
-      console.log('[DEBUG] Countdown completed successfully');
     } catch (error) {
       // Countdown was aborted (user pressed stop)
-      console.log('[DEBUG] Countdown aborted, stopping practice');
       return; // Don't continue with practice
     }
   }
 
   // Start practice
-  console.log('[DEBUG] Setting state to playing after countdown');
   setState('playing');
   practiceStartTime = performance.now();
 
@@ -192,21 +184,17 @@ export async function startPractice(): Promise<void> {
  * Run countdown before practice starts
  */
 async function runCountdown(): Promise<void> {
-  console.log('[DEBUG] runCountdown() started');
   setState('countdown');
 
   return new Promise<void>((resolve, reject) => {
     let beat = 0;
     const beatDuration = (60 / config.tempo) * 1000; // ms per beat
     // REMOVED: countdownAborted is now module-level (line 107)
-    console.log('[DEBUG] Countdown promise created, beatDuration:', beatDuration);
 
     // Play first beat immediately
     const playBeat = () => {
-      console.log('[DEBUG] playBeat() called, beat:', beat, 'aborted:', countdownAborted);
       // CRITICAL: Check if countdown was aborted (user pressed stop)
       if (countdownAborted) {
-        console.log('[DEBUG] Countdown aborted, clearing interval');
         if (countdownInterval) {
           clearInterval(countdownInterval);
           countdownInterval = null;
@@ -216,7 +204,6 @@ async function runCountdown(): Promise<void> {
 
       beat++;
       const isDownbeat = beat === 1 || beat % config.beatsPerMeasure === 1;
-      console.log('[DEBUG] Beat', beat, 'of', config.countdownBeats);
 
       // Play metronome click sound
       playMetronomeClick(isDownbeat);
@@ -226,25 +213,20 @@ async function runCountdown(): Promise<void> {
       callbacks.onMetronomeBeat?.(beat, isDownbeat);
 
       if (beat >= config.countdownBeats) {
-        console.log('[DEBUG] Countdown finished');
         if (countdownInterval) {
           clearInterval(countdownInterval);
           countdownInterval = null;
         }
         // Only resolve if not aborted
         if (!countdownAborted) {
-          console.log('[DEBUG] Resolving countdown promise');
           countdownAbortHandler = null; // Clear handler after successful countdown
           resolve();
-        } else {
-          console.log('[DEBUG] Countdown aborted, NOT resolving');
         }
       }
     };
 
     // Store abort handler globally so stopPractice can call it
     countdownAbortHandler = () => {
-      console.log('[DEBUG] countdownAbortHandler called - aborting countdown');
       countdownAborted = true;
       reject(new Error('Countdown aborted by user'));
     };
@@ -402,9 +384,22 @@ export function resumePractice(): void {
  * Stop and finish practice
  */
 export function stopPractice(): void {
-  console.log('[DEBUG] ===== stopPractice() CALLED =====');
-  console.log('[DEBUG] Current state:', currentState);
-  console.trace('[DEBUG] stopPractice() call stack');
+  // CRITICAL: Abort countdown FIRST to prevent race condition
+  // This must happen BEFORE finishPractice() to stop the countdown promise
+  if (countdownAbortHandler) {
+    countdownAbortHandler();
+    countdownAbortHandler = null;
+  }
+
+  // Also clear the countdown interval immediately
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+
+  // Set the abort flag directly as backup
+  countdownAborted = true;
+
   finishPractice();
 }
 
@@ -452,7 +447,6 @@ export function resetPractice(): void {
  * Cleanup practice resources
  */
 function cleanupPractice(): void {
-  console.log('[DEBUG] cleanupPractice() called');
   // Stop transport
   Tone.Transport.stop();
   Tone.Transport.position = 0;
@@ -465,20 +459,17 @@ function cleanupPractice(): void {
 
   // Clear intervals
   if (positionInterval) {
-    console.log('[DEBUG] Clearing position interval');
     clearInterval(positionInterval);
     positionInterval = null;
   }
 
   if (countdownInterval) {
-    console.log('[DEBUG] Clearing countdown interval');
     clearInterval(countdownInterval);
     countdownInterval = null;
   }
 
   // CRITICAL: Abort countdown promise to prevent automatic practice start
   if (countdownAbortHandler) {
-    console.log('[DEBUG] Calling countdownAbortHandler to abort promise');
     countdownAbortHandler();
     countdownAbortHandler = null;
   }

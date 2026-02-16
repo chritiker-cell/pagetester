@@ -13,6 +13,7 @@ export interface TheoryContent {
   bullets: string[];
   tip: string;
   exampleDescription: string;
+  customContentId?: string;
 }
 
 export const theoryContents: Record<string, TheoryContent> = {
@@ -31,6 +32,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Praege dir zuerst nur die Linien-Toene ein. Die Zwischenraeume liegen immer genau dazwischen und sind leichter abzuleiten.',
     exampleDescription: 'Das Beispiel zeigt beide Notensysteme: oben der Violinschluessel mit den Toenen E-G-H-D-F auf den Linien, unten der Bassschluessel mit G-H-D-F-A.',
+    customContentId: 'staff-clefs',
   },
 
   'note-values': {
@@ -48,6 +50,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Klopfe die Rhythmen auf dem Tisch, bevor du sie spielst. So verinnerlichst du das Gefuehl fuer Notenwerte schneller.',
     exampleDescription: 'Das Beispiel zeigt die wichtigsten Notenwerte: Ganze, Halbe, zwei Viertel, vier Achtel. Darunter die entsprechenden Pausen.',
+    customContentId: 'note-values',
   },
 
   'accidentals': {
@@ -65,6 +68,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Spiele auf dem Klavier eine Tonleiter mit schwarzen Tasten. So hoerst du sofort, wie Vorzeichen die Musik veraendern.',
     exampleDescription: 'Das Beispiel zeigt drei kurze Melodien: eine ohne Vorzeichen, eine mit Kreuzen und eine mit Bes. Die letzte Zeile zeigt ein Aufloesungszeichen in Aktion.',
+    customContentId: 'accidentals',
   },
 
   'time-signatures': {
@@ -82,6 +86,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Hoere Musik und klatsche den Grundschlag mit. Versuche zu erkennen, ob es ein 3er- oder 4er-Takt ist.',
     exampleDescription: 'Das Beispiel zeigt drei verschiedene Taktarten: 4/4 (haeufigster Takt), 3/4 (Walzer) und 6/8 (fliessende Achtel-Bewegung).',
+    customContentId: 'time-signatures',
   },
 
   'intervals': {
@@ -99,6 +104,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Singe bekannte Lieder und erkenne die Intervalle am Anfang. „Alle meine Entchen" startet mit Sekundschritten.',
     exampleDescription: 'Das Beispiel zeigt aufsteigende Intervalle von der Prime bis zur Oktave, jeweils als Melodie und als Zweiklang.',
+    customContentId: 'intervals',
   },
 
   'triads': {
@@ -116,6 +122,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Spiele erst jeden Ton einzeln nacheinander, dann alle zusammen. So hoerst du besser, ob alle Finger richtig auf den Tasten liegen.',
     exampleDescription: 'Das Beispiel zeigt C-Dur (C-E-G) und C-Moll (C-Es-G) als geblockte Dreiklaenge. Hoere den Unterschied zwischen Dur und Moll.',
+    customContentId: 'triads',
   },
 
   'arpeggios': {
@@ -133,6 +140,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Uebe Arpeggios langsam und gleichmaessig. Jeder Ton sollte gleich laut sein. Mit der Zeit wird die Bewegung fliessend.',
     exampleDescription: 'Das Beispiel zeigt den C-Dur-Akkord als Arpeggio: erst C, dann E, dann G, dann wieder E. Das ist das klassische Alberti-Bass-Muster.',
+    customContentId: 'arpeggios',
   },
 
   'fingering': {
@@ -150,6 +158,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Halte dich am Anfang genau an die vorgegebenen Fingersaetze. Sie sind so gewaehlt, dass deine Hand in einer natuerlichen Position bleibt.',
     exampleDescription: 'Das Beispiel zeigt die 5-Finger-Position: C-D-E-F-G mit den Fingernummern 1-2-3-4-5 ueber den Noten.',
+    customContentId: 'fingering',
   },
 
   'dynamics': {
@@ -167,6 +176,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Uebe Stuecke erst ohne Dynamik in mittlerer Lautstaerke. Wenn die Noten sicher sitzen, fuege piano und forte hinzu.',
     exampleDescription: 'Das Beispiel zeigt eine einfache Tonleiter: erst leise (piano), dann lauter werdend (crescendo) bis laut (forte).',
+    customContentId: 'dynamics',
   },
 
   'pedals': {
@@ -184,6 +194,7 @@ export const theoryContents: Record<string, TheoryContent> = {
     ],
     tip: 'Uebe das Pedaltreten zuerst ohne Haende: Tritt das Pedal langsam und gleichmaessig. Spaeter uebst du, es mit bestimmten Noten zu koordinieren.',
     exampleDescription: 'Spiele einen C-Dur-Akkord ohne Pedal (kurzer Klang), dann mit gedruecktem rechtem Pedal (langer Nachhall).',
+    customContentId: 'pedals',
   },
 };
 

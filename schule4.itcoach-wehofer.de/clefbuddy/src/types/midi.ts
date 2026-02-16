@@ -15,10 +15,10 @@ export interface MIDIInputEvent {
   /** MIDI message type */
   type: MIDIMessageType;
 
-  /** MIDI note number (0-127) */
+  /** MIDI note number (0-127) or CC number for control change */
   note: number;
 
-  /** Velocity (0-127, 0 = note off) */
+  /** Velocity (0-127, 0 = note off) or CC value for control change */
   velocity: number;
 
   /** Timestamp when the event was received */
@@ -27,6 +27,35 @@ export interface MIDIInputEvent {
   /** MIDI channel (0-15) */
   channel: number;
 }
+
+/**
+ * MIDI Control Change event
+ */
+export interface MIDIControlChangeEvent {
+  /** Control change number (0-127) */
+  cc: number;
+
+  /** Control value (0-127) */
+  value: number;
+
+  /** Timestamp when the event was received */
+  timestamp: number;
+
+  /** MIDI channel (0-15) */
+  channel: number;
+}
+
+/**
+ * MIDI CC numbers
+ */
+export const MIDI_CC = {
+  /** Sustain Pedal (Damper Pedal) */
+  SUSTAIN_PEDAL: 64,
+  /** Sostenuto Pedal */
+  SOSTENUTO: 66,
+  /** Soft Pedal (Una Corda) */
+  SOFT_PEDAL: 67,
+} as const;
 
 /**
  * A played note with timing information

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type Section = 'dashboard' | 'notereader' | 'theory' | 'scales' | 'arpeggio' | 'chords';
+export type Section = 'dashboard' | 'notereader' | 'scales' | 'chords' | 'arpeggio' | 'songs' | 'theory';
 
 interface NavigationState {
   activeSection: Section;

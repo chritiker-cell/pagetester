@@ -46,7 +46,7 @@
     },
     {
       "id": 3,
-      "name": "Mittelstufe I",
+      "name": "Fortgeschritten I",
       "description": "Erste Achtel, punktierte Viertel, Lagenwechsel erlaubt",
       "clef": "treble",
       "keySignature": "C",
@@ -68,7 +68,7 @@
     },
     {
       "id": 4,
-      "name": "Mittelstufe II",
+      "name": "Fortgeschritten II",
       "description": "Punktierte Achtel, erste Zweiklaenge, rhythmische Komplexitaet",
       "clef": "treble",
       "keySignature": "C",
@@ -91,7 +91,7 @@
     },
     {
       "id": 5,
-      "name": "Fortgeschritten",
+      "name": "Experte I",
       "description": "16tel-Laeufe, Dreiklaenge, grosse Spruenge",
       "clef": "treble",
       "keySignature": "C",
@@ -114,7 +114,7 @@
     },
     {
       "id": 6,
-      "name": "Experte",
+      "name": "Experte II",
       "description": "32tel, Vierklang, Cluster, voller Umfang",
       "clef": "treble",
       "keySignature": "C",

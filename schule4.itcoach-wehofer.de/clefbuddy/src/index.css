@@ -7,14 +7,32 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light;
-  color: #213547;
-  background-color: #fafafa;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Let Tailwind utilities handle colors - removed conflicting :root color styles */
+
+/* =====================================================
+   Theory Diagram SVG Colors (Minimalist Black & White)
+   ===================================================== */
+
+:root {
+  --svg-notation-primary: #1a1a1a;
+  --svg-notation-secondary: #666666;
+  --svg-staff-line: #333333;
+  --svg-label-text: #1a1a1a;
+  --svg-helper-line: #999999;
+}
+
+.dark {
+  --svg-notation-primary: #e5e5e5;
+  --svg-notation-secondary: #a3a3a3;
+  --svg-staff-line: #737373;
+  --svg-label-text: #e5e5e5;
+  --svg-helper-line: #737373;
 }
 
 body {
@@ -145,4 +163,17 @@ body {
 .note-missed rect {
   fill: #f97316 !important;
   stroke: #f97316 !important;
+}
+
+/* =====================================================
+   Scrollbar Hide Utility
+   ===================================================== */
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

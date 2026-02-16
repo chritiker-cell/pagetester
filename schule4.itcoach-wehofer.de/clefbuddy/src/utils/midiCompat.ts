@@ -6,6 +6,18 @@
  */
 
 /**
+ * MIDI CC numbers
+ */
+export const MIDI_CC = {
+  /** Sustain Pedal (Damper Pedal) */
+  SUSTAIN_PEDAL: 64,
+  /** Sostenuto Pedal */
+  SOSTENUTO: 66,
+  /** Soft Pedal (Una Corda) */
+  SOFT_PEDAL: 67,
+} as const;
+
+/**
  * Check if Web MIDI API is supported in this browser
  */
 export function isWebMIDISupported(): boolean {

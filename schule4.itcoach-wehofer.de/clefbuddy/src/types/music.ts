@@ -74,8 +74,11 @@ export interface Exercise {
   /** Time signature (e.g., "4/4", "3/4", "6/8") */
   timeSignature: string;
 
-  /** Key signature (e.g., "C", "G", "F") */
+  /** Key signature for VexFlow rendering (e.g., "C", "G", "F") - always major */
   keySignature: string;
+
+  /** Original key including minor (e.g., "Am", "Em", "Dm") - used for chord labels */
+  originalKey?: string;
 
   /** Clef type for single staff exercises */
   clef: 'treble' | 'bass';

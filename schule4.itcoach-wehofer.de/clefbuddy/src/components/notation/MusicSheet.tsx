@@ -16,6 +16,7 @@ interface MusicSheetProps {
   highlightedNoteIds?: string[];
   className?: string;
   fullscreen?: boolean;
+  showChordSymbols?: boolean;
 }
 
 export function MusicSheet({
@@ -25,9 +26,12 @@ export function MusicSheet({
   highlightedNoteIds = [],
   className = '',
   fullscreen = false,
+  showChordSymbols: showChordSymbolsProp,
 }: MusicSheetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const showChordSymbols = useNoteReaderSettingsStore(state => state.showChordSymbols);
+  const noteReaderShowChordSymbols = useNoteReaderSettingsStore(state => state.showChordSymbols);
+  const showChordSymbols = showChordSymbolsProp ?? noteReaderShowChordSymbols;
+  const resizeTimeoutRef = useRef<number | null>(null);
 
   // Measure + render in a single effect so we always use the actual container width
   useEffect(() => {
@@ -55,30 +59,49 @@ export function MusicSheet({
         });
       } catch (error) {
         console.error('Error rendering music notation:', error);
-        el.innerHTML = `
-          <div style="color: red; padding: 20px; text-align: center;">
-            Fehler beim Rendern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}
-          </div>
-        `;
+        el.textContent = '';
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: red; padding: 20px; text-align: center;';
+        errorDiv.textContent = `Fehler beim Rendern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`;
+        el.appendChild(errorDiv);
       }
     };
 
     doRender();
 
-    // Re-render on resize in fullscreen mode
+    // Re-render on resize in fullscreen mode (debounced, only on WIDTH change)
     let ro: ResizeObserver | null = null;
+    let lastWidth = el.clientWidth;
     if (fullscreen) {
-      ro = new ResizeObserver(() => doRender());
+      ro = new ResizeObserver((entries) => {
+        const newWidth = entries[0]?.contentRect.width ?? el.clientWidth;
+        // Only re-render if width changed significantly (> 10px)
+        // This prevents re-render when toolbar height changes (play/pause)
+        if (Math.abs(newWidth - lastWidth) > 10) {
+          lastWidth = newWidth;
+          // Clear any pending timeout
+          if (resizeTimeoutRef.current) {
+            clearTimeout(resizeTimeoutRef.current);
+          }
+          // Debounce re-render by 150ms
+          resizeTimeoutRef.current = setTimeout(() => {
+            doRender();
+          }, 150);
+        }
+      });
       ro.observe(el);
     }
 
     return () => {
       ro?.disconnect();
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
     };
-  }, [exercise, fullscreen, width, barsPerLine, showChordSymbols]);
+  }, [exercise, fullscreen, width, barsPerLine, showChordSymbols, showChordSymbolsProp]);
 
   // Note highlighting (practice mode)
   useEffect(() => {
@@ -99,15 +122,13 @@ export function MusicSheet({
   return (
     <div
       ref={containerRef}
-      className={`music-sheet-container ${className}`}
+      className={`music-sheet-container ${className} ${!fullscreen ? 'border border-neutral-200 dark:border-neutral-700 bg-white' : ''}`}
       style={fullscreen ? {
         width: '100%',
         height: '100%',
       } : {
         overflow: 'auto',
-        border: '1px solid #e5e7eb',
         borderRadius: '8px',
-        backgroundColor: 'white',
         padding: '8px',
       }}
     />

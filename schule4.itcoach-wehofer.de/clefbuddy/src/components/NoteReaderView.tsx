@@ -1,10 +1,11 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { MusicSheet } from './notation/MusicSheet';
 import ModeSelector, { type AppMode } from './ModeSelector';
-import MidiDeviceSelector from './MidiDeviceSelector';
 import PracticeVisualizer from './PracticeVisualizer';
 import ResultsModal from './ResultsModal';
 import Button from './ui/Button';
+import { getIconButtonClasses } from './ui/iconButtonStyles';
+import { PlayIcon, PauseIcon, StopIcon, LoopIcon, MetronomeIcon } from './ui/PlaybackIcons';
 import { useExerciseStore } from '../store/useExerciseStore';
 import { usePlaybackStore } from '../store/usePlaybackStore';
 import { useMidiStore } from '../store/useMidiStore';
@@ -21,7 +22,7 @@ import {
   clearPracticeFeedback,
   getNotePosition,
   showCursorAtPosition,
-  animateCursorTimeline,
+  animateCursorWithSession,
   hidePlaybackCursor,
   type CursorTimelineEntry,
 } from '../utils/vexflowRenderer';
@@ -38,8 +39,8 @@ import {
   generateExercise,
   DIFFICULTY_LABELS,
   DIFFICULTY_INFO,
-  KEY_STAGE_INFO,
   AVAILABLE_KEY_STAGES,
+  getAllowedKeysLabel,
   type Difficulty,
   type TimeSignatureOption,
   type KeyStage,
@@ -49,6 +50,7 @@ import type { NoteComparison } from '../types/comparison';
 import type { SessionSummary } from '../types/scoring';
 import NoteReaderSettings from './NoteReaderSettings';
 import { useNoteReaderSettingsStore } from '../store/useNoteReaderSettingsStore';
+import { useLastExerciseStore } from '../store/useLastExerciseStore';
 
 type Phase = 'setup' | 'practice';
 
@@ -64,11 +66,15 @@ export default function NoteReaderView() {
   const [progressionStep, setProgressionStep] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const nrSettings = useNoteReaderSettingsStore();
+  const { saveConfig } = useLastExerciseStore();
 
   // Tempo editing
   const [editingTempo, setEditingTempo] = useState(false);
   const [tempoInput, setTempoInput] = useState('');
   const tempoInputRef = useRef<HTMLInputElement>(null);
+
+  // MIDI warning dismissible
+  const [midiWarningDismissed, setMidiWarningDismissed] = useState(false);
 
   const { setExercise } = useExerciseStore();
 
@@ -112,7 +118,6 @@ export default function NoteReaderView() {
   const [highlightedNoteIds, setHighlightedNoteIds] = useState<string[]>([]);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [practiceState, setPracticeState] = useState<PracticeModeState>('idle');
-  const [countdownBeat, setCountdownBeat] = useState(0);
   const [practiceAccuracy, setPracticeAccuracy] = useState({ correct: 0, incorrect: 0, total: 0 });
   const [lastComparison, setLastComparison] = useState<NoteComparison | null>(null);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
@@ -186,7 +191,15 @@ export default function NoteReaderView() {
     setExercise(exercise.id);
     setProgressionStep(0);
     setPhase('practice');
-  }, [difficulty, timeSignature, keyStage, barCount, setExercise]);
+    // Save config to "Letzte Übungen" in Dashboard
+    saveConfig({
+      difficulty,
+      keyStage,
+      timeSignature,
+      barCount,
+      tempo: exercise.tempo,
+    });
+  }, [difficulty, timeSignature, keyStage, barCount, setExercise, saveConfig]);
 
   const handleBackToSetup = useCallback(() => {
     stop();
@@ -207,12 +220,10 @@ export default function NoteReaderView() {
     setSessionSummary(null);
     const nextStep = progressionStep + 1;
     setProgressionStep(nextStep);
-    const ts = (nrSettings.timeSignature || timeSignature) as TimeSignatureOption;
-    const bc = nrSettings.barCount || barCount;
-    const exercise = generateExercise({ difficulty, timeSignature: ts, keyStage, barCount: bc, progressionStep: nextStep });
+    const exercise = generateExercise({ difficulty, timeSignature, keyStage, barCount, progressionStep: nextStep });
     setGeneratedExercise(exercise);
     setExercise(exercise.id);
-  }, [hideResultsModal, clearCurrentScore, difficulty, timeSignature, keyStage, barCount, progressionStep, setExercise, nrSettings.timeSignature, nrSettings.barCount]);
+  }, [hideResultsModal, clearCurrentScore, difficulty, timeSignature, keyStage, barCount, progressionStep, setExercise]);
 
   const handlePlay = useCallback(async () => {
     try {
@@ -235,10 +246,18 @@ export default function NoteReaderView() {
           // No color highlighting in listen mode — cursor line is sufficient
         },
         (beat, isDownbeat) => { setMetronomeBeat(beat, isDownbeat); },
-        () => { stop(); setHighlightedNoteIds([]); hidePlaybackCursor(); }
+        () => {
+          // CRITICAL: Only trigger stop if still playing
+          // This prevents spurious stops from timeouts that fired after user already stopped
+          if (status === 'playing') {
+            stop();
+            setHighlightedNoteIds([]);
+            hidePlaybackCursor();
+          }
+        }
       );
 
-      // Build cursor timeline from ALL treble notes (including rests) in time order
+      // Build cursor timeline (times relative to music start, not count-in)
       const allScheduled = controller.getScheduledNotes();
       const trebleNotes = allScheduled
         .filter(n => n.voice === 'treble')
@@ -253,31 +272,36 @@ export default function NoteReaderView() {
             time: n.startTime,
             lineTop: pos.lineTop,
             lineBottom: pos.lineBottom,
+            lineIndex: pos.lineIndex,
             noteId: n.id,
             duration: n.durationSeconds,
           });
         }
       }
 
-      // Show cursor at first note position immediately (before count-in)
+      // Show cursor at first note position (visible during count-in)
       if (timeline.length > 0) {
         showCursorAtPosition(timeline[0].x, timeline[0].lineTop, timeline[0].lineBottom);
       }
 
-      // Play (includes count-in) - cursor stays still during count-in
-      await controller.play();
+      // Set state to playing BEFORE starting playback
+      // This allows stop() to be detected during async scheduling
       play();
 
-      // NOW start cursor animation - music has just begun
-      if (timeline.length > 0) {
-        const totalDuration = controller.getTotalDuration();
-        animateCursorTimeline(timeline, totalDuration, config.loop);
+      // Start playback (schedules count-in + notes via simplePlayback)
+      await controller.play();
+
+      // Start cursor animation using session for sync
+      const session = controller.getSession();
+      if (session && timeline.length > 0) {
+        const exerciseDurationMs = controller.getTotalDuration() * 1000;
+        animateCursorWithSession(timeline, session, exerciseDurationMs);
       }
     } catch (error) {
       console.error('Playback error:', error);
       setAudioError(getAudioErrorMessage(error));
     }
-  }, [initializeAudio, currentExercise, config, setCurrentNoteIndex, setMetronomeBeat, stop, play]);
+  }, [initializeAudio, currentExercise, config, setCurrentNoteIndex, setMetronomeBeat, stop, play, status]);
 
   const handlePause = useCallback(() => {
     const controller = getPlaybackController();
@@ -286,13 +310,15 @@ export default function NoteReaderView() {
   }, [pause]);
 
   const handleStop = useCallback(() => {
+    // CRITICAL: Stop store state FIRST to prevent any callbacks from triggering restart
+    stop();
+    // Then stop the controller (which clears timeouts and stops audio)
     const controller = getPlaybackController();
     controller.stop();
-    stop();
     clearNoteHighlights();
     setHighlightedNoteIds([]);
     hidePlaybackCursor();
-  }, [stop]);
+  }, [stop, status]);
 
   const handlePlayPause = useCallback(() => {
     if (status === 'playing') {
@@ -321,7 +347,7 @@ export default function NoteReaderView() {
         beatsPerMeasure: config.beatsPerMeasure,
       }, {
         onStateChange: (state) => setPracticeState(state),
-        onCountdownBeat: (beat) => setCountdownBeat(beat),
+        onCountdownBeat: () => {},  // Visual countdown removed, audio still plays
         onExpectedNote: (noteIndex, note) => {
           setCurrentNoteIndex(noteIndex);
           highlightNotePractice(note.id, 'current');
@@ -460,18 +486,17 @@ export default function NoteReaderView() {
 
     const availableKeyStages = AVAILABLE_KEY_STAGES[difficulty];
     const diffInfo = DIFFICULTY_INFO[difficulty];
-    const ksInfo = KEY_STAGE_INFO[keyStage];
 
     return (
       <div className="flex items-start justify-center min-h-[60vh] p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-4xl">
           {/* LEFT: Selection Panel */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 space-y-5">
-            <h2 className="text-xl font-bold text-neutral-900">Neue Uebung</h2>
+          <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-6 space-y-5">
+            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">Neue Uebung</h2>
 
             {/* Difficulty - 6 vertical buttons */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Schwierigkeitsstufe</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Schwierigkeitsstufe</label>
               <div className="flex flex-col gap-1.5">
                 {DIFFICULTY_LABELS.map(opt => (
                   <button
@@ -480,7 +505,7 @@ export default function NoteReaderView() {
                     className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium text-left transition-colors ${
                       difficulty === opt.value
                         ? 'bg-primary-600 text-white shadow-sm'
-                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                        : 'bg-neutral-50 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 border border-neutral-200 dark:border-neutral-600'
                     }`}
                   >
                     <span className="font-bold mr-2">{opt.label}.</span>{opt.name}
@@ -489,38 +514,44 @@ export default function NoteReaderView() {
               </div>
             </div>
 
-            {/* Key Stage - horizontal */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Tonart-Stufe</label>
-              <div className="flex gap-1.5">
-                {([1, 2, 3, 4, 5] as KeyStage[]).map(ks => {
-                  const available = availableKeyStages.includes(ks);
-                  return (
-                    <button
-                      key={ks}
-                      onClick={() => available && setKeyStage(ks)}
-                      disabled={!available}
-                      className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors ${
-                        keyStage === ks
-                          ? 'bg-primary-600 text-white'
-                          : available
-                            ? 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
-                            : 'bg-neutral-100 text-neutral-300 cursor-not-allowed border border-neutral-100'
-                      }`}
-                    >
-                      {ks}
-                    </button>
-                  );
-                })}
+            {/* Tonarten: Info text for Stufe 1-5, Key Stage selector for Stufe 6 */}
+            {difficulty === 6 ? (
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Tonart-Stufe</label>
+                <div className="flex gap-1.5">
+                  {([1, 2, 3, 4, 5] as KeyStage[]).map(ks => {
+                    const available = availableKeyStages.includes(ks);
+                    return (
+                      <button
+                        key={ks}
+                        onClick={() => available && setKeyStage(ks)}
+                        disabled={!available}
+                        className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors ${
+                          keyStage === ks
+                            ? 'bg-primary-600 text-white'
+                            : available
+                              ? 'bg-neutral-50 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 border border-neutral-200 dark:border-neutral-600'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-500 cursor-not-allowed border border-neutral-100 dark:border-neutral-700'
+                        }`}
+                      >
+                        {ks}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              {!availableKeyStages.includes(4 as KeyStage) && (
-                <p className="text-xs text-neutral-400 mt-1">Stufen 4-5 ab Schwierigkeit 5 verfuegbar</p>
-              )}
-            </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Tonarten</label>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-700 rounded-lg px-4 py-2.5 border border-neutral-200 dark:border-neutral-600">
+                  {getAllowedKeysLabel(difficulty)}
+                </p>
+              </div>
+            )}
 
             {/* Time Signature - horizontal buttons */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Taktart</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Taktart</label>
               <div className="flex gap-1.5 flex-wrap">
                 {tsOptions.map(opt => (
                   <button
@@ -529,7 +560,7 @@ export default function NoteReaderView() {
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                       timeSignature === opt.value
                         ? 'bg-primary-600 text-white'
-                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                        : 'bg-neutral-50 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 border border-neutral-200 dark:border-neutral-600'
                     }`}
                   >
                     {opt.label}
@@ -540,7 +571,7 @@ export default function NoteReaderView() {
 
             {/* Bar Count - horizontal buttons */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Anzahl Takte</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Anzahl Takte</label>
               <div className="flex gap-1.5 flex-wrap">
                 {barCountOptions.map(n => (
                   <button
@@ -549,7 +580,7 @@ export default function NoteReaderView() {
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                       barCount === n
                         ? 'bg-primary-600 text-white'
-                        : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                        : 'bg-neutral-50 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 border border-neutral-200 dark:border-neutral-600'
                     }`}
                   >
                     {n}
@@ -566,24 +597,11 @@ export default function NoteReaderView() {
           {/* RIGHT: Info Panel */}
           <div className="lg:sticky lg:top-4 space-y-4">
             {/* Difficulty Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-neutral-900 mb-3">{diffInfo.name}</h3>
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">{diffInfo.name}</h3>
               <ul className="space-y-1.5">
                 {diffInfo.bullets.map((b, i) => (
-                  <li key={i} className="text-sm text-neutral-600 flex items-start gap-2">
-                    <span className="text-primary-500 mt-0.5">&#8226;</span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Key Stage Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-neutral-900 mb-3">{ksInfo.name}</h3>
-              <ul className="space-y-1.5">
-                {ksInfo.bullets.map((b, i) => (
-                  <li key={i} className="text-sm text-neutral-600 flex items-start gap-2">
+                  <li key={i} className="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-2">
                     <span className="text-primary-500 mt-0.5">&#8226;</span>
                     <span>{b}</span>
                   </li>
@@ -592,11 +610,11 @@ export default function NoteReaderView() {
             </div>
 
             {/* Summary */}
-            <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200">
-              <h4 className="text-sm font-medium text-neutral-500 mb-2">Zusammenfassung</h4>
-              <div className="text-sm text-neutral-700 space-y-1">
+            <div className="bg-neutral-50 dark:bg-neutral-700 rounded-2xl p-4 border border-neutral-200 dark:border-neutral-600">
+              <h4 className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-2">Zusammenfassung</h4>
+              <div className="text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
                 <p><span className="font-medium">Stufe:</span> {diffInfo.name}</p>
-                <p><span className="font-medium">Tonart:</span> {ksInfo.name}</p>
+                <p><span className="font-medium">Tonarten:</span> {difficulty === 6 ? `Tonart-Stufe ${keyStage}` : getAllowedKeysLabel(difficulty)}</p>
                 <p><span className="font-medium">Taktart:</span> {timeSignature === 'random' ? 'Zufaellig' : timeSignature}</p>
                 <p><span className="font-medium">Takte:</span> {barCount}</p>
               </div>
@@ -611,45 +629,34 @@ export default function NoteReaderView() {
   // PRACTICE PHASE
   // ========================
   const isPlaying = status === 'playing';
+  const isCompactToolbar = status === 'playing' || practiceState === 'playing' || practiceState === 'countdown';
 
-  const PlayIcon = () => (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-  );
-  const PauseIcon = () => (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-  );
-  const StopIcon = () => (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z" /></svg>
-  );
-  const LoopIcon = () => (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" /></svg>
-  );
-  const MetronomeIcon = () => (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5c-.55 0-1 .45-1 1v1.09C7.72 4.09 5 7.12 5 10.5c0 3.87 2.69 7.12 6.31 7.91L10 22h4l-1.31-3.59C16.31 17.62 19 14.37 19 10.5c0-3.38-2.72-6.41-6-6.91V2.5c0-.55-.45-1-1-1zm0 5c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1s-1-.45-1-1v-4c0-.55.45-1 1-1z" /></svg>
-  );
-
-  const iconBtn = (active: boolean) =>
-    `p-2 rounded-lg transition-colors ${active ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`;
+  // Use shared iconBtn utility
+  const iconBtn = getIconButtonClasses;
 
   return (
     <>
       <div className="flex flex-col h-[calc(100vh-120px)]">
         {/* Compact Toolbar */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-neutral-200 shrink-0 flex-wrap">
+        <div className={`flex items-center gap-2 px-4 ${isCompactToolbar ? 'py-1' : 'py-2'} bg-gradient-to-b from-white to-neutral-50 dark:from-neutral-800 dark:to-neutral-900 border-b border-neutral-200 dark:border-neutral-700 shrink-0 flex-wrap transition-all duration-200`}>
           {appMode === 'listen' ? (
             <>
-              <button onClick={handlePlayPause} className={iconBtn(isPlaying)} title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}>
+              <button onClick={handlePlayPause} className={iconBtn('primary', isPlaying)} title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}>
                 {isPlaying ? <PauseIcon /> : <PlayIcon />}
               </button>
-              <button onClick={handleStop} className={iconBtn(false)} title="Stop (Esc)" disabled={status === 'stopped'}>
+              <button onClick={handleStop} className={iconBtn('utility')} title="Stop (Esc)" disabled={status === 'stopped'}>
                 <StopIcon />
               </button>
-              <button onClick={toggleLoop} className={iconBtn(config.loop)} title="Loop (L)">
-                <LoopIcon />
-              </button>
-              <button onClick={toggleMetronome} className={iconBtn(config.metronomeEnabled)} title="Metronom (M)">
-                <MetronomeIcon />
-              </button>
+              {!isCompactToolbar && (
+                <>
+                  <button onClick={toggleLoop} className={iconBtn('toggle', config.loop)} title="Loop (L)">
+                    <LoopIcon />
+                  </button>
+                  <button onClick={toggleMetronome} className={iconBtn('toggle', config.metronomeEnabled)} title="Metronom (M)">
+                    <MetronomeIcon />
+                  </button>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -662,98 +669,124 @@ export default function NoteReaderView() {
                   {practiceState === 'finished' ? 'Nochmal' : 'Start'}
                 </button>
               ) : (
-                <button onClick={handleStopPractice} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-200 text-neutral-700 hover:bg-neutral-300">
+                <button onClick={handleStopPractice} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-500">
                   Stopp
                 </button>
               )}
-              <button onClick={toggleMetronome} className={iconBtn(config.metronomeEnabled)} title="Metronom (M)"
-                disabled={practiceState === 'playing' || practiceState === 'countdown'}>
-                <MetronomeIcon />
-              </button>
-              <MidiDeviceSelector compact />
+              {!isCompactToolbar && (
+                <>
+                  <button onClick={toggleMetronome} className={iconBtn('toggle', config.metronomeEnabled)} title="Metronom (M)">
+                    <MetronomeIcon />
+                  </button>
+                  {/* MIDI status indicator */}
+                  <div className="flex items-center gap-2 ml-2" title={midiDeviceId ? 'MIDI verbunden' : 'MIDI nicht verbunden'}>
+                    <div className={`w-2 h-2 rounded-full ${midiConnectionStatus === 'connected' && midiDeviceId ? 'bg-success' : 'bg-neutral-300 dark:bg-neutral-600'}`} />
+                    <svg className="w-4 h-4 text-neutral-400 dark:text-neutral-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                    </svg>
+                  </div>
+                </>
+              )}
             </>
           )}
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-neutral-200 mx-1" />
-
-          {/* Tempo */}
-          {editingTempo ? (
-            <input
-              ref={tempoInputRef}
-              type="number"
-              min={40}
-              max={200}
-              value={tempoInput}
-              onChange={e => setTempoInput(e.target.value)}
-              onBlur={commitTempo}
-              onKeyDown={e => { if (e.key === 'Enter') commitTempo(); if (e.key === 'Escape') setEditingTempo(false); }}
-              className="w-16 px-1 py-0.5 text-sm text-center border border-neutral-300 rounded"
-            />
-          ) : (
-            <button onClick={handleTempoClick} className="text-sm text-neutral-700 hover:text-primary-600 tabular-nums" title="Tempo aendern">
-              &#9833;= {config.tempo}
-            </button>
-          )}
-
-          {/* Progression indicator */}
-          {progressionStep > 0 && (
+          {/* Tempo - hidden in compact mode */}
+          {!isCompactToolbar && (
             <>
-              <div className="w-px h-6 bg-neutral-200 mx-1" />
-              <span className="text-xs text-neutral-500">Schritt {progressionStep + 1}</span>
+              <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+              {editingTempo ? (
+                <input
+                  ref={tempoInputRef}
+                  type="number"
+                  min={40}
+                  max={200}
+                  value={tempoInput}
+                  onChange={e => setTempoInput(e.target.value)}
+                  onBlur={commitTempo}
+                  onKeyDown={e => { if (e.key === 'Enter') commitTempo(); if (e.key === 'Escape') setEditingTempo(false); }}
+                  className="w-16 px-1 py-0.5 text-sm text-center border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+                />
+              ) : (
+                <button onClick={handleTempoClick} className="text-sm text-neutral-700 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400 tabular-nums" title="Tempo aendern">
+                  &#9833;= {config.tempo}
+                </button>
+              )}
             </>
           )}
 
-          {/* Mode toggle */}
-          <div className="w-px h-6 bg-neutral-200 mx-1" />
-          <ModeSelector
-            mode={appMode}
-            onModeChange={setAppMode}
-            midiConnected={midiConnectionStatus === 'connected' && !!midiDeviceId}
-          />
+          {/* Progression indicator - hidden in compact mode */}
+          {!isCompactToolbar && progressionStep > 0 && (
+            <>
+              <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">Schritt {progressionStep + 1}</span>
+            </>
+          )}
+
+          {/* Mode toggle - hidden in compact mode */}
+          {!isCompactToolbar && (
+            <>
+              <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+              <ModeSelector
+                mode={appMode}
+                onModeChange={setAppMode}
+                midiConnected={midiConnectionStatus === 'connected' && !!midiDeviceId}
+              />
+            </>
+          )}
 
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Settings */}
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors"
-            title="Einstellungen"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.248a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            </svg>
-          </button>
-
-          {/* Next Exercise */}
-          <button
-            onClick={handleNextExercise}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-100 text-primary-700 hover:bg-primary-200"
-          >
-            Naechste Uebung
-          </button>
-
           {/* Back to setup */}
           <button
             onClick={handleBackToSetup}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+            className={iconBtn('utility')}
+            title="Zurueck zur Auswahl"
           >
-            Zurueck
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
+
+          {/* Settings - hidden in compact mode */}
+          {!isCompactToolbar && (
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className={iconBtn('utility')}
+              title="Einstellungen"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.248a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
+          )}
+
+          {/* Next Exercise - hidden in compact mode */}
+          {!isCompactToolbar && (
+            <>
+              <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+              <button
+                onClick={handleNextExercise}
+                className={iconBtn('utility')}
+                title="Naechste Uebung"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Practice visualizer (only when active) */}
+        {/* Practice visualizer (only when active - now includes countdown immediately) */}
         {appMode === 'practice' && (practiceState === 'playing' || practiceState === 'countdown') && (
-          <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-200 shrink-0">
+          <div className="px-4 py-2 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 shrink-0">
             <PracticeVisualizer
               practiceState={practiceState}
               correctCount={practiceAccuracy.correct}
               incorrectCount={practiceAccuracy.incorrect}
               totalNotes={practiceAccuracy.total}
-              countdownBeat={countdownBeat}
-              countdownTotal={4}
               currentNoteIndex={practiceAccuracy.correct + practiceAccuracy.incorrect}
               lastComparison={lastComparison}
             />
@@ -762,17 +795,26 @@ export default function NoteReaderView() {
 
         {/* Audio error */}
         {audioError && (
-          <div className="px-4 py-2 bg-red-50 border-b border-red-200 shrink-0">
-            <p className="text-sm text-red-700">{audioError}
+          <div className="px-4 py-2 bg-red-50 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800 shrink-0">
+            <p className="text-sm text-red-700 dark:text-red-300">{audioError}
               <button onClick={() => setAudioError(null)} className="ml-2 text-xs underline">Schliessen</button>
             </p>
           </div>
         )}
 
-        {/* MIDI warning */}
-        {appMode === 'practice' && (midiConnectionStatus !== 'connected' || !midiDeviceId) && (
-          <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 shrink-0">
-            <p className="text-sm text-amber-700">Bitte verbinde ein MIDI-Keyboard um zu ueben.</p>
+        {/* MIDI warning (dismissible) */}
+        {appMode === 'practice' && (midiConnectionStatus !== 'connected' || !midiDeviceId) && !midiWarningDismissed && (
+          <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800 shrink-0 flex items-center justify-between">
+            <p className="text-sm text-amber-700 dark:text-amber-300">Bitte verbinde ein MIDI-Keyboard um zu ueben.</p>
+            <button
+              onClick={() => setMidiWarningDismissed(true)}
+              className="ml-4 text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 p-1"
+              title="Warnung ausblenden"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         )}
 
@@ -796,7 +838,7 @@ export default function NoteReaderView() {
         <ResultsModal
           summary={currentSessionSummary}
           isOpen={showResults}
-          onClose={() => { hideResultsModal(); setAppMode('listen'); }}
+          onClose={hideResultsModal}
           onRetry={handleRetry}
           onNextExercise={handleNextExercise}
         />

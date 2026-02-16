@@ -30,8 +30,9 @@ const Button: React.FC<ButtonProps> = ({
   const baseStyles = `
     inline-flex items-center justify-center
     font-medium rounded-lg
-    transition-all duration-250 ease-musical
+    transition-all duration-150
     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+    active:scale-[0.98]
     disabled:opacity-50 disabled:cursor-not-allowed
     select-none
   `;
@@ -45,19 +46,19 @@ const Button: React.FC<ButtonProps> = ({
       disabled:hover:bg-primary-600 disabled:hover:shadow-md
     `,
     secondary: `
-      bg-neutral-100 text-neutral-900
-      hover:bg-neutral-200 active:bg-neutral-300
+      bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100
+      hover:bg-neutral-200 dark:hover:bg-neutral-600 active:bg-neutral-300 dark:active:bg-neutral-500
       shadow-sm hover:shadow-md
-      disabled:hover:bg-neutral-100 disabled:hover:shadow-sm
+      disabled:hover:bg-neutral-100 dark:disabled:hover:bg-neutral-700 disabled:hover:shadow-sm
     `,
     outline: `
-      bg-transparent text-primary-700 border-2 border-primary-600
-      hover:bg-primary-50 active:bg-primary-100
+      bg-transparent text-primary-700 dark:text-primary-400 border-2 border-primary-600 dark:border-primary-500
+      hover:bg-primary-50 dark:hover:bg-primary-900/30 active:bg-primary-100 dark:active:bg-primary-900/50
       disabled:hover:bg-transparent
     `,
     ghost: `
-      bg-transparent text-neutral-700
-      hover:bg-neutral-100 active:bg-neutral-200
+      bg-transparent text-neutral-700 dark:text-neutral-300
+      hover:bg-neutral-100 dark:hover:bg-neutral-700 active:bg-neutral-200 dark:active:bg-neutral-600
       disabled:hover:bg-transparent
     `,
   };
