@@ -173,6 +173,10 @@ vi.mock('vexflow', () => {
     NONE: 7,
   };
 
+  const AccidentalMock = Object.assign(vi.fn(), {
+    applyAccidentals: vi.fn(),
+  });
+
   return {
     Renderer: RendererMock,
     Stave: StaveMock,
@@ -185,6 +189,7 @@ vi.mock('vexflow', () => {
     Barline: BarlineMock,
     Dot: Object.assign(vi.fn(), { buildAndAttach: vi.fn() }),
     Tuplet: TupletMock,
+    Accidental: AccidentalMock,
   };
 });
 
