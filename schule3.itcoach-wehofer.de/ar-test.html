@@ -3,125 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>AR Test</title>
+  <title>AR Test — Station 1</title>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#000; font-family:'Courier New',monospace; color:#c0c0c0; }
-
-    #page {
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; min-height:100vh; gap:1.2rem; padding:2rem;
+    * { margin:0; padding:0; }
+    body { overflow: hidden; }
+    #ui {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      font-family: 'Courier New', monospace;
     }
-    .title { color:#7b00ff; font-size:0.65rem; letter-spacing:0.3em; }
-    .btn {
-      border:1px solid #7b00ff; background:none; color:#7b00ff;
-      font-family:inherit; font-size:0.85rem; letter-spacing:0.12em;
-      padding:0.85rem 1.5rem; cursor:pointer; width:100%; max-width:280px;
+    #ui span { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.2em; }
+    #back {
+      background: none; border: 1px solid #7b00ff55; color: #7b00ff;
+      font-family: 'Courier New', monospace; font-size: 0.65rem;
+      padding: 0.3rem 0.8rem; cursor: pointer;
     }
-    .btn:active { background:#7b00ff22; }
-    .btn.red { border-color:#c00; color:#c00; }
-    .log {
-      width:100%; max-width:320px; background:#0a0a0a;
-      border:1px solid #222; padding:0.75rem; font-size:0.7rem;
-      line-height:1.8; min-height:60px;
-    }
-    .log .ok  { color:#4f8; }
-    .log .err { color:#c00; }
-    .log .inf { color:#888; }
-
-    /* Vollbild-Kamera */
-    #cam-overlay {
-      display:none; position:fixed; inset:0; z-index:9999; background:#000;
-    }
-    #cam-video {
-      width:100%; height:100%; object-fit:cover; display:block;
-    }
-    #cam-close {
-      position:absolute; top:1rem; right:1rem;
-      border:1px solid #7b00ff44; background:rgba(0,0,0,0.7); color:#7b00ff;
-      font-family:inherit; font-size:0.75rem; padding:0.4rem 0.9rem; cursor:pointer;
+    #hint {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      color: #c0c0c0; font-family: 'Courier New', monospace; font-size: 0.75rem;
+      letter-spacing: 0.1em; z-index: 999; text-align: center; width: 90%;
+      background: rgba(0,0,0,0.55); padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
 
-<div id="page">
-  <div class="title">// AR DIAGNOSE</div>
-
-  <!-- Test 1: Nur Kamera -->
-  <button class="btn" onclick="testCamera()">[ 1 ] KAMERA ÖFFNEN</button>
-
-  <!-- Test 2: .mind Datei laden -->
-  <button class="btn" onclick="testMind()">[ 2 ] MIND-FILE PRÜFEN</button>
-
-  <!-- Log -->
-  <div class="log" id="log"><span class="inf">Tippe einen Test-Button...</span></div>
-
-  <button class="btn" style="border-color:#444;color:#444;font-size:0.7rem" onclick="window.history.back()">← ZURÜCK</button>
+<div id="ui">
+  <span>// STATION 01 TEST</span>
+  <button id="back" onclick="window.history.back()">← ZURÜCK</button>
 </div>
 
-<!-- Vollbild Kamera -->
-<div id="cam-overlay">
-  <video id="cam-video" autoplay playsinline muted></video>
-  <button id="cam-close" onclick="closeCamera()">✕ SCHLIESSEN</button>
-</div>
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: yes;"
+  color-space="sRGB"
+  renderer="colorManagement: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
 
-<script>
-  let activeStream = null;
+  <a-assets>
+    <a-asset-item id="model" src="assets/models/private_detectiv.glb"></a-asset-item>
+  </a-assets>
 
-  function log(msg, type='inf') {
-    const el = document.getElementById('log');
-    el.innerHTML += `<span class="${type}">${msg}</span><br>`;
-  }
-  function logClear() {
-    document.getElementById('log').innerHTML = '';
-  }
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  // TEST 1: Pure Kamera (kein MindAR)
-  async function testCamera() {
-    logClear();
-    log('Kamera wird angefragt...');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }, audio: false
-      });
-      activeStream = stream;
-      const video = document.getElementById('cam-video');
-      video.srcObject = stream;
-      document.getElementById('cam-overlay').style.display = 'block';
-      log('✓ Kamera aktiv — Rückkamera', 'ok');
-    } catch(e) {
-      log('✗ Fehler: ' + e.name + ' — ' + e.message, 'err');
-    }
-  }
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-gltf-model src="#model"
+      position="0 0.15 0" scale="0.3 0.3 0.3"
+      animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    </a-gltf-model>
+  </a-entity>
 
-  function closeCamera() {
-    if (activeStream) activeStream.getTracks().forEach(t => t.stop());
-    activeStream = null;
-    document.getElementById('cam-video').srcObject = null;
-    document.getElementById('cam-overlay').style.display = 'none';
-    log('Kamera geschlossen.');
-  }
+</a-scene>
 
-  // TEST 2: .mind Datei prüfen
-  async function testMind() {
-    logClear();
-    log('Lade assets/targets/station1.mind ...');
-    try {
-      const r = await fetch('assets/targets/station1.mind');
-      log('HTTP Status: ' + r.status + ' ' + r.statusText, r.ok ? 'ok' : 'err');
-      if (r.ok) {
-        const buf = await r.arrayBuffer();
-        log('✓ Datei geladen: ' + (buf.byteLength / 1024).toFixed(1) + ' KB', 'ok');
-        log('→ .mind File OK — MindAR sollte funktionieren', 'ok');
-      } else {
-        log('✗ Datei nicht zugänglich (HTTP ' + r.status + ')', 'err');
-        if (r.status === 401) log('→ Basic Auth blockiert den Zugriff!', 'err');
-      }
-    } catch(e) {
-      log('✗ Netzwerkfehler: ' + e.message, 'err');
-    }
-  }
-</script>
+<div id="hint">▸ Kamera auf Morava-Foto richten</div>
+
 </body>
 </html>
