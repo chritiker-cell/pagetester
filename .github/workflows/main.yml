@@ -40,15 +40,49 @@ jobs:
         cp -r schule4.itcoach-wehofer.de/clefbuddy/dist/* schule4.itcoach-wehofer.de/clefbuddy/
         rm -rf schule4.itcoach-wehofer.de/clefbuddy/dist
 
-    - name: Sync files
+    - name: Deploy schule3
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
         server: 195.242.102.132
         username: schulprojekt
         password: ${{ secrets.ftp_password }}
-        server-dir: public_html/
+        local-dir: schule3.itcoach-wehofer.de/
+        server-dir: schule3.itcoach-wehofer.de/
         exclude: |
-          **/.git*
           **/.git*/**
-          **/node_modules/**
           **/.claude/**
+
+    - name: Deploy schule4
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: 195.242.102.132
+        username: schulprojekt
+        password: ${{ secrets.ftp_password }}
+        local-dir: schule4.itcoach-wehofer.de/
+        server-dir: schule4.itcoach-wehofer.de/
+        exclude: |
+          **/.git*/**
+          **/.claude/**
+          **/node_modules/**
+
+    - name: Deploy schule5
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: 195.242.102.132
+        username: schulprojekt
+        password: ${{ secrets.ftp_password }}
+        local-dir: schule5.itcoach-wehofer.de/
+        server-dir: schule5.itcoach-wehofer.de/
+        exclude: |
+          **/.git*/**
+          **/.claude/**
+          "**/*.Zone.Identifier"
+
+    - name: Deploy httpdocs
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: 195.242.102.132
+        username: schulprojekt
+        password: ${{ secrets.ftp_password }}
+        local-dir: httpdocs/
+        server-dir: httpdocs/
