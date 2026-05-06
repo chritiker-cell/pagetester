@@ -67,21 +67,12 @@
     </div>
   </div>
 
-  <!-- Kamera Test -->
+  <!-- AR Test -->
   <div style="margin-top:2rem;margin-bottom:2rem;text-align:center">
     <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:0.75rem">— AR TEST —</div>
-    <button onclick="startCameraTest()" class="group-btn" style="max-width:260px">
-      [ KAMERA AKTIVIEREN ]
-    </button>
-    <div id="camera-wrap" style="display:none;margin-top:1rem;position:relative;max-width:320px;margin-left:auto;margin-right:auto">
-      <video id="camera-preview" autoplay playsinline
-             style="width:100%;border:1px solid #7b00ff44;display:block"></video>
-      <button onclick="stopCameraTest()"
-              style="position:absolute;top:0.4rem;right:0.4rem;background:#000;border:1px solid #7b00ff;color:#7b00ff;font-family:monospace;font-size:0.65rem;padding:0.2rem 0.5rem;cursor:pointer">
-        ✕
-      </button>
-    </div>
-    <div id="camera-error" style="color:#c00;font-size:0.75rem;margin-top:0.5rem"></div>
+    <a href="ar-test.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
+      [ AR KAMERA TESTEN ]
+    </a>
   </div>
 
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
@@ -121,27 +112,6 @@
     colorLight: '#0a0a0a',
     correctLevel: QRCode.CorrectLevel.M
   });
-
-  async function startCameraTest() {
-    const wrap = document.getElementById('camera-wrap');
-    const video = document.getElementById('camera-preview');
-    const err = document.getElementById('camera-error');
-    err.textContent = '';
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      video.srcObject = stream;
-      wrap.style.display = 'block';
-    } catch(e) {
-      err.textContent = '⚠ Kamera nicht verfügbar: ' + e.message;
-    }
-  }
-
-  function stopCameraTest() {
-    const video = document.getElementById('camera-preview');
-    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-    video.srcObject = null;
-    document.getElementById('camera-wrap').style.display = 'none';
-  }
 
   let resetTaps = 0;
   function handleResetTap() {

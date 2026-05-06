@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AR Kamera Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    #ui {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+      font-family: 'Courier New', monospace;
+    }
+    #ui span { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.2em; }
+    #back-btn {
+      background: none; border: 1px solid #7b00ff44; color: #7b00ff;
+      font-family: 'Courier New', monospace; font-size: 0.65rem;
+      padding: 0.3rem 0.75rem; cursor: pointer; letter-spacing: 0.1em;
+    }
+    #status {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      color: #c0c0c0; font-family: 'Courier New', monospace; font-size: 0.75rem;
+      letter-spacing: 0.15em; z-index: 999; text-align: center;
+      background: rgba(0,0,0,0.6); padding: 0.5rem 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  <span>// AR KAMERA TEST</span>
+  <button id="back-btn" onclick="window.history.back()">← ZURÜCK</button>
+</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB"
+  renderer="colorManagement: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-box color="#7b00ff" width="0.1" height="0.1" depth="0.1" position="0 0 0"
+           animation="property: rotation; to: 0 360 0; loop: true; dur: 2000; easing: linear">
+    </a-box>
+  </a-entity>
+
+</a-scene>
+
+<div id="status">▸ KAMERA WIRD GESTARTET ...</div>
+
+<script>
+  const scene = document.querySelector('a-scene');
+  scene.addEventListener('arReady', () => {
+    document.getElementById('status').textContent = '✓ KAMERA AKTIV — Morava-Foto scannen';
+  });
+  scene.addEventListener('arError', (e) => {
+    document.getElementById('status').textContent = '⚠ FEHLER: ' + (e.detail || 'Kamera nicht verfügbar');
+  });
+</script>
+</body>
+</html>
