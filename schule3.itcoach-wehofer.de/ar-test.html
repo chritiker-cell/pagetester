@@ -7,127 +7,130 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+    body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #c0c0c0; }
 
-    #start-screen {
-      position: fixed; inset: 0; background: #000;
+    /* Overlay über der AR-Scene */
+    #overlay {
+      position: fixed; inset: 0; z-index: 9999; background: #000;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 1.5rem; z-index: 9999; padding: 2rem;
+      align-items: center; justify-content: center; gap: 1.5rem; padding: 2rem;
     }
-    #start-screen .title { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.3em; }
+    .title  { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.3em; }
     #start-btn {
       border: 1px solid #7b00ff; background: none; color: #7b00ff;
-      font-family: 'Courier New', monospace; font-size: 0.9rem;
-      padding: 0.9rem 2rem; cursor: pointer; letter-spacing: 0.15em;
-      width: 100%; max-width: 280px;
+      font-family: inherit; font-size: 0.9rem; letter-spacing: 0.15em;
+      padding: 0.9rem 2rem; cursor: pointer; width: 100%; max-width: 280px;
     }
     #start-btn:active { background: #7b00ff22; }
-    #back-btn-start {
-      background: none; border: none; color: #444;
-      font-family: 'Courier New', monospace; font-size: 0.7rem;
-      cursor: pointer; letter-spacing: 0.1em;
-    }
+    #err { color: #c00; font-size: 0.75rem; text-align: center; max-width: 280px; }
+    #back { background: none; border: none; color: #444; font-family: inherit;
+            font-size: 0.7rem; cursor: pointer; letter-spacing: 0.1em; }
 
-    #ui {
-      position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
+    /* AR-UI */
+    #ar-ui {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 500;
       display: flex; justify-content: space-between; align-items: center;
       padding: 0.75rem 1rem;
       background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
     }
-    #ui span { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.2em; }
-    #back-btn {
+    #ar-ui span { color: #7b00ff; font-size: 0.65rem; letter-spacing: 0.2em; }
+    #ar-back {
       background: none; border: 1px solid #7b00ff44; color: #7b00ff;
-      font-family: 'Courier New', monospace; font-size: 0.65rem;
-      padding: 0.3rem 0.75rem; cursor: pointer;
+      font-family: inherit; font-size: 0.65rem; padding: 0.3rem 0.75rem; cursor: pointer;
     }
     #status {
       position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-      color: #c0c0c0; font-size: 0.75rem; letter-spacing: 0.1em;
-      z-index: 999; text-align: center; width: 90%;
-      background: rgba(0,0,0,0.6); padding: 0.5rem 1rem;
+      font-size: 0.75rem; letter-spacing: 0.1em; z-index: 500; text-align: center;
+      width: 90%; background: rgba(0,0,0,0.6); padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
 
-<!-- Start Screen -->
-<div id="start-screen">
-  <div class="title">// AR KAMERA TEST</div>
-  <button id="start-btn" onclick="startAR()">[ KAMERA STARTEN ]</button>
-  <button id="back-btn-start" onclick="window.history.back()">← Zurück</button>
-</div>
-
-<!-- AR UI (versteckt bis Start) -->
-<div id="ui" style="display:none">
-  <span>// AR AKTIV</span>
-  <button id="back-btn" onclick="window.history.back()">← ZURÜCK</button>
-</div>
-
-<a-scene id="ar-scene" style="display:none"
+<!-- AR-Scene: immer im DOM damit WebGL initialisieren kann -->
+<a-scene id="scene"
   mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
-  color-space="sRGB"
-  renderer="colorManagement: true"
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false">
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
   <a-assets>
-    <a-asset-item id="detektiv-model" src="assets/models/private_detectiv.glb"></a-asset-item>
+    <a-asset-item id="model" src="assets/models/private_detectiv.glb"></a-asset-item>
   </a-assets>
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0">
-    <a-gltf-model src="#detektiv-model"
-      position="0 0.15 0"
-      scale="0.3 0.3 0.3"
+    <a-gltf-model src="#model" position="0 0.15 0" scale="0.3 0.3 0.3"
       animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
     </a-gltf-model>
   </a-entity>
-
 </a-scene>
 
+<!-- AR HUD -->
+<div id="ar-ui" style="display:none">
+  <span>// AR AKTIV</span>
+  <button id="ar-back" onclick="window.history.back()">← ZURÜCK</button>
+</div>
 <div id="status" style="display:none">▸ LÄDT ...</div>
 
+<!-- Start-Overlay -->
+<div id="overlay">
+  <div class="title">// AR KAMERA TEST</div>
+  <button id="start-btn" onclick="startAR()">[ KAMERA STARTEN ]</button>
+  <div id="err"></div>
+  <button id="back" onclick="window.history.back()">← Zurück</button>
+</div>
+
 <script>
+  const scene = document.getElementById('scene');
+
   async function startAR() {
     const btn = document.getElementById('start-btn');
-    btn.textContent = '[ WIRD GESTARTET ... ]';
+    const err = document.getElementById('err');
     btn.disabled = true;
+    btn.textContent = '[ WIRD GESTARTET ... ]';
+    err.textContent = '';
 
-    // Erst Kamera-Permission manuell anfordern
+    // Kamera-Berechtigung per User-Gesture anfordern
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      stream.getTracks().forEach(t => t.stop()); // sofort stoppen, MindAR übernimmt
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }, audio: false
+      });
+      stream.getTracks().forEach(t => t.stop());
     } catch(e) {
-      btn.textContent = '[ KAMERA VERWEIGERT ]';
-      btn.style.color = '#c00';
-      btn.style.borderColor = '#c00';
-      const el = document.createElement('div');
-      el.style.cssText = 'color:#c00;font-size:0.75rem;text-align:center;max-width:280px';
-      el.textContent = '⚠ Kamera-Zugriff verweigert. Bitte in den Browser-Einstellungen erlauben.';
-      btn.parentNode.insertBefore(el, btn.nextSibling);
+      btn.disabled = false;
+      btn.textContent = '[ KAMERA STARTEN ]';
+      btn.style.color = '#c00'; btn.style.borderColor = '#c00';
+      err.textContent = '⚠ ' + e.message + ' — Bitte Kamera in Browser-Einstellungen erlauben.';
       return;
     }
 
-    // Screens tauschen
-    document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('ar-scene').style.display = '';
-    document.getElementById('ui').style.display = '';
+    // Overlay weg, HUD zeigen
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('ar-ui').style.display = '';
     document.getElementById('status').style.display = '';
 
-    const scene = document.getElementById('ar-scene');
+    // MindAR starten (Scene schon initialisiert im Hintergrund)
+    function doStart() {
+      const sys = scene.systems['mindar-image-system'];
+      if (sys) {
+        sys.start();
+      } else {
+        document.getElementById('status').textContent = '⚠ MindAR-System nicht gefunden';
+      }
+    }
+
+    if (scene.hasLoaded) {
+      doStart();
+    } else {
+      scene.addEventListener('loaded', doStart, { once: true });
+    }
+
     scene.addEventListener('arReady', () => {
       document.getElementById('status').textContent = '✓ KAMERA AKTIV — Morava-Foto scannen';
     });
     scene.addEventListener('arError', (e) => {
-      document.getElementById('status').textContent = '⚠ ' + (e.detail?.message || 'AR Fehler');
-    });
-
-    // MindAR starten
-    scene.addEventListener('loaded', () => {
-      const arSystem = scene.systems['mindar-image-system'];
-      if (arSystem) arSystem.start();
+      document.getElementById('status').textContent = '⚠ ' + (e.detail?.message || JSON.stringify(e.detail) || 'AR Fehler');
     });
   }
 </script>
