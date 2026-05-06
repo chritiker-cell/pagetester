@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 4 — Forschungstagebuch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display:flex; flex-direction:column; align-items:center; padding:2rem; gap:2rem; }
+    @media print {
+      body { background:none; padding:0; gap:0; }
+      .no-print { display:none; }
+      .page { box-shadow:none; margin:0; page-break-after:always; }
+      .page:last-child { page-break-after:auto; }
+    }
+    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
+    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+
+    .page {
+      width:210mm; min-height:297mm;
+      background:#f2ead8;
+      background-image:
+        radial-gradient(ellipse at 15% 85%, #d8c8a8 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 15%, #e8d8b8 0%, transparent 40%);
+      box-shadow:3px 3px 15px rgba(0,0,0,0.4);
+      padding:14mm 16mm 14mm 20mm;
+      position:relative;
+      font-family:'Caveat',cursive;
+      overflow:hidden;
+    }
+    .page.lehrer { background:#fff; font-family:sans-serif; font-size:9pt; color:#333; }
+
+    /* Linierung */
+    .page::before {
+      content:''; position:absolute; inset:0;
+      background-image:repeating-linear-gradient(to bottom, transparent, transparent 7.8mm, #b8a88022 7.8mm, #b8a88022 8mm);
+      pointer-events:none;
+    }
+    /* Rand */
+    .page::after {
+      content:''; position:absolute;
+      top:0; left:18mm; bottom:0; width:1px;
+      background:#c07050aa;
+    }
+
+    .header-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5mm; padding-top:4mm; }
+    .datum { font-size:12pt; color:#5a3010; }
+    .tag { font-size:12pt; color:#5a3010; font-weight:bold; }
+
+    .text-block { font-size:13pt; color:#2a1a08; line-height:8mm; margin-bottom:4mm; }
+    .text-block em { font-style:italic; color:#6a3a0a; }
+
+    .divider { border:none; border-top:1px dashed #a08050; margin:4mm 0; opacity:0.6; }
+
+    /* MARKER: Riss-Zeichnung */
+    .riss-block { display:flex; flex-direction:column; align-items:center; margin:3mm 0 5mm 0; }
+    .riss-label { font-family:'IM Fell English',serif; font-size:9pt; letter-spacing:0.2em; color:#5a3a1a; margin-bottom:3mm; opacity:0.8; }
+
+    .riss-svg-wrap {
+      border:2px solid #3a2010;
+      padding:4mm 8mm;
+      background:#ede0c0;
+      position:relative;
+    }
+    .riss-svg-wrap::before, .riss-svg-wrap::after {
+      content:'⊕'; position:absolute; font-size:9pt; color:#3a2010; opacity:0.5;
+    }
+    .riss-svg-wrap::before { top:-7px; left:-7px; }
+    .riss-svg-wrap::after  { bottom:-7px; right:-7px; }
+
+    /* Rätsel: Schloss-Code */
+    .raetsel-box {
+      border:1.5px solid #8a6a30;
+      padding:4mm;
+      background:#ede0c0;
+      margin:4mm 0;
+    }
+    .raetsel-titel { font-size:12pt; color:#8b1a1a; font-weight:bold; margin-bottom:3mm; }
+    .raetsel-text { font-size:12pt; color:#2a1a08; line-height:1.8; }
+    .raetsel-text .formel {
+      display:block; background:#f5f0e0;
+      border-left:3px solid #8a6a30;
+      padding:1mm 3mm; margin:2mm 0;
+      font-size:11pt;
+    }
+    .ergebnis-box {
+      display:flex; align-items:center; gap:3mm; margin-top:3mm;
+      font-size:12pt;
+    }
+    .schloss-felder { display:flex; gap:2mm; }
+    .schloss-feld {
+      width:10mm; height:12mm;
+      border:2px solid #5a3010;
+      background:#f5ece0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:16pt; font-weight:bold; color:#8b1a1a;
+    }
+
+    /* UV-Hinweis */
+    .uv-box {
+      border:1.5px dashed #5a3a80;
+      padding:3mm 4mm;
+      background:#f0eaf8;
+      margin:4mm 0;
+      font-size:12pt;
+    }
+
+    /* Randnotizen */
+    .randnotiz {
+      position:absolute; right:5mm;
+      font-size:10pt; color:#5a3010;
+      transform:rotate(4deg); opacity:0.65;
+      max-width:26mm; text-align:center; line-height:1.4;
+    }
+
+    /* Lehrer */
+    .lehrer-titel { font-size:10pt; font-weight:bold; letter-spacing:0.1em; border-bottom:1px solid #999; padding-bottom:2mm; margin-bottom:4mm; }
+    .gelb-box { background:#fffde0; border:1px solid #ccaa00; padding:3mm 4mm; font-size:9pt; line-height:1.6; margin-bottom:4mm; }
+    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
+    .versteck-tbl th { background:#f0e8d0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
+    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
+    .versteck-tbl tr:nth-child(even) td { background:#faf8f0; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Requisit 4 — Forschungstagebuch (Station: Balkon)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: TAGEBUCH ═══ -->
+<div class="page">
+
+  <div class="randnotiz" style="top:25mm">nicht<br>öffnen!</div>
+  <div class="randnotiz" style="top:90mm; transform:rotate(-3deg)">UV!<br>Rückseite!</div>
+  <div class="randnotiz" style="top:180mm; transform:rotate(2deg); color:#8b1a1a">
+    fast<br>geschafft
+  </div>
+
+  <div class="header-row">
+    <span class="datum">████████ — Nacht</span>
+    <span class="tag">TAG 12 / PROTOKOLL</span>
+  </div>
+
+  <div class="text-block">
+    Ich bin auf dem Balkon. Der Riss ist hier am<br>
+    stärksten. Ich kann ihn fast <em>anfassen</em>.<br>
+    Die Dimensionen überlagern sich an genau<br>
+    drei Punkten in diesem Gebäude.
+  </div>
+
+  <hr class="divider">
+
+  <!-- MARKER: Riss-Zeichnung -->
+  <div class="riss-block">
+    <div class="riss-label">— SKIZZE DES DIMENSIONSRISSES —</div>
+    <div class="riss-svg-wrap">
+      <svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Hintergrund-Textur -->
+        <rect width="160" height="100" fill="#ede0c0"/>
+        <!-- Riss Hauptlinie -->
+        <path d="M80 5 L72 25 L85 40 L68 55 L82 70 L74 95"
+              stroke="#2a1008" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <!-- Riss Verzweigungen links -->
+        <path d="M72 25 L55 20" stroke="#2a1008" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <path d="M68 55 L45 50 L38 58" stroke="#2a1008" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <path d="M74 95 L55 88" stroke="#2a1008" stroke-width="1" stroke-linecap="round" fill="none"/>
+        <!-- Riss Verzweigungen rechts -->
+        <path d="M85 40 L105 35 L112 28" stroke="#2a1008" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <path d="M82 70 L100 75 L108 70 L118 78" stroke="#2a1008" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <!-- Glüh-Effekt (lila Punkte) -->
+        <circle cx="80" cy="5" r="3" fill="#7b00ff" opacity="0.6"/>
+        <circle cx="68" cy="55" r="2.5" fill="#7b00ff" opacity="0.5"/>
+        <circle cx="74" cy="95" r="3" fill="#7b00ff" opacity="0.6"/>
+        <!-- Koordinaten-Beschriftung -->
+        <text x="110" y="15" font-family="monospace" font-size="7" fill="#5a3010">N: ?</text>
+        <text x="110" y="25" font-family="monospace" font-size="7" fill="#5a3010">E: ?</text>
+        <text x="110" y="35" font-family="monospace" font-size="7" fill="#5a3010">Z: ?</text>
+        <!-- Messlinien -->
+        <line x1="15" y1="20" x2="15" y2="80" stroke="#8a6a40" stroke-width="0.7" stroke-dasharray="2,2"/>
+        <line x1="12" y1="20" x2="18" y2="20" stroke="#8a6a40" stroke-width="0.7"/>
+        <line x1="12" y1="80" x2="18" y2="80" stroke="#8a6a40" stroke-width="0.7"/>
+        <text x="3" y="54" font-family="monospace" font-size="6" fill="#8a6a40" transform="rotate(-90,8,54)">60cm</text>
+      </svg>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- RÄTSEL: Schloss-Code -->
+  <div class="raetsel-box">
+    <div class="raetsel-titel">⚠ AUFGABE — Öffne das Schloss:</div>
+    <div class="raetsel-text">
+      Die Kombination liegt in dem was ihr bereits wisst:
+      <span class="formel">1. Ziffer = Ergebnis Morse-Buchstabe (Station 2, A=1 B=2 ...)</span>
+      <span class="formel">2. Ziffer = Anzahl fehlende Symbole (Station 1)</span>
+      <span class="formel">3. Ziffer = Kachel-Symbole gezählt (Station 3)</span>
+    </div>
+    <div class="ergebnis-box">
+      Kombination:
+      <div class="schloss-felder">
+        <div class="schloss-feld">_</div>
+        <div class="schloss-feld">_</div>
+        <div class="schloss-feld">_</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UV-Hinweis -->
+  <div class="uv-box">
+    <strong>In der Box liegt ein UV-Licht.</strong><br>
+    Leuchte damit auf die <em>Rückseite des Polizeiberichts</em><br>
+    (den ihr seit Anfang dabei habt).<br>
+    <span style="color:#5a3a80">Was ihr seht, vervollständigt den Zugangscode.</span>
+  </div>
+
+  <div class="text-block" style="font-size:11pt;opacity:0.7">
+    Scannt die Skizze — schüttelt wenn ihr die Box geöffnet habt.
+  </div>
+
+</div>
+
+<!-- ═══ SEITE 2: LEHRER ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 4 / Balkon (NICHT für Schüler)</div>
+  <div class="gelb-box">
+    <strong>Vorbereitung:</strong> Eine kleine Box mit Zahlenschloss (3-stellig) vorbereiten.
+    In die Box kommt ein UV-Licht (Schlüsselanhänger, ~1-2€ online). Box auf dem Balkon verstecken
+    (hinter Blumentopf, unter Ablaufgitter, in einem Winkel).<br><br>
+    <strong>Schloss-Kombination:</strong> Hier festlegen und notieren! Die Formel im Requisit
+    muss zur echten Kombination passen — entweder die Formel anpassen oder die Kombination aus
+    den bisherigen Rätseln ableiten.<br><br>
+    <strong>Empfohlene Kombination: 3 - 4 - 3</strong><br>
+    (W=23→ zu groß; einfachere Variante: Stelle selbst fest und trage ein)<br><br>
+    <strong>UV-Text:</strong> Mit einem UV-Stift (Invisible Ink Pen, ~2€) auf die Rückseite des
+    Polizeiberichts (Requisit 2) schreiben: <strong style="color:#8b1a1a">83</strong>
+    (zweite Hälfte des Laptop-Codes → ergibt 4783 gesamt).
+  </div>
+  <table class="versteck-tbl">
+    <tr><th>Element</th><th>Details</th></tr>
+    <tr><td>Marker-Bild</td><td>Riss-Zeichnung (SVG) in der Mitte der Seite</td></tr>
+    <tr><td>Physisches Rätsel</td><td>3-stelliges Zahlenschloss öffnen</td></tr>
+    <tr><td>Box-Inhalt</td><td>UV-Licht (Schlüsselanhänger)</td></tr>
+    <tr><td>UV-Text</td><td>"83" auf Rückseite Polizeibericht (Requisit 2) schreiben</td></tr>
+    <tr><td>Laptop-Code gesamt</td><td>47 (Station 3) + 83 (UV) = <strong>4783</strong></td></tr>
+    <tr><td>AR-Aktion</td><td>Tap auf Geist → Schloss-Hinweis → Schütteln → UV-Anweisung</td></tr>
+    <tr><td>Versteck-Ort</td><td>Box versteckt auf dem Balkon</td></tr>
+    <tr><td>Nächste Station</td><td>Aufenthaltszone (Requisit 5)</td></tr>
+  </table>
+  <div style="margin-top:4mm;padding:3mm;background:#ffe0e0;border:1px solid #c00;font-size:8.5pt;">
+    ⚠ UV-Stift auf Requisit 2 (Polizeibericht, Rückseite) VOR dem Spieltag schreiben lassen!<br>
+    ⚠ Zahlenschloss-Kombination selbst festlegen und Requisit 4 Formeln entsprechend anpassen.
+  </div>
+</div>
+</body>
+</html>

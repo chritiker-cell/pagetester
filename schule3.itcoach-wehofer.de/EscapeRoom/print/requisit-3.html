@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 3 — Beweismittel-Etikett</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
+    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+
+    /* ═══ SEITE 1: BEWEISMITTEL-ETIKETT ═══ */
+    .page {
+      width: 210mm; min-height: 297mm;
+      background: #f8f8f0;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 12mm 16mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .page.lehrer {
+      font-family: sans-serif; font-size: 9pt; color: #333;
+      align-items: flex-start;
+    }
+
+    /* Hintergrund-Muster (Sicherheitspapier) */
+    .page::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        45deg, #0000 0, #0000 10px, #0001 10px, #0001 11px
+      );
+      pointer-events: none;
+    }
+
+    /* Das Etikett selbst */
+    .etikett {
+      width: 140mm;
+      border: 3px solid #1a1a1a;
+      background: #fffef8;
+      padding: 6mm 8mm;
+      position: relative;
+      margin-top: 10mm;
+    }
+
+    /* Loch oben für Schnur */
+    .loch-wrap {
+      display: flex; justify-content: center; margin-bottom: 4mm;
+    }
+    .loch {
+      width: 8mm; height: 8mm;
+      border: 2px solid #555; border-radius: 50%;
+      background: #f8f8f0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5pt; color: #999;
+    }
+
+    .etikett-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1.5px solid #333;
+      padding-bottom: 3mm; margin-bottom: 4mm;
+      font-family: 'Special Elite', monospace;
+      font-size: 8.5pt;
+    }
+
+    .etikett-nr {
+      font-size: 22pt;
+      font-family: 'Special Elite', monospace;
+      color: #8b1a1a;
+      letter-spacing: 0.1em;
+    }
+
+    /* MARKER: Auge-Symbol */
+    .auge-marker {
+      display: flex; flex-direction: column; align-items: center;
+      margin: 4mm 0;
+      border: 1.5px solid #333;
+      padding: 3mm;
+      background: #f0f0e8;
+    }
+    .auge-symbol { font-size: 52pt; line-height: 1; color: #1a1a1a; }
+    .auge-label {
+      font-family: 'Special Elite', monospace;
+      font-size: 7pt; letter-spacing: 0.25em; color: #555; margin-top: 1mm;
+    }
+
+    /* Etiketten-Felder */
+    .etik-zeile {
+      display: flex; gap: 3mm; margin-bottom: 2mm;
+      font-family: 'Special Elite', monospace; font-size: 8.5pt;
+    }
+    .etik-label { font-weight: bold; min-width: 22mm; }
+    .etik-wert { border-bottom: 1px solid #888; flex: 1; }
+
+    /* Spiegel-Rätsel */
+    .spiegel-box {
+      border: 1.5px dashed #555;
+      padding: 4mm; margin-top: 5mm;
+      background: #eeeee6;
+      font-family: 'Special Elite', monospace;
+    }
+    .spiegel-titel { font-size: 8pt; letter-spacing: 0.15em; font-weight: bold; margin-bottom: 3mm; }
+    .spiegel-text {
+      font-size: 18pt;
+      transform: scaleX(-1);
+      display: inline-block;
+      letter-spacing: 0.2em;
+      color: #1a1a6e;
+      margin: 2mm 0;
+    }
+    .spiegel-anweisung {
+      font-size: 8pt; color: #555; margin-top: 3mm;
+      font-family: 'Caveat', cursive; font-size: 11pt;
+    }
+
+    /* Symbole-Reihe */
+    .symbole-box {
+      border: 1px solid #888;
+      padding: 3mm 4mm;
+      margin-top: 4mm;
+      font-family: 'Special Elite', monospace;
+      font-size: 8pt;
+      background: #fffff0;
+    }
+    .symbole-reihe { font-size: 20pt; letter-spacing: 0.5em; margin: 2mm 0; }
+    .symbole-hinweis { font-size: 8pt; color: #555; }
+
+    /* Lehrer */
+    .lehrer-titel { font-size:10pt; font-weight:bold; letter-spacing:0.1em; border-bottom:1px solid #999; padding-bottom:2mm; margin-bottom:4mm; }
+    .gelb-box { background:#fffde0; border:1px solid #ccaa00; padding:3mm 4mm; font-size:9pt; line-height:1.6; margin-bottom:4mm; }
+    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
+    .versteck-tbl th { background:#e8f0e0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
+    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
+    .versteck-tbl tr:nth-child(even) td { background:#f8fff8; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Requisit 3 — Beweismittel-Etikett (Station: WC / Spiegel)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: ETIKETT ═══ -->
+<div class="page">
+
+  <div style="font-family:'Special Elite',monospace; font-size:8pt; letter-spacing:0.3em; color:#555; margin-bottom:2mm;">
+    SICHERHEITSBEHÖRDE ∅∅ — BEWEISMITTELVERWALTUNG
+  </div>
+
+  <div class="etikett">
+    <div class="loch-wrap"><div class="loch">○</div></div>
+
+    <div class="etikett-header">
+      <div>
+        <div style="font-size:7pt;letter-spacing:0.2em;color:#555">BEWEISMITTEL-NR.</div>
+        <div class="etikett-nr">∅∅3</div>
+      </div>
+      <div style="text-align:right;font-size:7.5pt;line-height:1.7;color:#555">
+        FALL: 2024-∅∅7<br>
+        FUNDORT: <span style="color:#8b1a1a">UNBEKANNT</span><br>
+        STATUS: ANALYSIERT
+      </div>
+    </div>
+
+    <!-- MARKER: Auge -->
+    <div class="auge-marker">
+      <div class="auge-symbol">👁</div>
+      <div class="auge-label">— SIEGEL DES BEOBACHTERS —</div>
+    </div>
+
+    <div class="etik-zeile" style="margin-top:3mm">
+      <span class="etik-label">GEFUNDEN:</span>
+      <span class="etik-wert">██████████████████</span>
+    </div>
+    <div class="etik-zeile">
+      <span class="etik-label">INHALT:</span>
+      <span class="etik-wert">Codierte Nachricht — Klasse SHADOW</span>
+    </div>
+
+    <!-- RÄTSEL: Gespiegelter Text -->
+    <div class="spiegel-box">
+      <div class="spiegel-titel">⚠ AUFGABE — Lies die Botschaft:</div>
+      <div class="spiegel-text">74</div>
+      <div class="spiegel-anweisung">
+        Halte dieses Blatt vor einen Spiegel<br>
+        oder dein Gerät — dann wird es lesbar.
+      </div>
+    </div>
+
+    <!-- Kachel-Symbole Hinweis -->
+    <div class="symbole-box">
+      <div class="symbole-hinweis">ZUSATZ-BEOBACHTUNG: Schaut an die Kacheln.</div>
+      <div class="symbole-hinweis">Drei bekannte Symbole — ihre Reihenfolge ist wichtig:</div>
+      <div class="symbole-reihe">△ &nbsp; ☾ &nbsp; □</div>
+      <div class="symbole-hinweis" style="color:#8b1a1a">Merkt euch diese Reihenfolge für später.</div>
+    </div>
+
+    <div style="margin-top:4mm; font-family:'Caveat',cursive; font-size:11pt; color:#555; text-align:center;">
+      Scannt das Siegel — schüttelt das Gerät wenn ihr bereit seid.
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══ SEITE 2: LEHRER ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 3 / WC-Spiegel (NICHT für Schüler)</div>
+  <div class="gelb-box">
+    <strong>Vorbereitung:</strong> Etikett ausdrucken und laminieren (optional). Im WC verstecken —
+    empfohlen: hinter den Spiegel geklemmt, sodass es nicht sofort sichtbar ist. Schüler müssen kurz suchen.<br><br>
+    <strong>Marker:</strong> Das Auge-Symbol (👁) in der Mitte des Etiketts dient als MindAR-Target.
+    Beim Laminieren darauf achten, dass kein Glanz das Tracking stört.<br><br>
+    <strong>Gespiegelter Text:</strong> <code>74</code> ist CSS-gespiegelt gedruckt → im Spiegel liest man <strong>47</strong>
+    (erste Hälfte des Laptop-Codes).<br><br>
+    <strong>Kachel-Symbole:</strong> △ ☾ □ — diese Reihenfolge muss physisch auf Kacheln angebracht werden
+    (Aufkleber oder Kreide-Stift) für Station 5 (Sequenz-Rätsel).
+  </div>
+  <table class="versteck-tbl">
+    <tr><th>Element</th><th>Details</th></tr>
+    <tr><td>Marker-Bild</td><td>Auge-Symbol in der Mitte (👁)</td></tr>
+    <tr><td>Physisches Rätsel 1</td><td>Gespiegelter Text "74" → Spiegel → "47" (1. Code-Hälfte)</td></tr>
+    <tr><td>Physisches Rätsel 2</td><td>Kachel-Symbole △ ☾ □ merken → für Station 5 Sequenz</td></tr>
+    <tr><td>AR-Aktion</td><td>Tap auf Auge → Spiegel-Hinweis → Schütteln → Code "47" + Kachel-Info</td></tr>
+    <tr><td>Versteck-Ort</td><td>Hinter/neben dem WC-Spiegel, nicht sofort sichtbar</td></tr>
+    <tr><td>Nächste Station</td><td>Balkon (Requisit 4)</td></tr>
+  </table>
+  <div style="margin-top:4mm;padding:3mm;background:#ffe0e0;border:1px solid #c00;font-size:8.5pt;">
+    ⚠ Kachel-Symbole △ ☾ □ für den Spieltag vorbereiten! (z.B. mit ablösbaren Aufklebern auf 3 Kacheln)
+  </div>
+</div>
+</body>
+</html>

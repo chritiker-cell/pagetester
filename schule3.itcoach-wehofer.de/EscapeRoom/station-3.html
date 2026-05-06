@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Station 3 — WC / Spiegel</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    #mirror-hint {
+      position: fixed;
+      bottom: 5rem; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: #7b00ff88;
+      text-align: center;
+      z-index: 100;
+      display: none;
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div id="station-ui">
+  <span class="station-label">STATION 03</span>
+  <span class="station-title">WC / SPIEGEL</span>
+  <span class="station-label" id="step-counter"></span>
+</div>
+
+<div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+<div id="mirror-hint">▸ HALTE DAS GERÄT VOR DEN SPIEGEL</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station3.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+  <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-cursor fuse="false" rayOrigin="mouse"
+              raycaster="objects: .clickable"
+              material="color: #7b00ff; opacity: 0.8"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
+    </a-cursor>
+  </a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+
+    <!-- PLATZHALTER: Auge / Spiegel-Figur -->
+    <a-entity id="eye-figure" class="clickable" position="0 0.05 0">
+
+      <!-- Auge-Form -->
+      <a-torus color="#1a0033" radius="0.06" radius-tubular="0.02" position="0 0 0"
+               rotation="0 0 0" opacity="0.9"
+               animation__spin="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+      </a-torus>
+      <!-- Iris -->
+      <a-sphere color="#7b00ff" radius="0.03" position="0 0 0.01" opacity="0.9"
+                animation="property: scale; to: 0.7 0.7 0.7; dir: alternate; loop: true; dur: 1500">
+      </a-sphere>
+      <!-- Pupille -->
+      <a-sphere color="#000" radius="0.015" position="0 0 0.04" opacity="1"></a-sphere>
+      <!-- Glüh-Ring -->
+      <a-torus color="#7b00ff" radius="0.065" radius-tubular="0.003" position="0 0 0"
+               opacity="0.4"
+               animation="property: scale; to: 1.3 1.3 1.3; dir: alternate; loop: true; dur: 2000">
+      </a-torus>
+
+      <!-- Gespiegelter Text (erscheint nach Tap, scaleX -1) -->
+      <a-entity id="mirror-text" visible="false" position="0 0.16 0"
+                scale="-1 1 1">
+        <a-plane width="0.3" height="0.08" color="#0a0a0a" opacity="0.9"></a-plane>
+        <a-text value="47" align="center" color="#7b00ff" width="0.25"
+                position="0 0 0.001" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt">
+        </a-text>
+      </a-entity>
+
+    </a-entity>
+
+  </a-entity>
+</a-scene>
+
+<script src="js/interactions.js"></script>
+<script>
+  let tapped = false;
+  let mirrorMode = false;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await enableMotion();
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+  });
+
+  // Tap → Spiegel-Modus aktivieren
+  document.querySelector('#eye-figure').addEventListener('click', () => {
+    if (tapped) return;
+    tapped = true;
+
+    showHint(
+      '<span style="color:#7b00ff">// DAS AUGE ÖFFNET SICH</span><br><br>' +
+      'Ein Text erscheint — aber er ist <strong style="color:#e0e0e0">gespiegelt</strong>.<br><br>' +
+      'Halte dein Gerät vor den <strong style="color:#7b00ff">Spiegel im WC</strong>.<br>' +
+      'Nur so kannst du ihn lesen.',
+      () => {
+        mirrorMode = true;
+        document.getElementById('mirror-hint').style.display = 'block';
+        document.querySelector('#scan-prompt').style.display = 'none';
+        document.querySelector('#mirror-text').setAttribute('visible', true);
+      }
+    );
+  });
+
+  // Schütteln im Spiegel-Modus → Code notiert, weiter
+  onShake(() => {
+    if (!tapped) return;
+
+    showHint(
+      '✓ CODE GELESEN: <strong style="color:#7b00ff; font-size:1.4rem">47</strong><br><br>' +
+      'Das ist die <strong style="color:#e0e0e0">erste Hälfte</strong> des Zugangscodes.<br><br>' +
+      '<span style="color:#555;font-size:0.8rem">Notiere: _ _ 4 7</span><br><br>' +
+      'Außerdem: Schau dir die <strong style="color:#7b00ff">Symbole an den Kacheln</strong> an. ' +
+      'Drei davon kennst du bereits — ihre Reihenfolge wird später wichtig.',
+      () => {
+        markStationDone('station-3');
+        showNextStation();
+      }
+    );
+  });
+
+  function showNextStation() {
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    step++;
+    localStorage.setItem('schattenschule_step', step);
+    if (step >= route.length) {
+      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
+    } else {
+      const next = route[step];
+      showHint(
+        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
+        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
+        () => { window.location.href = next + '.html'; }
+      );
+    }
+  }
+
+  function getStationName(id) {
+    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
+             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  }
+</script>
+</body>
+</html>

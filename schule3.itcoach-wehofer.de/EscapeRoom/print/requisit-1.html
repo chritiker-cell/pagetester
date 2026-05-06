@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 1 — Moravas Notizbuch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #777;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      gap: 2rem;
+      font-family: 'Caveat', cursive;
+    }
+
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page, .karten-seite { box-shadow: none; margin: 0; }
+      .page { page-break-after: always; }
+    }
+
+    .no-print {
+      text-align: center;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      width: 100%;
+    }
+    .no-print button {
+      background: #333; color: #fff; border: none;
+      padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin: 0 0.3rem;
+    }
+
+    /* ===== NOTIZBUCH-SEITE (gemeinsame Basis) ===== */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: #f5ead0;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, #e8d5a3 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, #d4b896 0%, transparent 40%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      position: relative;
+      padding: 14mm 16mm 14mm 20mm;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: repeating-linear-gradient(
+        to bottom, transparent, transparent 7.8mm,
+        #c8b49033 7.8mm, #c8b49033 8mm
+      );
+      pointer-events: none;
+    }
+
+    .page::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 18mm; bottom: 0;
+      width: 1px;
+      background: #c8837055;
+    }
+
+    .torn-top {
+      position: absolute;
+      top: -2px; left: 0; right: 0;
+      height: 18px;
+      background: #f5ead0;
+      clip-path: polygon(
+        0% 100%, 2% 40%, 4% 80%, 7% 20%, 9% 70%, 12% 30%,
+        15% 90%, 18% 15%, 21% 75%, 24% 35%, 27% 85%, 30% 25%,
+        33% 70%, 36% 10%, 39% 60%, 42% 20%, 45% 80%, 48% 30%,
+        51% 90%, 54% 15%, 57% 65%, 60% 25%, 63% 75%, 66% 5%,
+        69% 55%, 72% 30%, 75% 85%, 78% 20%, 81% 70%, 84% 35%,
+        87% 90%, 90% 10%, 93% 60%, 96% 25%, 98% 75%, 100% 40%, 100% 100%
+      );
+      z-index: 10;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 5mm;
+      padding-top: 4mm;
+    }
+
+    .datum { font-family: 'Caveat', cursive; font-size: 13pt; color: #4a3520; opacity: 0.6; }
+    .seite { font-family: 'Caveat', cursive; font-size: 12pt; color: #4a3520; opacity: 0.7; }
+
+    .text-block {
+      font-family: 'Caveat', cursive;
+      font-size: 14pt;
+      color: #2a1a0a;
+      line-height: 8mm;
+      margin-bottom: 4mm;
+    }
+    .text-block .rot { color: #8b1a1a; font-weight: 700; }
+    .text-block .kursiv { font-style: italic; }
+    u { text-decoration-color: #8b1a1a; text-decoration-thickness: 2px; }
+
+    .randnotiz {
+      position: absolute;
+      right: 6mm;
+      font-family: 'Caveat', cursive;
+      font-size: 11pt;
+      color: #5a3010;
+      transform: rotate(3deg);
+      opacity: 0.75;
+      max-width: 28mm;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px dashed #a08060;
+      margin: 4mm 0;
+      opacity: 0.5;
+    }
+
+    .fleck {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, #c4a06088, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ===== SEITE 1: INTRO ===== */
+    .intro-titel {
+      font-family: 'IM Fell English', serif;
+      font-size: 18pt;
+      color: #2a1a0a;
+      text-align: center;
+      letter-spacing: 0.08em;
+      margin: 6mm 0 2mm 0;
+      border-bottom: 2px solid #3a2010;
+      padding-bottom: 3mm;
+    }
+
+    .intro-untertitel {
+      font-family: 'IM Fell English', serif;
+      font-size: 10pt;
+      color: #5a3a1a;
+      text-align: center;
+      letter-spacing: 0.2em;
+      opacity: 0.8;
+      margin-bottom: 6mm;
+    }
+
+    .stempel {
+      position: absolute;
+      border: 3px solid #8b1a1a;
+      border-radius: 50%;
+      width: 28mm;
+      height: 28mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IM Fell English', serif;
+      font-size: 7pt;
+      color: #8b1a1a;
+      letter-spacing: 0.15em;
+      text-align: center;
+      opacity: 0.4;
+      transform: rotate(-15deg);
+    }
+
+    .stempel-innen {
+      font-size: 10pt;
+      font-weight: bold;
+      display: block;
+    }
+
+    .fallnummer {
+      font-family: 'IM Fell English', serif;
+      font-size: 9pt;
+      color: #5a3a1a;
+      letter-spacing: 0.15em;
+      opacity: 0.7;
+      margin-bottom: 4mm;
+    }
+
+    .skizze-rahmen {
+      border: 1px solid #8a6a40;
+      background: #ede0c0;
+      padding: 3mm;
+      margin: 4mm 0;
+      display: flex;
+      align-items: center;
+      gap: 5mm;
+    }
+
+    .skizze-box {
+      width: 35mm;
+      height: 47mm;
+      border: 3px solid #f5ead0;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.4), -1px -1px 0 #a08060;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      transform: rotate(-2deg);
+      background: #1a1a1a;
+    }
+
+    .skizze-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      filter: contrast(1.1) brightness(0.9);
+    }
+
+    .skizze-box::after {
+      content: 'BEWEIS-FOTO · AKTE ████-17';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.7);
+      color: #a08060;
+      font-family: 'IM Fell English', serif;
+      font-size: 5pt;
+      letter-spacing: 0.1em;
+      text-align: center;
+      padding: 1mm;
+    }
+
+    /* ===== VISITENKARTE ===== */
+    .karten-seite {
+      width: 210mm;
+      min-height: 80mm;
+      background: #f5ead0;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8mm;
+      gap: 4mm;
+    }
+
+    .karten-hinweis {
+      font-family: sans-serif;
+      font-size: 8pt;
+      color: #888;
+      letter-spacing: 0.1em;
+    }
+
+    .visitenkarte {
+      width: 85mm;
+      height: 54mm;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5mm 6mm;
+      overflow: hidden;
+    }
+
+    /* Hintergrund-Muster auf der Karte */
+    .visitenkarte::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
+        repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px);
+      pointer-events: none;
+    }
+
+    /* Akzentlinie links */
+    .visitenkarte::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: #8b1a1a;
+    }
+
+    .vk-symbol {
+      position: absolute;
+      right: 5mm;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 28pt;
+      color: rgba(139,26,26,0.25);
+      line-height: 1;
+    }
+
+    .vk-name {
+      font-family: 'IM Fell English', serif;
+      font-size: 14pt;
+      color: #e8d5a0;
+      letter-spacing: 0.05em;
+      margin-bottom: 1mm;
+    }
+
+    .vk-titel {
+      font-family: 'IM Fell English', serif;
+      font-size: 8pt;
+      color: #a08060;
+      letter-spacing: 0.2em;
+      margin-bottom: 4mm;
+    }
+
+    .vk-divider {
+      width: 20mm;
+      height: 1px;
+      background: #8b1a1a;
+      margin-bottom: 3mm;
+    }
+
+    .vk-zitat {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 8pt;
+      color: #c0a080;
+      margin-bottom: 3mm;
+    }
+
+    .vk-kontakt {
+      font-family: 'IM Fell English', serif;
+      font-size: 7pt;
+      color: #666;
+      letter-spacing: 0.05em;
+      line-height: 1.6;
+    }
+
+    .schnitt-linie-vk {
+      border: 1px dashed #aaa;
+      width: 91mm;
+      padding: 1px 0;
+    }
+
+    /* ===== SEITE 2: RÄTSEL ===== */
+    .symbole-referenz {
+      display: flex;
+      justify-content: space-around;
+      margin: 4mm 0;
+      border: 1.5px solid #8a6a40;
+      background: #ede0c0;
+      padding: 4mm 2mm;
+    }
+
+    .symbol-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2mm;
+      width: 40mm;
+    }
+
+    .symbol-card .symbol-svg { width: 32px; height: 32px; }
+
+    .symbol-card .symbol-name {
+      font-family: 'IM Fell English', serif;
+      font-size: 9pt;
+      color: #3a2010;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .aufgabe-block {
+      border: 2px dashed #8b1a1a;
+      padding: 4mm 5mm;
+      background: rgba(139,26,26,0.04);
+      margin: 4mm 0;
+    }
+
+    .aufgabe-titel {
+      font-family: 'Caveat', cursive;
+      font-size: 13pt;
+      color: #8b1a1a;
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+
+    .aufgabe-text {
+      font-family: 'Caveat', cursive;
+      font-size: 12pt;
+      color: #2a1a0a;
+      line-height: 1.6;
+    }
+
+    .ergebnis-block {
+      margin-top: 5mm;
+      border: 1.5px solid #3a2010;
+      padding: 3mm 5mm;
+      background: #ede0c0;
+      font-family: 'Caveat', cursive;
+      font-size: 14pt;
+      color: #3a2010;
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+    }
+
+    .ergebnis-linie {
+      display: inline-block;
+      width: 20mm;
+      border-bottom: 2px solid #3a2010;
+      margin-left: 2mm;
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <span>Requisit 1 — Moravas Notizbuch (Station: Klassenzimmer)</span>
+  <button onclick="window.print()">Drucken (3 Seiten)</button>
+</div>
+
+<!-- =================== SEITE 1: INTRO =================== -->
+<div class="page">
+  <div class="torn-top"></div>
+
+  <div class="fleck" style="width:50px;height:50px;top:20mm;right:12mm;opacity:0.4"></div>
+  <div class="fleck" style="width:30px;height:30px;bottom:60mm;left:22mm;opacity:0.35"></div>
+  <div class="fleck" style="width:70px;height:40px;top:140mm;right:5mm;opacity:0.25"></div>
+  <div class="fleck" style="width:20px;height:20px;top:200mm;left:30mm;opacity:0.3"></div>
+
+  <!-- Stempel -->
+  <div class="stempel" style="bottom: 25mm; left: 22mm;">
+    <span class="stempel-innen">⊗</span>
+    SCHATTENWELT<br>EINHEIT
+  </div>
+
+  <!-- Randnotizen -->
+  <div class="randnotiz" style="top: 45mm; transform: rotate(4deg);">
+    nicht<br>aufgeben
+  </div>
+  <div class="randnotiz" style="top: 120mm; transform: rotate(-3deg); color:#8b1a1a;">
+    die Kamera<br>sieht was<br>wir nicht<br>sehen
+  </div>
+  <div class="randnotiz" style="top: 210mm; transform: rotate(2deg); font-size:9pt;">
+    Visitenkarte<br>nicht<br>verlieren!
+  </div>
+
+  <!-- Header -->
+  <div class="header-row">
+    <span class="datum" style="text-decoration:none; opacity:0.5;">AKTE ████-17</span>
+    <span class="seite">Seite 1</span>
+  </div>
+
+  <div class="intro-titel">E. MORAVA</div>
+  <div class="intro-untertitel">PRIVATDETEKTIV · ÜBERNATÜRLICHE PHÄNOMENE</div>
+
+  <div class="fallnummer">Fall-Nr.: ████-17 · Neue Mittelschule · aktiv seit ██.██.████</div>
+
+  <!-- Skizze + Text nebeneinander -->
+  <div class="skizze-rahmen">
+    <div class="skizze-box">
+      <img src="../Pictures/Morava_detektiv.jpg" alt="E. Morava">
+    </div>
+    <div style="font-family:'Caveat',cursive; font-size:11pt; color:#2a1a0a; line-height:1.5;">
+      <strong>E. Morava</strong><br>
+      Privatdetektiv<br>
+      Übernatürliche Phänom.<br><br>
+      <span style="font-size:10pt; opacity:0.7;">Zuletzt gesehen:<br>████████ ████</span><br><br>
+      <span style="color:#8b1a1a; font-weight:700;">STATUS: VERMISST</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="text-block">
+    Ich bin Detektiv. Was andere als Gerücht abtun,<br>
+    ist mein Beruf. <u>Übernatürliche Phänomene</u> —<br>
+    Dämonen, Schattenentitäten, Risse zwischen den<br>
+    Welten. Ich dokumentiere. Ich beweise.<br><br>
+    Diese Schule ist <span class="rot">kein gewöhnlicher Ort.</span><br>
+    Hinter der sichtbaren Realität existiert eine zweite<br>
+    Dimension — die Schattenwelt. Die Entitäten dort<br>
+    sind real. Und sie sind <span class="rot">hier.</span>
+  </div>
+
+  <hr class="divider">
+
+  <div class="text-block">
+    Ich habe Beweise gesichert. Vier Zeichen,<br>
+    die zeigen wo der Riss am stärksten ist.<br>
+    <span class="kursiv">Falls ihr das lest und ich nicht mehr da bin —<br>
+    wisst ihr was zu tun ist.</span><br><br>
+    <span class="rot">Vertraut der Kamera. Sie zeigt, was wir nicht sehen.</span>
+  </div>
+
+  <hr class="divider">
+
+  <div class="text-block" style="font-size:12pt; opacity:0.7;">
+    <span class="kursiv">Alles Weitere auf der nächsten Seite.<br>
+    Die Visitenkarte gehört zu den Beweisen — bewahrt sie gut auf.</span><br><br>
+    — E. Morava
+  </div>
+
+</div>
+
+<!-- =================== VISITENKARTE =================== -->
+<div class="karten-seite">
+  <div class="karten-hinweis no-print">✂ AUSSCHNEIDEN — zwischen Seite 1 und 2 einlegen</div>
+  <div class="schnitt-linie-vk"></div>
+
+  <div class="visitenkarte">
+    <div class="vk-symbol">⊗</div>
+    <div class="vk-name">E. Morava</div>
+    <div class="vk-titel">PRIVATDETEKTIV · ÜBERNATÜRLICHE PHÄNOMENE</div>
+    <div class="vk-divider"></div>
+    <div class="vk-zitat">"Die Kamera lügt nicht."</div>
+    <div class="vk-kontakt">
+      Österreich · Schattenwelt-Einheit<br>
+      morava@schattenwelt.at · Akte ████-17
+    </div>
+  </div>
+
+  <div class="schnitt-linie-vk"></div>
+  <div class="karten-hinweis no-print">MindAR-Marker: .mind-File aus diesem Kartenbild kompilieren</div>
+</div>
+
+<!-- =================== SEITE 2: RÄTSEL =================== -->
+<div class="page">
+  <div class="torn-top"></div>
+
+  <div class="fleck" style="width:40px;height:40px;top:30mm;right:15mm;opacity:0.5"></div>
+  <div class="fleck" style="width:25px;height:25px;bottom:50mm;left:25mm;opacity:0.4"></div>
+  <div class="fleck" style="width:55px;height:30px;top:120mm;right:10mm;opacity:0.3"></div>
+
+  <!-- Randnotizen -->
+  <div class="randnotiz" style="top: 32mm;">
+    Sie<br>beobachten<br>uns
+  </div>
+  <div class="randnotiz" style="top: 175mm; font-size:10pt; color:#8b1a1a;">
+    Rückseite<br>zeigt<br>den Weg!
+  </div>
+
+  <!-- Header -->
+  <div class="header-row">
+    <span class="datum">3. November ████</span>
+    <span class="seite">Seite 12</span>
+  </div>
+
+  <!-- Fließtext mit Reihenfolge-Schlüssel -->
+  <div class="text-block">
+    Ich habe sie endlich alle gesehen.<br>
+    <u>Zuerst sah ich ihn fliegen</u> — hoch über der Tafel,<br>
+    lautlos. <span class="kursiv">Dann hörte ich die Zeit atmen,<br>
+    langsam, spiralförmig, wie früher.</span><br>
+    <span class="rot">Dann wusste ich: Ich werde beobachtet.</span><br>
+    Und dann — <u>der Riss</u>. Er war die ganze Zeit dort.
+  </div>
+
+  <div class="text-block" style="font-size:12pt; opacity:0.8;">
+    Ich habe die 4 Zeichen verteilt.<br>
+    <span class="rot">Findet sie — in der richtigen Reihenfolge.</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Symbole-Referenz — GEMISCHT (nicht in Lösungsreihenfolge) -->
+  <div style="font-family:'Caveat',cursive; font-size:12pt; color:#3a2010; margin-bottom:2mm;">
+    Die 4 Zeichen — erkenne sie, wenn du sie siehst:
+  </div>
+  <div class="symbole-referenz">
+
+    <!-- AUGE (war 3.) -->
+    <div class="symbol-card">
+      <svg class="symbol-svg" viewBox="0 0 32 32">
+        <path d="M4 16 Q16 4 28 16 Q16 28 4 16 Z" fill="none" stroke="#2a1a0a" stroke-width="2"/>
+        <circle cx="16" cy="16" r="4" fill="#2a1a0a"/>
+        <circle cx="18" cy="14" r="1.2" fill="#f5ead0"/>
+      </svg>
+      <span class="symbol-name">AUGE</span>
+    </div>
+
+    <!-- RISS (war 4.) -->
+    <div class="symbol-card">
+      <svg class="symbol-svg" viewBox="0 0 32 32">
+        <polyline points="16,4 12,12 18,14 10,28" fill="none" stroke="#2a1a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="symbol-name">RISS</span>
+    </div>
+
+    <!-- RABE (war 1.) -->
+    <div class="symbol-card">
+      <svg class="symbol-svg" viewBox="0 0 32 32">
+        <ellipse cx="16" cy="18" rx="7" ry="5" fill="#2a1a0a"/>
+        <circle cx="16" cy="10" r="4" fill="#2a1a0a"/>
+        <polygon points="20,10 26,7 22,13" fill="#2a1a0a"/>
+        <polygon points="9,16 3,14 8,20" fill="#2a1a0a"/>
+        <polygon points="23,16 29,14 24,20" fill="#2a1a0a"/>
+        <polygon points="14,22 12,29 16,24 20,29 18,22" fill="#2a1a0a"/>
+      </svg>
+      <span class="symbol-name">RABE</span>
+    </div>
+
+    <!-- SPIRALE (war 2.) -->
+    <div class="symbol-card">
+      <svg class="symbol-svg" viewBox="0 0 32 32">
+        <path d="M16 16 m0 -1 a1 1 0 0 1 1 0 a3 3 0 0 1 0 6 a6 6 0 0 1 -6 -6 a9 9 0 0 1 9 -9 a12 12 0 0 1 0 12"
+          fill="none" stroke="#2a1a0a" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="symbol-name">SPIRALE</span>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- Aufgaben-Block (ohne Scan-Hinweis) -->
+  <div class="aufgabe-block">
+    <div class="aufgabe-titel">AUFGABE:</div>
+    <div class="aufgabe-text">
+      1. Finde alle 4 Zeichen im Raum.<br>
+      2. Lies Moravas Worte auf Seite 1 — sie verraten die Reihenfolge.<br>
+      3. Leg die Zeichen richtig nebeneinander und dreh sie um.<br>
+      4. Notiere dein Code-Zeichen unten.
+    </div>
+  </div>
+
+  <!-- Ergebnis-Feld -->
+  <div class="ergebnis-block">
+    Mein Code-Zeichen für den Laptop:
+    <span class="ergebnis-linie"></span>
+  </div>
+
+  <!-- Schlusstext -->
+  <div class="text-block" style="font-size:11pt; opacity:0.7; margin-top:5mm;">
+    <span class="rot">Wenn ihr fertig seid — schüttelt das Gerät.</span><br>
+    <span style="font-size:10pt; opacity:0.7">— E.M.</span>
+  </div>
+
+</div>
+
+</body>
+</html>

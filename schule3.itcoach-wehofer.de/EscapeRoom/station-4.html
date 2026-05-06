@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Station 4 — Balkon</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+
+<div id="station-ui">
+  <span class="station-label">STATION 04</span>
+  <span class="station-title">BALKON</span>
+  <span class="station-label" id="step-counter"></span>
+</div>
+
+<div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station4.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+  <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-cursor fuse="false" rayOrigin="mouse"
+              raycaster="objects: .clickable"
+              material="color: #7b00ff; opacity: 0.8"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
+    </a-cursor>
+  </a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+
+    <!-- PLATZHALTER: Geist-Figur (sehr transparent, flackernd) -->
+    <a-entity id="ghost-figure" class="clickable" position="0 0.08 0">
+
+      <!-- Geist-Körper: blass, leicht durchsichtig -->
+      <a-sphere color="#c8aaff" radius="0.04" position="0 0.08 0" opacity="0.35"
+                animation__float="property: position; to: 0 0.11 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine"
+                animation__fade="property: opacity; to: 0.15; dir: alternate; loop: true; dur: 1800">
+      </a-sphere>
+      <a-cylinder color="#c8aaff" radius="0.035" height="0.1" position="0 0.03 0" opacity="0.3"
+                  animation="property: opacity; to: 0.1; dir: alternate; loop: true; dur: 2200">
+      </a-cylinder>
+      <!-- Glüh-Halo: lila/blau -->
+      <a-sphere color="#7b00ff" radius="0.06" position="0 0.08 0" opacity="0.08"
+                animation="property: scale; to: 1.5 1.5 1.5; dir: alternate; loop: true; dur: 2500">
+      </a-sphere>
+      <!-- Augen: schwach leuchtend -->
+      <a-sphere color="#e0d0ff" radius="0.008" position="-0.015 0.1 0.035" opacity="0.6"></a-sphere>
+      <a-sphere color="#e0d0ff" radius="0.008" position="0.015 0.1 0.035" opacity="0.6"></a-sphere>
+
+    </a-entity>
+
+  </a-entity>
+</a-scene>
+
+<script src="js/interactions.js"></script>
+<script>
+  let tapped = false;
+  let shaken = false;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await enableMotion();
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+  });
+
+  // Tap → Geist "spricht"
+  document.querySelector('#ghost-figure').addEventListener('click', () => {
+    if (tapped) return;
+    tapped = true;
+
+    // Geist wird kurz heller
+    const ghost = document.querySelector('#ghost-figure a-sphere');
+    ghost.setAttribute('animation__bright', 'property: opacity; to: 0.9; dur: 300; dir: alternate; loop: 3');
+
+    setTimeout(() => {
+      showHint(
+        '<span style="color:#c8aaff">// E. MORAVA FLÜSTERT</span><br><br>' +
+        '<em>"Ich habe etwas versteckt. In der Box.<br>' +
+        'Das Schloss... die Zahlen kommen von euch.<br>' +
+        'Aus dem was ihr bereits wisst."</em><br><br>' +
+        'Das <strong style="color:#7b00ff">3-stellige Zahlenschloss</strong> öffnet sich mit:<br>' +
+        'Zahl aus Station 2 + Symbol-Reihenfolge aus Station 3<br><br>' +
+        '<span style="color:#555;font-size:0.85rem">Kombination: _ _ _</span>',
+        () => {
+          document.querySelector('#scan-prompt').textContent = '▸ BOX GEÖFFNET? SCHÜTTELN';
+        }
+      );
+    }, 500);
+  });
+
+  // Schütteln → UV-Licht Hinweis + zweite Code-Hälfte
+  onShake(() => {
+    if (!tapped || shaken) return;
+    shaken = true;
+
+    showHint(
+      '<span style="color:#c8aaff">// SIGNAL VERSTÄRKT SICH</span><br><br>' +
+      'In der Box liegt ein <strong style="color:#7b00ff">UV-Licht</strong>.<br><br>' +
+      'Leuchte damit auf die <strong style="color:#e0e0e0">Rückseite des Polizeiberichts</strong> ' +
+      'den du von Anfang an dabei hast.<br><br>' +
+      'Was du siehst: die <strong style="color:#7b00ff">zweite Hälfte des Codes</strong>.<br><br>' +
+      '<span style="color:#555;font-size:0.85rem">Zugangscode bisher: _ _ 4 7 → wird zu: _ _ _ _</span>',
+      () => {
+        markStationDone('station-4');
+        showNextStation();
+      }
+    );
+  });
+
+  function showNextStation() {
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    step++;
+    localStorage.setItem('schattenschule_step', step);
+    if (step >= route.length) {
+      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
+    } else {
+      const next = route[step];
+      showHint(
+        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
+        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
+        () => { window.location.href = next + '.html'; }
+      );
+    }
+  }
+
+  function getStationName(id) {
+    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
+             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  }
+</script>
+</body>
+</html>

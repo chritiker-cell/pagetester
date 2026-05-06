@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SCHATTENSCHULE — Forschungsprotokoll</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { overflow: auto; }
+
+    #login-screen, #boss-screen, #victory-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+    #login-screen { display: flex; }
+
+    .terminal-header {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+
+    .terminal-title {
+      font-size: 1.1rem;
+      color: #7b00ff;
+      letter-spacing: 0.2em;
+      margin-bottom: 2rem;
+      animation: glitch 3s infinite;
+    }
+
+    .code-input-wrap {
+      border: 1px solid #7b00ff;
+      padding: 1.5rem;
+      max-width: 320px;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-input-wrap label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    #code-input {
+      background: #000;
+      border: 1px solid #7b00ff44;
+      border-bottom: 1px solid #7b00ff;
+      color: #7b00ff;
+      font-family: 'Courier New', monospace;
+      font-size: 1.5rem;
+      letter-spacing: 0.5em;
+      text-align: center;
+      width: 100%;
+      padding: 0.5rem;
+      outline: none;
+    }
+
+    #code-error { color: #c00; font-size: 0.75rem; margin-top: 0.5rem; min-height: 1.2em; }
+
+    .submit-btn {
+      background: none;
+      border: 1px solid #7b00ff;
+      color: #7b00ff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      padding: 0.75rem 2rem;
+      cursor: pointer;
+      letter-spacing: 0.15em;
+      width: 100%;
+      max-width: 320px;
+    }
+    .submit-btn:active { background: #7b00ff22; }
+
+    /* Boss Fight */
+    #boss-screen { background: #000; }
+
+    #boss-canvas {
+      border: 1px solid #7b00ff44;
+      display: block;
+      touch-action: none;
+    }
+
+    #hp-bar-wrap {
+      width: min(380px, 90vw);
+      margin-bottom: 1rem;
+    }
+
+    .hp-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: #c00;
+      margin-bottom: 0.3rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #hp-bar {
+      height: 8px;
+      background: #c00;
+      transition: width 0.2s;
+      box-shadow: 0 0 10px #c00;
+    }
+
+    #hp-bar-bg {
+      background: #1a0000;
+      height: 8px;
+      width: 100%;
+    }
+
+    #boss-instruction {
+      font-size: 0.75rem;
+      color: #7b00ff99;
+      margin-top: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* Victory */
+    #victory-screen { gap: 1rem; }
+
+    .victory-title {
+      font-size: 1.4rem;
+      color: #7b00ff;
+      letter-spacing: 0.3em;
+      animation: glitch 2s infinite;
+    }
+
+    .solution-word {
+      font-size: 2rem;
+      letter-spacing: 0.5em;
+      color: #e0e0e0;
+      border: 1px solid #7b00ff;
+      padding: 1rem 2rem;
+      box-shadow: 0 0 30px #7b00ff44;
+    }
+
+    .victory-text {
+      font-size: 0.8rem;
+      color: #555;
+      max-width: 300px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="terminal-header">// SYSTEM: SCHATTENSCHULE-ARCHIV</div>
+  <div class="terminal-title">FORSCHUNGSPROTOKOLL<br>ZUGRIFF EINGESCHRÄNKT</div>
+
+  <div class="code-input-wrap">
+    <label>ZUGANGSCODE EINGEBEN:</label>
+    <input id="code-input" type="number" maxlength="4" placeholder="_ _ _ _"
+           oninput="if(this.value.length>4) this.value=this.value.slice(0,4)">
+    <div id="code-error"></div>
+  </div>
+
+  <button class="submit-btn" onclick="checkCode()">[ ZUGRIFF ANFORDERN ]</button>
+
+  <div style="margin-top:2rem;font-size:0.65rem;color:#333;letter-spacing:0.1em">
+    WARNUNG: Unbefugter Zugriff wird protokolliert.
+  </div>
+</div>
+
+<!-- Boss Fight Screen -->
+<div id="boss-screen">
+  <div id="hp-bar-wrap">
+    <div class="hp-label">
+      <span>DÄMON — GESUNDHEIT</span>
+      <span id="hp-text">100%</span>
+    </div>
+    <div id="hp-bar-bg"><div id="hp-bar" style="width:100%"></div></div>
+  </div>
+
+  <canvas id="boss-canvas"></canvas>
+  <div id="boss-instruction">▸ TIPPE AUF DEN DÄMON UM IHN ZU TREFFEN</div>
+</div>
+
+<!-- Victory Screen -->
+<div id="victory-screen">
+  <div class="victory-title">RISS GESCHLOSSEN</div>
+  <div style="font-size:0.7rem;letter-spacing:0.2em;color:#555">SCHATTENSCHULE VERSIEGELT</div>
+
+  <div style="font-size:0.75rem;color:#999;margin:1rem 0">
+    E. MORAVA wurde gerettet.<br>
+    Gebt dem Lehrer das Lösungswort:
+  </div>
+
+  <div class="solution-word" id="solution-display">RISS∅ZERO</div>
+
+  <div class="victory-text">
+    Das Protokoll ist geschlossen. Die Schattenwelt zieht sich zurück.
+    Für jetzt.
+  </div>
+</div>
+
+<script src="js/interactions.js"></script>
+<script>
+  // ── Code ─────────────────────────────────────────────────────────────────
+  // HINWEIS FÜR LEHRER: Code hier ändern!
+  const CORRECT_CODE = '4783';
+  const SOLUTION_WORD = 'RISS∅CHER';
+
+  function checkCode() {
+    const input = document.getElementById('code-input').value.trim();
+    const err = document.getElementById('code-error');
+
+    if (input === CORRECT_CODE) {
+      err.textContent = '';
+      document.getElementById('login-screen').style.display = 'none';
+      startBossFight();
+    } else {
+      err.textContent = '⚠ ZUGRIFF VERWEIGERT — CODE UNGÜLTIG';
+      document.getElementById('code-input').value = '';
+      screenShake(document.getElementById('login-screen'));
+    }
+  }
+
+  document.getElementById('code-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkCode();
+  });
+
+  // ── Boss Fight ────────────────────────────────────────────────────────────
+  const BOSS_MAX_HP = 20; // Treffer bis Sieg
+  let bossHP = BOSS_MAX_HP;
+  let bossX, bossY, bossVX, bossVY;
+  let bossSize;
+  let animId;
+  let bossPhase = 1;
+  const canvas = document.getElementById('boss-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function startBossFight() {
+    const screen = document.getElementById('boss-screen');
+    screen.style.display = 'flex';
+
+    const W = Math.min(380, window.innerWidth - 32);
+    const H = Math.min(420, window.innerHeight - 200);
+    canvas.width = W;
+    canvas.height = H;
+
+    bossSize = W * 0.1;
+    bossX = W / 2;
+    bossY = H / 2;
+    bossVX = 1.8;
+    bossVY = 1.4;
+    bossHP = BOSS_MAX_HP;
+
+    canvas.addEventListener('click', handleBossHit);
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      handleBossHit({ clientX: t.clientX, clientY: t.clientY, _rect: rect });
+    }, { passive: false });
+
+    animId = requestAnimationFrame(bossLoop);
+  }
+
+  function handleBossHit(e) {
+    const rect = e._rect || canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const dist = Math.hypot(mx - bossX, my - bossY);
+
+    if (dist < bossSize + 10) {
+      bossHP--;
+      updateHPBar();
+      spawnHitParticles(bossX, bossY);
+      screenShake(canvas);
+
+      // Wird schneller mit weniger HP
+      const speedMult = 1 + (1 - bossHP / BOSS_MAX_HP) * 1.8;
+      bossVX = (Math.random() < 0.5 ? 1 : -1) * 1.8 * speedMult;
+      bossVY = (Math.random() < 0.5 ? 1 : -1) * 1.4 * speedMult;
+
+      if (bossHP <= BOSS_MAX_HP * 0.4 && bossPhase === 1) {
+        bossPhase = 2;
+        document.getElementById('boss-instruction').textContent = '⚠ ER WIRD STÄRKER — TRIFF IHN WEITER!';
+      }
+
+      if (bossHP <= 0) {
+        cancelAnimationFrame(animId);
+        showVictory();
+      }
+    }
+  }
+
+  const particles = [];
+
+  function spawnHitParticles(x, y) {
+    for (let i = 0; i < 8; i++) {
+      particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 5,
+        vy: (Math.random() - 0.5) * 5,
+        life: 1,
+        color: Math.random() < 0.5 ? '#7b00ff' : '#c00'
+      });
+    }
+  }
+
+  function bossLoop() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Hintergrund-Gitter
+    ctx.strokeStyle = '#7b00ff11';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    // Boss bewegen
+    bossX += bossVX;
+    bossY += bossVY;
+    if (bossX < bossSize || bossX > W - bossSize) bossVX *= -1;
+    if (bossY < bossSize || bossY > H - bossSize) bossVY *= -1;
+
+    // Boss zeichnen
+    const hpRatio = bossHP / BOSS_MAX_HP;
+    const glowSize = bossSize * (1 + Math.sin(Date.now() / 400) * 0.15);
+    const bossColor = bossPhase === 1 ? '#7b00ff' : '#c00';
+
+    ctx.shadowColor = bossColor;
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = bossColor + '33';
+    ctx.beginPath(); ctx.arc(bossX, bossY, glowSize * 1.4, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#1a0033';
+    ctx.beginPath(); ctx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = bossColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); ctx.stroke();
+
+    // Augen
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = bossPhase === 1 ? '#ff0040' : '#ffff00';
+    const eyeOff = glowSize * 0.3;
+    ctx.beginPath(); ctx.arc(bossX - eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(bossX + eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); ctx.fill();
+
+    // Partikel
+    ctx.shadowBlur = 0;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life -= 0.06;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+    }
+    ctx.globalAlpha = 1;
+
+    animId = requestAnimationFrame(bossLoop);
+  }
+
+  function updateHPBar() {
+    const pct = Math.max(0, bossHP / BOSS_MAX_HP * 100);
+    document.getElementById('hp-bar').style.width = pct + '%';
+    document.getElementById('hp-text').textContent = Math.ceil(pct) + '%';
+  }
+
+  function screenShake(el) {
+    el.style.transform = 'translate(-3px, 2px)';
+    setTimeout(() => { el.style.transform = 'translate(3px, -2px)'; }, 60);
+    setTimeout(() => { el.style.transform = ''; }, 120);
+  }
+
+  function showVictory() {
+    document.getElementById('boss-screen').style.display = 'none';
+    const vs = document.getElementById('victory-screen');
+    vs.style.display = 'flex';
+    document.getElementById('solution-display').textContent = SOLUTION_WORD;
+    markStationDone('boss');
+  }
+</script>
+</body>
+</html>

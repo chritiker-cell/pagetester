@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 2 — Polizeibericht</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
+    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+
+    .page {
+      width: 210mm; min-height: 297mm;
+      background: #f0f4f8;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 14mm 16mm;
+      position: relative;
+      font-family: 'Special Elite', monospace;
+      color: #1a1a2e;
+      overflow: hidden;
+    }
+
+    /* Seite 2: Lehrer */
+    .page.lehrer {
+      background: #fff;
+      font-family: sans-serif;
+      font-size: 9pt;
+      color: #333;
+    }
+
+    /* Header */
+    .bericht-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px double #1a1a2e;
+      padding-bottom: 4mm;
+      margin-bottom: 5mm;
+    }
+
+    .bericht-logo {
+      font-size: 10pt;
+      letter-spacing: 0.15em;
+      line-height: 1.5;
+      font-weight: bold;
+    }
+
+    /* MARKER: Stempel/Siegel */
+    .stempel-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stempel {
+      width: 32mm; height: 32mm;
+      border: 3px solid #1a1a2e;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 7.5pt;
+      letter-spacing: 0.1em;
+      text-align: center;
+      line-height: 1.4;
+      position: relative;
+    }
+    .stempel::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid #1a1a2e;
+      border-radius: 50%;
+    }
+    .stempel-symbol { font-size: 20pt; margin: 1mm 0; }
+
+    /* Inhalt */
+    .feld-zeile {
+      display: flex; gap: 6mm; margin-bottom: 3mm; font-size: 9.5pt;
+    }
+    .feld-label { font-weight: bold; white-space: nowrap; min-width: 28mm; }
+    .feld-wert { border-bottom: 1px solid #555; flex: 1; }
+
+    .abschnitt-titel {
+      font-size: 9pt; letter-spacing: 0.2em; font-weight: bold;
+      border-top: 1px solid #1a1a2e; padding-top: 3mm; margin: 4mm 0 2mm 0;
+    }
+
+    .bericht-text {
+      font-size: 9.5pt; line-height: 1.7; margin-bottom: 3mm;
+    }
+
+    /* Geschwärzte Passagen */
+    .geschwärzt {
+      background: #1a1a2e; color: #1a1a2e;
+      display: inline-block; min-width: 25mm; height: 0.9em;
+      vertical-align: middle; margin: 0 1mm;
+      user-select: none;
+    }
+
+    /* Roter Stempel */
+    .rot-stempel {
+      position: absolute; top: 35mm; right: 12mm;
+      font-size: 22pt; font-weight: bold;
+      color: rgba(150, 0, 0, 0.55);
+      transform: rotate(-18deg);
+      letter-spacing: 0.1em;
+      border: 3px solid rgba(150,0,0,0.5);
+      padding: 1mm 3mm;
+      white-space: nowrap;
+    }
+
+    /* Morse-Rätsel */
+    .morse-box {
+      border: 1px solid #1a1a2e;
+      padding: 4mm;
+      margin: 4mm 0;
+      background: #e8ecf0;
+    }
+    .morse-titel { font-size: 8pt; letter-spacing: 0.2em; margin-bottom: 2mm; font-weight: bold; }
+    .morse-code { font-size: 14pt; letter-spacing: 0.4em; margin-bottom: 3mm; font-family: monospace; }
+    .morse-tabelle { width: 100%; font-size: 7.5pt; border-collapse: collapse; }
+    .morse-tabelle td { padding: 0.5mm 2mm; font-family: monospace; }
+    .morse-tabelle td:nth-child(odd) { font-weight: bold; }
+
+    .ergebnis-zeile {
+      margin-top: 3mm;
+      font-size: 9pt;
+    }
+    .ergebnis-zeile span {
+      display: inline-block; width: 30mm;
+      border-bottom: 1px solid #1a1a2e; margin-left: 2mm;
+    }
+
+    /* Lehrer-Seite */
+    .lehrer-titel {
+      font-size: 10pt; font-weight: bold; letter-spacing: 0.1em;
+      border-bottom: 1px solid #999; padding-bottom: 2mm; margin-bottom: 4mm;
+    }
+    .gelb-box {
+      background: #fffde0; border: 1px solid #ccaa00;
+      padding: 3mm 4mm; font-size: 9pt; line-height: 1.6; margin-bottom: 4mm;
+    }
+    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
+    .versteck-tbl th { background:#e0e8f0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
+    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
+    .versteck-tbl tr:nth-child(even) td { background:#f8f8ff; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Requisit 2 — Polizeibericht (Station: Garderobe)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: POLIZEIBERICHT (SCHÜLER) ═══ -->
+<div class="page">
+
+  <div class="rot-stempel">VERTRAULICH</div>
+
+  <div class="bericht-header">
+    <div class="bericht-logo">
+      SICHERHEITSBEHÖRDE<br>
+      SONDERABTEILUNG ∅∅<br>
+      <span style="font-size:8pt;font-weight:normal">Abt. für Anomale Ereignisse</span>
+    </div>
+
+    <!-- MARKER: Behörden-Siegel -->
+    <div class="stempel-wrap">
+      <div class="stempel">
+        <span style="font-size:6.5pt">SONDER</span>
+        <span class="stempel-symbol">⊛</span>
+        <span style="font-size:6.5pt">ABTEILUNG ∅∅</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Felder -->
+  <div class="feld-zeile">
+    <span class="feld-label">AKT NR.:</span>
+    <span class="feld-wert">2024-∅∅7 / KATEGORIE SHADOW</span>
+  </div>
+  <div class="feld-zeile">
+    <span class="feld-label">BETREFF:</span>
+    <span class="feld-wert">Verschwinden — E. MORAVA, Schüler, 14 J.</span>
+  </div>
+  <div class="feld-zeile">
+    <span class="feld-label">DATUM:</span>
+    <span class="feld-wert">██.██.████ &nbsp;&nbsp; UHRZEIT: 23:47</span>
+  </div>
+  <div class="feld-zeile">
+    <span class="feld-label">STATUS:</span>
+    <span class="feld-wert" style="font-weight:bold">UNGEKLÄRT — AKTE OFFEN</span>
+  </div>
+
+  <div class="abschnitt-titel">// SACHVERHALTSDARSTELLUNG</div>
+  <div class="bericht-text">
+    Am Abend des <span class="geschwärzt">xxxx</span> wurde E. MORAVA zuletzt in der
+    <span class="geschwärzt">xxxxxxxxxx</span> des Schulgebäudes gesehen.
+    Überwachungskameras zeigen ab <span class="geschwärzt">xxx</span> Uhr nur noch
+    Rauschen. Mitschüler berichten von <span class="geschwärzt">xxxxxxxxxxx</span>
+    aus den Wänden und Spiegeln.<br><br>
+    Im Spind des Verschwundenen fand man folgende letzte Notiz, handgeschrieben:
+    <em style="display:block;margin:2mm 0 0 4mm;">"Die Kamera sieht was wir nicht sehen. Benutzt sie."</em>
+  </div>
+
+  <div class="abschnitt-titel">// CODIERTE BOTSCHAFT (AM TATORT GEFUNDEN)</div>
+
+  <!-- RÄTSEL: Morse-Code -->
+  <div class="morse-box">
+    <div class="morse-titel">⚠ AUFGABE — Übersetze den Morsecode:</div>
+    <div class="morse-code">.-- &nbsp; / &nbsp; -.-.</div>
+
+    <table class="morse-tabelle">
+      <tr>
+        <td>A</td><td>.-</td>
+        <td>B</td><td>-...</td>
+        <td>C</td><td>-.-.</td>
+        <td>D</td><td>-..</td>
+        <td>E</td><td>.</td>
+      </tr><tr>
+        <td>F</td><td>..-.</td>
+        <td>G</td><td>--.</td>
+        <td>H</td><td>....</td>
+        <td>I</td><td>..</td>
+        <td>J</td><td>.---</td>
+      </tr><tr>
+        <td>K</td><td>-.-</td>
+        <td>L</td><td>.-..</td>
+        <td>M</td><td>--</td>
+        <td>N</td><td>-.</td>
+        <td>O</td><td>---</td>
+      </tr><tr>
+        <td>P</td><td>.--.</td>
+        <td>Q</td><td>--.-</td>
+        <td>R</td><td>.-.</td>
+        <td>S</td><td>...</td>
+        <td>T</td><td>-</td>
+      </tr><tr>
+        <td>U</td><td>..-</td>
+        <td>V</td><td>...-</td>
+        <td>W</td><td>.--</td>
+        <td>X</td><td>-..-</td>
+        <td>Y</td><td>-.--</td>
+      </tr><tr>
+        <td>Z</td><td>--..</td>
+        <td>1</td><td>.----</td>
+        <td>2</td><td>..---</td>
+        <td>3</td><td>...--</td>
+        <td>4</td><td>....-</td>
+      </tr>
+    </table>
+
+    <div class="ergebnis-zeile">
+      Lösung: <span></span> &nbsp;&nbsp; → zeigt den nächsten Ort
+    </div>
+  </div>
+
+  <div class="abschnitt-titel">// HINWEIS FÜR ERMITTLER</div>
+  <div class="bericht-text">
+    Scannt das <strong>Siegel</strong> oben rechts mit eurem Gerät.<br>
+    Die Schattenwelt zeigt mehr als dieser Bericht.
+    <span style="font-size:8.5pt;opacity:0.6">Schüttelt das Gerät wenn ihr bereit seid weiterzugehen.</span>
+  </div>
+
+  <div style="position:absolute;bottom:10mm;right:14mm;font-size:8pt;opacity:0.4">
+    Seite 1 von 1 &nbsp;|&nbsp; Nicht für die Öffentlichkeit
+  </div>
+</div>
+
+<!-- ═══ SEITE 2: LEHRER ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 2 / Garderobe (NICHT für Schüler)</div>
+  <div class="gelb-box">
+    <strong>Vorbereitung:</strong> Polizeibericht ausdrucken. Das Requisit wird an oder beim
+    4. Spind von links (Nordseite) platziert — entweder hineingelegt, daran befestigt oder daneben gelegt.<br><br>
+    <strong>Marker:</strong> Das Siegel (⊛) oben rechts dient als MindAR-Image-Target.
+    Mindestgröße für zuverlässiges Tracking: <strong>10×10 cm</strong> — beim Druck auf A4 ist das gegeben.<br><br>
+    <strong>Rätsel-Lösung:</strong> Morsecode <code>.-- / -.-.</code> = <strong>W + C = "WC"</strong><br>
+    → Schüler wissen: nächste Station ist das WC.
+  </div>
+  <table class="versteck-tbl">
+    <tr><th>Element</th><th>Details</th></tr>
+    <tr><td>Marker-Bild</td><td>Siegel ⊛ oben rechts im Polizeibericht</td></tr>
+    <tr><td>Physisches Rätsel</td><td>Morse-Code übersetzen (.-- / -.-. = WC)</td></tr>
+    <tr><td>AR-Aktion</td><td>Tap auf Kreatur → Morse erscheint → Schütteln → "WC" als nächste Station</td></tr>
+    <tr><td>Versteck-Ort</td><td>4. Spind von links, Nordseite (Aufkleber "4" für Spieltag vorbereiten)</td></tr>
+    <tr><td>Nächste Station</td><td>WC / Spiegel (Requisit 3)</td></tr>
+  </table>
+</div>
+</body>
+</html>

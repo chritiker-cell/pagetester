@@ -1,0 +1,8 @@
+# Windows Zone.Identifier (WSL artifact)
+*.Zone.Identifier
+
+# Agent memory (ephemeral session state)
+.claude/agent-memory/
+
+# Node
+node_modules/

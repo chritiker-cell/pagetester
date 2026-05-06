@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SCHATTENSCHULE</title>
+  <link rel="stylesheet" href="style.css">
+  <style>body { overflow-y: auto; }</style>
+</head>
+<body>
+<div id="landing">
+
+  <!-- Hero Image -->
+  <div id="hero">
+    <img src="schattenschule.jpg" alt="Schattenschule" id="hero-img">
+    <div id="hero-overlay"></div>
+  </div>
+
+  <div class="logo-sub" style="margin-top:1.5rem">ERMITTLUNGSPROTOKOLL — ZUGRIFF EINGESCHRÄNKT</div>
+
+  <div class="report-box">
+    <div class="label">// POLIZEIBERICHT NR. 2024-∅∅7</div>
+    Am Abend des 14. November wurde Schüler <strong style="color:#e0e0e0">E. MORAVA</strong>
+    zuletzt in diesem Gebäude gesehen. Die Überwachungskameras zeigten nur Rauschen.
+    Kollegen berichten von seltsamen Geräuschen aus den Wänden.<br><br>
+    Drei Tage später fand man sein Notizbuch — leer. Bis auf eine Seite.
+    Sie trägt nur die Worte:<br><br>
+    <span style="color:#7b00ff;font-style:italic">"Die Schattenschule ist immer noch offen."</span><br><br>
+    Ihr seid die einzige Hoffnung. Euer Gerät kann sehen was wir nicht sehen.
+    Findet E. Morava. Schließt den Riss.
+  </div>
+
+  <div style="font-size:0.7rem;color:#555;margin-bottom:1rem;letter-spacing:0.2em">
+    — WÄHLE DEINE GRUPPE —
+  </div>
+
+  <div class="group-buttons">
+    <button class="group-btn" onclick="startGroup('A')">
+      [ GRUPPE A ] &nbsp;→ Klassenzimmer
+    </button>
+    <button class="group-btn" onclick="startGroup('B')">
+      [ GRUPPE B ] &nbsp;→ Garderobe
+    </button>
+    <button class="group-btn" onclick="startGroup('C')">
+      [ GRUPPE C ] &nbsp;→ WC
+    </button>
+    <button class="group-btn" onclick="startGroup('D')">
+      [ GRUPPE D ] &nbsp;→ Balkon
+    </button>
+    <button class="group-btn" onclick="startGroup('E')">
+      [ GRUPPE E ] &nbsp;→ Aufenthaltszone
+    </button>
+  </div>
+
+  <div class="warning">
+    ⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN
+  </div>
+
+  <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
+  <div id="reset-hint" style="margin-top:2rem;font-size:0.6rem;color:#222;cursor:default"
+       onclick="handleResetTap()">∅</div>
+
+
+</div>
+
+<script src="js/interactions.js"></script>
+<script>
+  // Gruppen-Routen (jede Gruppe startet an anderer Station)
+  const ROUTES = {
+    A: ['station-1', 'station-2', 'station-3', 'station-4', 'station-5'],
+    B: ['station-2', 'station-3', 'station-4', 'station-5', 'station-1'],
+    C: ['station-3', 'station-4', 'station-5', 'station-1', 'station-2'],
+    D: ['station-4', 'station-5', 'station-1', 'station-2', 'station-3'],
+    E: ['station-5', 'station-1', 'station-2', 'station-3', 'station-4'],
+  };
+
+  function startGroup(group) {
+    resetProgress();
+    localStorage.setItem('schattenschule_group', group);
+    localStorage.setItem('schattenschule_route', JSON.stringify(ROUTES[group]));
+    localStorage.setItem('schattenschule_step', '0');
+    window.location.href = ROUTES[group][0] + '.html';
+  }
+
+  // Lehrer-Reset: 5x auf ∅ tippen
+  let resetTaps = 0;
+  function handleResetTap() {
+    resetTaps++;
+    if (resetTaps >= 5) {
+      resetTaps = 0;
+      resetProgress();
+      localStorage.clear();
+      document.getElementById('reset-hint').textContent = '✓ RESET';
+      setTimeout(() => { document.getElementById('reset-hint').textContent = '∅'; }, 1500);
+    }
+  }
+</script>
+</body>
+</html>

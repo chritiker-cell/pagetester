@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Station 2 — Garderobe</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    #timer-bar-wrap {
+      position: fixed;
+      bottom: 4rem; left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      z-index: 100;
+      display: none;
+    }
+    #timer-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: #c00;
+      text-align: center;
+      margin-bottom: 3px;
+    }
+    #timer-bg { background: #1a0000; height: 4px; }
+    #timer-fill { background: #c00; height: 4px; width: 100%; transition: width 0.5s linear; box-shadow: 0 0 8px #c00; }
+  </style>
+</head>
+<body>
+
+<div id="station-ui">
+  <span class="station-label">STATION 02</span>
+  <span class="station-title">GARDEROBE</span>
+  <span class="station-label" id="step-counter"></span>
+</div>
+
+<div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+
+<div id="timer-bar-wrap">
+  <div id="timer-label">KREATUR VERSCHWINDET IN ...</div>
+  <div id="timer-bg"><div id="timer-fill"></div></div>
+</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station2.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+  <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-cursor fuse="false" rayOrigin="mouse"
+              raycaster="objects: .clickable"
+              material="color: #c00; opacity: 0.8"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
+    </a-cursor>
+  </a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+
+    <!-- PLATZHALTER: Kreatur (dunkel, unregelmäßig) -->
+    <a-entity id="creature" class="clickable" position="0 0.05 0">
+
+      <!-- Körper: verzerrt -->
+      <a-sphere color="#0d0020" radius="0.07" position="0 0 0" opacity="0.95"
+                animation__pulse="property: scale; to: 1.1 0.9 1.1; dir: alternate; loop: true; dur: 800; easing: easeInOutSine">
+      </a-sphere>
+      <!-- Glüh-Halo rot -->
+      <a-sphere color="#c00" radius="0.075" position="0 0 0" opacity="0.15"
+                animation="property: scale; to: 1.4 1.4 1.4; dir: alternate; loop: true; dur: 1200">
+      </a-sphere>
+      <!-- Augen blinken (Morse: -.-.  = C) -->
+      <a-sphere id="eye-l" color="#ff0000" radius="0.015" position="-0.025 0.02 0.06" opacity="1"></a-sphere>
+      <a-sphere id="eye-r" color="#ff0000" radius="0.015" position="0.025 0.02 0.06" opacity="1"></a-sphere>
+    </a-entity>
+
+  </a-entity>
+</a-scene>
+
+<script src="js/interactions.js"></script>
+<script>
+  const CREATURE_TIMEOUT = 45000; // 45 Sekunden
+  let tapped = false;
+  let creatureTimer = null;
+  let timerInterval = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await enableMotion();
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+  });
+
+  // Morse-Blinken der Augen (.-. = R, Hinweis auf Rätsel)
+  // Kurz = 200ms, Lang = 600ms, Pause = 200ms
+  const morsePattern = [200, 200, 600, 200, 200, 200]; // .-. mit Lücken
+  let morseIdx = 0;
+  let morseOn = true;
+
+  function runMorse() {
+    const eyeL = document.querySelector('#eye-l');
+    const eyeR = document.querySelector('#eye-r');
+    if (!eyeL) { setTimeout(runMorse, 500); return; }
+
+    const duration = morsePattern[morseIdx % morsePattern.length];
+    morseOn = !morseOn;
+    const opacity = morseOn ? '1' : '0.05';
+    eyeL.setAttribute('opacity', opacity);
+    eyeR.setAttribute('opacity', opacity);
+    morseIdx++;
+
+    // Pause zwischen Wiederholungen
+    const delay = morseIdx >= morsePattern.length * 2 ? 2000 : duration;
+    if (morseIdx >= morsePattern.length * 2) morseIdx = 0;
+    setTimeout(runMorse, delay);
+  }
+
+  // Start wenn AR-Target gefunden
+  document.querySelector('a-scene').addEventListener('targetFound', () => {
+    document.getElementById('scan-prompt').style.display = 'none';
+    document.getElementById('timer-bar-wrap').style.display = 'block';
+    runMorse();
+    startCreatureTimer();
+  });
+
+  document.querySelector('a-scene').addEventListener('targetLost', () => {
+    document.getElementById('scan-prompt').style.display = 'block';
+  });
+
+  function startCreatureTimer() {
+    let elapsed = 0;
+    const fill = document.getElementById('timer-fill');
+    timerInterval = setInterval(() => {
+      elapsed += 500;
+      const pct = Math.max(0, 100 - (elapsed / CREATURE_TIMEOUT * 100));
+      fill.style.width = pct + '%';
+      if (elapsed >= CREATURE_TIMEOUT && !tapped) {
+        clearInterval(timerInterval);
+        creatureVanish();
+      }
+    }, 500);
+  }
+
+  function creatureVanish() {
+    const creature = document.querySelector('#creature');
+    creature.setAttribute('animation__fade', 'property: opacity; to: 0; dur: 800');
+    setTimeout(() => {
+      showHint(
+        '⚠ DIE KREATUR IST VERSCHWUNDEN<br><br>' +
+        'Du warst zu langsam.<br>' +
+        '<strong style="color:#7b00ff">Scanne das Objekt erneut.</strong>',
+        null
+      );
+      tapped = false;
+      creature.setAttribute('opacity', '1');
+      creature.removeAttribute('animation__fade');
+    }, 900);
+  }
+
+  // Tap auf Kreatur
+  document.querySelector('#creature').addEventListener('click', () => {
+    if (tapped) return;
+    tapped = true;
+    clearInterval(timerInterval);
+    document.getElementById('timer-bar-wrap').style.display = 'none';
+
+    const creature = document.querySelector('#creature');
+    creature.setAttribute('animation__hit', 'property: scale; to: 1.5 1.5 1.5; dur: 200; dir: alternate; loop: 3');
+
+    setTimeout(() => {
+      showHint(
+        '<span style="color:#c00">// SIGNAL ABGEFANGEN</span><br><br>' +
+        'Die Kreatur hinterlässt eine Botschaft in Morsecode:<br><br>' +
+        '<strong style="color:#7b00ff; letter-spacing:0.3em">.-- / -.-.</strong><br><br>' +
+        'Übersetze den Code mit deiner Tabelle.<br>' +
+        'Das Ergebnis zeigt dir den nächsten Ort.',
+        null
+      );
+      document.querySelector('#scan-prompt').textContent = '▸ SCHÜTTELN UM FORTZUFAHREN';
+    }, 500);
+  });
+
+  // Schütteln → Lösung bestätigen + weiter
+  onShake(() => {
+    if (!tapped) return;
+    showHint(
+      '✓ CODE ÜBERSETZT: <strong style="color:#7b00ff">WC</strong><br><br>' +
+      'Das nächste Zeichen wartet dort,<br>' +
+      '<strong style="color:#e0e0e0">wo man sich die Hände wäscht.</strong><br><br>' +
+      'Schau genau — es ist nicht sofort sichtbar.',
+      () => {
+        markStationDone('station-2');
+        showNextStation();
+      }
+    );
+  });
+
+  function showNextStation() {
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    step++;
+    localStorage.setItem('schattenschule_step', step);
+    if (step >= route.length) {
+      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
+    } else {
+      const next = route[step];
+      showHint(
+        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
+        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
+        () => { window.location.href = next + '.html'; }
+      );
+    }
+  }
+
+  function getStationName(id) {
+    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
+             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  }
+</script>
+</body>
+</html>

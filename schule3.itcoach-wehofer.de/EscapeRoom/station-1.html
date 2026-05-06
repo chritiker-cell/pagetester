@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Station 1 — Klassenzimmer</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- MindAR + A-Frame -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+
+<!-- Station UI -->
+<div id="station-ui">
+  <span class="station-label">STATION 01</span>
+  <span class="station-title">KLASSENZIMMER</span>
+  <span class="station-label" id="step-counter"></span>
+</div>
+
+<div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+
+<!-- AR Scene -->
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB"
+  renderer="colorManagement: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
+  <a-assets>
+    <a-asset-item id="detektiv-model" src="assets/models/private_detectiv.glb"></a-asset-item>
+  </a-assets>
+
+  <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-cursor fuse="false" rayOrigin="mouse"
+              raycaster="objects: .clickable"
+              material="color: #7b00ff; opacity: 0.8"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
+    </a-cursor>
+  </a-camera>
+
+  <!-- TARGET 0: Morava-Foto → Schattenfigur erscheint -->
+  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+
+    <a-gltf-model id="shadow-figure" class="clickable"
+              src="#detektiv-model"
+              position="0 0.15 0"
+              scale="0.3 0.3 0.3"
+              animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    </a-gltf-model>
+
+    <!-- Hint-Text über der Figur (erst sichtbar nach Tap) -->
+    <a-entity id="hint-3d" visible="false" position="0 0.32 0">
+      <a-plane width="0.42" height="0.12" color="#0a0a0a" opacity="0.92"></a-plane>
+      <a-text value="4 ZEICHEN —\nIN MEINEN WORTEN"
+              align="center" color="#c0c0c0" width="0.38" position="0 0 0.001"
+              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt">
+      </a-text>
+    </a-entity>
+
+  </a-entity>
+
+  <!-- TARGET 1: Visitenkarte → Tisch-Animation + Monster -->
+  <a-entity mindar-image-target="targetIndex: 1" id="vk-anchor">
+
+    <!-- TISCH (Platzhalter — später: gltf-model="#tisch-model") -->
+    <a-entity id="vk-tisch" position="0 0.1 0" scale="0.01 0.01 0.01"
+              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start"
+              animation__fly="property: position; to: 0 1.2 0; dur: 700; delay: 2200; easing: easeInBack; startEvents: tisch-start">
+      <!-- Tischplatte -->
+      <a-box color="#6b4226" width="0.45" height="0.04" depth="0.28" position="0 0 0"
+             roughness="0.9" metalness="0.05">
+      </a-box>
+      <!-- 4 Tischbeine -->
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position="-0.19 -0.13 -0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position=" 0.19 -0.13 -0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position="-0.19 -0.13  0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position=" 0.19 -0.13  0.11"></a-box>
+    </a-entity>
+
+    <!-- MONSTER (Platzhalter — später: gltf-model="#monster-model") -->
+    <a-entity id="vk-monster" position="0 0 0" scale="0 0 0"
+              animation__appear="property: scale; to: 1 1 1; dur: 500; easing: easeOutBack; startEvents: monster-start">
+
+      <!-- Körper -->
+      <a-cylinder color="#0d001a" radius="0.07" height="0.22" position="0 0.11 0"></a-cylinder>
+      <!-- Kopf -->
+      <a-sphere color="#1a0033" radius="0.09" position="0 0.28 0"
+                animation="property: scale; to: 1.08 1.08 1.08; dir: alternate; loop: true; dur: 700">
+      </a-sphere>
+      <!-- Leuchtende rote Augen -->
+      <a-sphere color="#ff1100" radius="0.018" position="-0.035 0.29 0.07" emissive="#ff1100" emissive-intensity="3"
+                animation="property: emissive-intensity; to: 1; dir: alternate; loop: true; dur: 350">
+      </a-sphere>
+      <a-sphere color="#ff1100" radius="0.018" position=" 0.035 0.29 0.07" emissive="#ff1100" emissive-intensity="3"
+                animation="property: emissive-intensity; to: 1; dir: alternate; loop: true; dur: 350">
+      </a-sphere>
+      <!-- Glow-Aura -->
+      <a-sphere color="#4a0000" radius="0.12" position="0 0.18 0" opacity="0.18"
+                animation="property: scale; to: 1.6 1.6 1.6; dir: alternate; loop: true; dur: 900">
+      </a-sphere>
+      <!-- Arme/Klauen -->
+      <a-box color="#0d001a" width="0.04" height="0.18" depth="0.04"
+             position="-0.13 0.12 0" rotation="0 0 25"></a-box>
+      <a-box color="#0d001a" width="0.04" height="0.18" depth="0.04"
+             position=" 0.13 0.12 0" rotation="0 0 -25"></a-box>
+    </a-entity>
+
+  </a-entity>
+
+</a-scene>
+
+<!--
+  HINWEIS FÜR LEHRER:
+  station1.mind kompilieren unter: hiukim.github.io/mind-ar-js-doc/tools/compile
+  Reihenfolge beim Upload:
+    1. Pictures/Morava_detektiv.jpg  → targetIndex: 0 (Foto)
+    2. Screenshot der Visitenkarte   → targetIndex: 1 (Visitenkarte)
+-->
+
+<script src="js/interactions.js"></script>
+<script>
+  let tapped = false;
+  let shaken = false;
+
+  // Tap auf Figur → erste Botschaft
+  document.querySelector('#shadow-figure').addEventListener('click', () => {
+    if (tapped) return;
+    tapped = true;
+
+    // Figur flackert
+    const fig = document.querySelector('#shadow-figure');
+    fig.setAttribute('animation__flicker', 'property: opacity; to: 0.1; dir: alternate; loop: 4; dur: 150');
+
+    setTimeout(() => {
+      showHint(
+        'E. Morava flüstert:<br><br>' +
+        '<em>"Ich habe 4 Zeichen im Raum verborgen.<br>Die Reihenfolge liegt in meinen Worten — lies Seite 1."</em><br><br>' +
+        'Suche alle 4 Zeichen. Wenn du fertig bist — schüttle das Gerät.',
+        null
+      );
+      document.querySelector('#hint-3d').setAttribute('visible', true);
+      document.querySelector('#scan-prompt').textContent = '▸ ZEICHEN SUCHEN — DANN SCHÜTTELN';
+    }, 600);
+  });
+
+  // Schütteln → zweite Botschaft + Rätsel
+  onShake(async () => {
+    if (!tapped || shaken) return;
+    shaken = true;
+
+    showHint(
+      '<span style="color:#7b00ff">// SIGNAL AUS DER SCHATTENWELT</span><br><br>' +
+      'Die Rückseiten sprechen die Wahrheit.<br><br>' +
+      'Dein Code-Zeichen für den Laptop:<br>' +
+      '<span style="font-size:2em; color:#7b00ff; letter-spacing:0.1em"><strong>4</strong></span><br><br>' +
+      '<span style="color:#888; font-size:0.9em">Notiere es auf deinem Aufgabenblatt.</span>',
+      () => {
+        markStationDone('station-1');
+        showNextStation();
+      }
+    );
+  });
+
+  // Visitenkarte gescannt → Tisch-Animation starten
+  document.querySelector('#vk-anchor').addEventListener('targetFound', () => {
+    const tisch = document.querySelector('#vk-tisch');
+    const monster = document.querySelector('#vk-monster');
+
+    // Reset
+    tisch.setAttribute('position', '0 0.1 0');
+    tisch.setAttribute('scale', '0.01 0.01 0.01');
+    monster.setAttribute('scale', '0 0 0');
+
+    // Tisch-Animation starten
+    tisch.emit('tisch-start');
+
+    // Monster erscheint wenn Tisch oben ist
+    setTimeout(() => monster.emit('monster-start'), 2500);
+  });
+
+  // iOS DeviceMotion Permission
+  document.addEventListener('DOMContentLoaded', async () => {
+    await enableMotion();
+
+    // Fortschritt anzeigen
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+  });
+
+  function showNextStation() {
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    step++;
+    localStorage.setItem('schattenschule_step', step);
+
+    if (step >= route.length) {
+      // Alle Stationen erledigt → Boss
+      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
+    } else {
+      const nextStation = route[step];
+      showHint(
+        '✓ STATION ABGESCHLOSSEN<br><br>' +
+        'Nächste Station:<br>' +
+        '<strong style="color:#7b00ff">' + getStationName(nextStation) + '</strong>',
+        () => { window.location.href = nextStation + '.html'; }
+      );
+    }
+  }
+
+  function getStationName(id) {
+    const names = {
+      'station-1': 'KLASSENZIMMER',
+      'station-2': 'GANG',
+      'station-3': 'WC / SPIEGEL',
+      'station-4': 'BALKON',
+      'station-5': 'AUFENTHALTSZONE',
+    };
+    return names[id] || id.toUpperCase();
+  }
+</script>
+<!-- ===== ANLEITUNG ===== -->
+<div id="anleitung">
+
+  <div class="anl-hero">
+    <img src="Pictures/Morava_detektiv.jpg" alt="E. Morava" class="anl-hero-img">
+    <div class="anl-hero-overlay"></div>
+    <div class="anl-hero-text">
+      <div class="anl-sub">// STATION 01 · KLASSENZIMMER</div>
+      <div class="anl-title">AUFBAU-ANLEITUNG</div>
+    </div>
+  </div>
+
+  <div class="anl-body">
+
+    <div class="anl-label">// DAS RÄTSEL</div>
+    <div class="report-box" style="max-width:100%; width:100%; animation:none;">
+      4 Zeichen-Karten <span style="color:#e0e0e0;">(RABE · SPIRALE · AUGE · RISS)</span> sind im Raum versteckt.
+      Der Reihenfolge-Schlüssel steht verschlüsselt in Moravas Notizbuch auf Seite 1.
+      In richtiger Reihenfolge nebeneinandergelegt ergibt die Rückseite
+      <span style="color:#e0e0e0; font-weight:bold;">V · I · E · R</span>
+      — das Code-Zeichen für den Laptop:
+      <span style="color:#7b00ff; font-size:1.3em; font-weight:bold;"> 4</span>
+    </div>
+
+    <div class="anl-loesung">
+      <div class="label">// LÖSUNG</div>
+      Reihenfolge: <span style="color:#e0e0e0;">RABE → SPIRALE → AUGE → RISS</span><br>
+      Schlüssel: "fliegen" · "spiralförmig" · "beobachtet" · "der Riss"
+    </div>
+
+    <div class="anl-label">// MATERIALIEN</div>
+    <div class="anl-table-wrap">
+      <table class="anl-table">
+        <tr>
+          <th>Was</th><th>Typ</th><th>Hinweis</th>
+        </tr>
+        <tr>
+          <td>Moravas Notizbuch (3 Seiten + Visitenkarte)</td>
+          <td><span class="anl-badge anl-badge-print">DRUCK</span></td>
+          <td>Einseitig, 3 × A4 &nbsp;<a href="print/requisit-1.html" target="_blank" class="anl-link">→ öffnen</a></td>
+        </tr>
+        <tr>
+          <td>4 Zeichen-Karten (RABE / SPIRALE / AUGE / RISS)</td>
+          <td><span class="anl-badge anl-badge-print">DRUCK</span></td>
+          <td>Zweiseitig · ausschneiden · laminieren &nbsp;<a href="print/zettel-station1.html" target="_blank" class="anl-link">→ öffnen</a></td>
+        </tr>
+        <tr>
+          <td>Klebestreifen oder Magnete</td>
+          <td><span class="anl-badge anl-badge-mat">MATERIAL</span></td>
+          <td>Zum Anbringen der Karten im Raum</td>
+        </tr>
+        <tr>
+          <td>1 Buch (beliebig)</td>
+          <td><span class="anl-badge anl-badge-mat">MATERIAL</span></td>
+          <td>Für das Spirale-Lesezeichen auf dem Lehrerpult</td>
+        </tr>
+        <tr>
+          <td><code>station1.mind</code></td>
+          <td><span class="anl-badge anl-badge-dig">DIGITAL</span></td>
+          <td>In <code>assets/targets/</code> speichern</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="anl-label">// AUFBAU IM RAUM</div>
+    <div class="anl-steps">
+      <div class="anl-step"><span class="anl-nr">01</span><div><strong>RABE</strong> — Oberkante der Kreidetafel</div></div>
+      <div class="anl-step"><span class="anl-nr">02</span><div><strong>SPIRALE</strong> — Lesezeichen im Buch auf dem Lehrerpult</div></div>
+      <div class="anl-step"><span class="anl-nr">03</span><div><strong>AUGE</strong> — mit Klebestreifen unter einen Schülerstuhl</div></div>
+      <div class="anl-step"><span class="anl-nr">04</span><div><strong>RISS</strong> — in den Fensterrahmen klemmen</div></div>
+      <div class="anl-step"><span class="anl-nr">05</span><div><strong>NOTIZBUCH</strong> — auf Lehrerpult, Visitenkarte zwischen Seite 1 und 2 einlegen</div></div>
+    </div>
+
+    <div class="anl-label">// AR-SETUP</div>
+    <div class="anl-steps">
+      <div class="anl-step"><span class="anl-nr">01</span><div>Morava-Foto <code>(Pictures/Morava_detektiv.jpg)</code> als Target 0 hochladen</div></div>
+      <div class="anl-step"><span class="anl-nr">02</span><div>Screenshot der Visitenkarte als Target 1 hochladen</div></div>
+      <div class="anl-step"><span class="anl-nr">03</span><div>Kompilieren: <a href="https://hiukim.github.io/mind-ar-js-doc/tools/compile" target="_blank" class="anl-link">hiukim.github.io/mind-ar-js-doc/tools/compile</a></div></div>
+      <div class="anl-step"><span class="anl-nr">04</span><div>Datei speichern als <code>assets/targets/station1.mind</code></div></div>
+    </div>
+
+    <div class="warning" style="margin:1.5rem 0 0;">
+      ⚠ VISITENKARTE NICHT VOR SCHÜLERN SCANNEN — sie sollen selbst darauf kommen
+    </div>
+
+  </div>
+</div>
+
+<style>
+  body { overflow-y: auto; }
+
+  #anleitung {
+    background: #000;
+    color: #c0c0c0;
+    font-family: 'Courier New', monospace;
+  }
+
+  .anl-hero {
+    position: relative;
+    width: 100%;
+    max-height: 280px;
+    overflow: hidden;
+  }
+  .anl-hero-img {
+    width: 100%; display: block;
+    max-height: 280px; object-fit: cover; object-position: center 20%;
+    filter: brightness(0.35) contrast(1.2);
+  }
+  .anl-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 30%, #000 100%);
+  }
+  .anl-hero-text {
+    position: absolute; bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%); text-align: center; width: 100%;
+  }
+  .anl-sub {
+    font-size: 0.6rem; letter-spacing: 0.3em; color: #7b00ff; margin-bottom: 0.3rem;
+  }
+  .anl-title {
+    font-size: 1.3rem; letter-spacing: 0.3em; color: #e0e0e0;
+  }
+
+  .anl-body {
+    max-width: 620px; margin: 0 auto; padding: 2rem 1.2rem 4rem;
+  }
+
+  .anl-label {
+    font-size: 0.6rem; letter-spacing: 0.3em; color: #7b00ff; margin: 2rem 0 0.6rem;
+  }
+
+  .anl-loesung {
+    border: 1px solid #2a0055; background: #0a0020;
+    padding: 0.9rem 1.1rem; font-size: 0.85rem; line-height: 1.7; color: #888;
+  }
+  .anl-loesung .label {
+    font-size: 0.6rem; color: #7b00ff; letter-spacing: 0.2em; margin-bottom: 0.4rem;
+  }
+
+  .anl-table-wrap { overflow-x: auto; }
+  .anl-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .anl-table th {
+    text-align: left; padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid #7b00ff44; color: #7b00ff;
+    font-size: 0.6rem; letter-spacing: 0.2em; font-weight: normal;
+  }
+  .anl-table td {
+    padding: 0.55rem 0.8rem; border-bottom: 1px solid #1a1a1a;
+    color: #c0c0c0; vertical-align: top; line-height: 1.5;
+  }
+  .anl-table code { color: #7b00ff; font-family: 'Courier New', monospace; }
+
+  .anl-badge {
+    font-size: 0.6rem; padding: 0.15rem 0.4rem; letter-spacing: 0.1em; border: 1px solid;
+  }
+  .anl-badge-print { color: #4af; border-color: #4af5; }
+  .anl-badge-mat   { color: #fa4; border-color: #fa45; }
+  .anl-badge-dig   { color: #4f8; border-color: #4f85; }
+
+  .anl-link { color: #7b00ff; text-decoration: none; }
+  .anl-link:hover { text-decoration: underline; }
+
+  .anl-steps { display: flex; flex-direction: column; gap: 0.5rem; }
+  .anl-step {
+    display: flex; gap: 1rem; align-items: flex-start;
+    font-size: 0.85rem; line-height: 1.5;
+    border-left: 1px solid #1a1a1a; padding: 0.4rem 0 0.4rem 1rem;
+  }
+  .anl-step:hover { border-left-color: #7b00ff55; }
+  .anl-nr { color: #7b00ff; flex-shrink: 0; font-size: 0.75rem; }
+  .anl-step strong { color: #e0e0e0; }
+  .anl-step code { color: #7b00ff; font-size: 0.78rem; }
+</style>
+
+</body>
+</html>

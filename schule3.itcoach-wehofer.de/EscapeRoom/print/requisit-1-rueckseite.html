@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 1 — Rückseite + Post-its</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #888;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      font-family: 'Caveat', cursive;
+      gap: 2rem;
+    }
+
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+
+    .no-print {
+      text-align: center;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 0.85rem;
+    }
+    .no-print button {
+      background: #333; color: #fff; border: none;
+      padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem;
+    }
+    .no-print .hinweis {
+      background: #333; color: #ffcc00; padding: 0.75rem 1.5rem;
+      border-radius: 4px; margin-top: 0.75rem; font-size: 0.8rem; line-height: 1.5;
+    }
+
+    /* Seiten-Grundlayout */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: #f5ead0;
+      background-image:
+        radial-gradient(ellipse at 80% 20%, #d4b896 0%, transparent 40%),
+        radial-gradient(ellipse at 20% 80%, #e8d5a3 0%, transparent 50%);
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 14mm 16mm;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ═══════════ SEITE 1: RÜCKSEITE NOTIZBUCH ═══════════ */
+
+    .rueckseite-leer {
+      width: 100%;
+      height: 260mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8mm;
+    }
+
+    .wasser-zeichen {
+      font-size: 80pt;
+      color: #c8a870;
+      opacity: 0.12;
+      user-select: none;
+      line-height: 1;
+    }
+
+    .rueck-notiz {
+      font-size: 13pt;
+      color: #8a6a40;
+      opacity: 0.5;
+      text-align: center;
+      transform: rotate(-1.5deg);
+    }
+
+    /* Linierung (leichter als Vorderseite) */
+    .page.rueck::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 7.8mm,
+        #c8b49022 7.8mm,
+        #c8b49022 8mm
+      );
+      pointer-events: none;
+    }
+
+    /* ═══════════ SEITE 2: POST-ITS + LEHRERHINWEISE ═══════════ */
+
+    .lehrer-seite-titel {
+      font-family: sans-serif;
+      font-size: 10pt;
+      color: #333;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid #999;
+      padding-bottom: 3mm;
+      margin-bottom: 6mm;
+    }
+
+    .lehrer-hinweis-box {
+      background: #fffde0;
+      border: 1px solid #ccaa00;
+      padding: 4mm 5mm;
+      font-family: sans-serif;
+      font-size: 9pt;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 6mm;
+    }
+
+    /* Post-it Grid */
+    .postit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6mm;
+      margin-bottom: 8mm;
+    }
+
+    .postit-card {
+      border: 1px dashed #888;
+      padding: 4mm;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2mm;
+    }
+
+    .postit-label {
+      font-family: sans-serif;
+      font-size: 7pt;
+      color: #888;
+      letter-spacing: 0.1em;
+      align-self: flex-start;
+    }
+
+    .postit-vorne {
+      background: #fff9c4;  /* gelbes Post-it */
+      width: 40mm;
+      height: 40mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32pt;
+      border: 1px solid #e0d080;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .postit-hinten {
+      background: #fff9c4;
+      width: 40mm;
+      height: 40mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 28pt;
+      font-weight: 700;
+      color: #8b1a1a;
+      border: 1px solid #e0d080;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+      gap: 1mm;
+    }
+
+    .postit-hinten .klein {
+      font-size: 8pt;
+      font-family: sans-serif;
+      color: #888;
+      font-weight: normal;
+    }
+
+    .postit-hinten.leer {
+      color: #ccc;
+      font-size: 11pt;
+      font-family: sans-serif;
+      font-weight: normal;
+    }
+
+    .pfeil {
+      font-size: 14pt;
+      color: #888;
+      align-self: center;
+      margin: 0 2mm;
+    }
+
+    .postit-row {
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+      margin-bottom: 4mm;
+    }
+
+    .versteck-tabelle {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: sans-serif;
+      font-size: 9pt;
+    }
+    .versteck-tabelle th {
+      background: #e8d5a0;
+      border: 1px solid #aaa;
+      padding: 2mm 3mm;
+      text-align: left;
+    }
+    .versteck-tabelle td {
+      border: 1px solid #ccc;
+      padding: 2mm 3mm;
+    }
+    .versteck-tabelle tr:nth-child(even) td { background: #faf6ee; }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <span>Requisit 1 — Rückseite &amp; Post-it Vorlage</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+  <div class="hinweis">
+    ⓘ Druckhinweis: Seite 1 = Rückseite des Notizbuchs (beidseitig auf Vorderseite drucken).<br>
+    Seite 2 = Lehrer-Vorlage (separat drucken, Post-its ausschneiden &amp; beschriften).
+  </div>
+</div>
+
+<!-- ═══ SEITE 1: RÜCKSEITE ═══ -->
+<div class="page rueck">
+
+  <div class="rueckseite-leer">
+    <div class="wasser-zeichen">⊗</div>
+    <div class="rueck-notiz">
+      — Forschungs-Notizbuch E.M. —<br>
+      Nicht weitergeben
+    </div>
+  </div>
+
+  <!-- Kleiner Fingerabdruck-Effekt unten rechts -->
+  <div style="position:absolute; bottom:12mm; right:14mm; font-size:28pt; opacity:0.06; transform:rotate(15deg);">
+    ◉
+  </div>
+
+</div>
+
+
+<!-- ═══ SEITE 2: LEHRER-VORLAGE ═══ -->
+<div class="page">
+
+  <div class="lehrer-seite-titel">
+    ✂ LEHRER-VORLAGE — Station 1 / Klassenzimmer (NICHT für Schüler)
+  </div>
+
+  <div class="lehrer-hinweis-box">
+    <strong>Vorbereitung:</strong> Die 4 Post-its ausschneiden. Auf die Vorderseite (gelb) kommt das Symbol —
+    auf die Rückseite die unten angegebene Information. Post-its einzeln im Klassenzimmer verstecken
+    (Unterseite von Stühlen, Innenseite von Schubladen, hinter Türrahmen, unter Tisch-Kante).<br><br>
+    <strong>Lösungslogik:</strong> Schüler finden alle 4 Post-its → setzen sie ins Raster (Sudoku-Prinzip) →
+    drehen die korrekt platzierten Post-its um → lesen Rückseite in Raster-Reihenfolge (oben-links → unten-rechts)
+    → ergibt den Hinweis für die nächste Station.
+  </div>
+
+  <!-- Post-it Vorlagen -->
+  <div style="font-family:sans-serif; font-size:9pt; color:#555; margin-bottom:3mm;">
+    Vorderseite (Schüler sehen das) → Rückseite (erst sichtbar wenn richtig platziert):
+  </div>
+
+  <div class="postit-row">
+    <div style="text-align:center">
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-bottom:1mm;">POST-IT 1</div>
+      <div class="postit-vorne">✦</div>
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-top:1mm;">Vorderseite</div>
+    </div>
+    <div class="pfeil">→</div>
+    <div style="text-align:center">
+      <div class="postit-hinten">
+        N
+        <span class="klein">(Rückseite)</span>
+      </div>
+    </div>
+
+    <div style="width:8mm"></div>
+
+    <div style="text-align:center">
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-bottom:1mm;">POST-IT 2</div>
+      <div class="postit-vorne">□</div>
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-top:1mm;">Vorderseite</div>
+    </div>
+    <div class="pfeil">→</div>
+    <div style="text-align:center">
+      <div class="postit-hinten">
+        4
+        <span class="klein">(Rückseite)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="postit-row">
+    <div style="text-align:center">
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-bottom:1mm;">POST-IT 3</div>
+      <div class="postit-vorne">☽</div>
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-top:1mm;">Vorderseite</div>
+    </div>
+    <div class="pfeil">→</div>
+    <div style="text-align:center">
+      <div class="postit-hinten leer">
+        (leer)
+        <span class="klein">keine Info</span>
+      </div>
+    </div>
+
+    <div style="width:8mm"></div>
+
+    <div style="text-align:center">
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-bottom:1mm;">POST-IT 4</div>
+      <div class="postit-vorne">⊕</div>
+      <div style="font-family:sans-serif;font-size:7pt;color:#888;margin-top:1mm;">Vorderseite</div>
+    </div>
+    <div class="pfeil">→</div>
+    <div style="text-align:center">
+      <div class="postit-hinten leer">
+        (leer)
+        <span class="klein">keine Info</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lösung & Versteck-Tabelle -->
+  <div style="font-family:sans-serif;font-size:9pt;color:#555;margin:4mm 0 2mm 0;">
+    <strong>Korrekte Positionen im Raster &amp; empfohlene Verstecke:</strong>
+  </div>
+
+  <table class="versteck-tabelle">
+    <tr>
+      <th>Post-it</th>
+      <th>Symbol</th>
+      <th>Rasterposition</th>
+      <th>Rückseite</th>
+      <th>Versteck-Vorschlag</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td style="font-size:14pt">✦</td>
+      <td>Zeile 1, Spalte 4</td>
+      <td><strong>N</strong></td>
+      <td>Unterseite Lehrerpult</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td style="font-size:14pt">□</td>
+      <td>Zeile 2, Spalte 2</td>
+      <td><strong>4</strong></td>
+      <td>Innenseite einer Schublade</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td style="font-size:14pt">☽</td>
+      <td>Zeile 4, Spalte 3</td>
+      <td>—</td>
+      <td>Hinter dem Türrahmen</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td style="font-size:14pt">⊕</td>
+      <td>Zeile 5, Spalte 1</td>
+      <td>—</td>
+      <td>Unter einer Stuhl-Kante</td>
+    </tr>
+  </table>
+
+  <div style="margin-top:4mm; font-family:sans-serif; font-size:8pt; color:#888; border-top:1px dashed #ccc; padding-top:3mm;">
+    Ergebnis wenn alle 4 korrekt platziert und umgedreht: <strong>N → 4</strong> =
+    "4. Spind von links, Garderobe Nordseite" → führt zu Station 2.
+  </div>
+
+</div>
+
+</body>
+</html>

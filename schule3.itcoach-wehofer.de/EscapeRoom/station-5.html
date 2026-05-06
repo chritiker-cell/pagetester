@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Station 5 — Aufenthaltszone</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    #sequence-ui {
+      position: fixed;
+      bottom: 5rem; left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .seq-btn {
+      background: #0a0a0a;
+      border: 1px solid #7b00ff44;
+      color: #7b00ff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.9rem;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+    }
+    .seq-btn.active { border-color: #7b00ff; background: #7b00ff22; }
+    .seq-btn.wrong  { border-color: #c00; color: #c00; animation: shake-btn 0.3s; }
+    @keyframes shake-btn {
+      0%,100%{ transform:translateX(0); }
+      25%    { transform:translateX(-4px); }
+      75%    { transform:translateX(4px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="station-ui">
+  <span class="station-label">STATION 05</span>
+  <span class="station-title">AUFENTHALTSZONE</span>
+  <span class="station-label" id="step-counter"></span>
+</div>
+
+<div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+
+<!-- Sequenz-Buttons (erscheinen nach erstem Tap) -->
+<div id="sequence-ui" style="display:none; position:fixed; bottom:5rem; left:50%; transform:translateX(-50%); z-index:100;">
+  <button class="seq-btn" id="seq-a" onclick="tapSequence('A')">[ BECHER ]</button>
+  <button class="seq-btn" id="seq-b" onclick="tapSequence('B')">[ BUCH ]</button>
+  <button class="seq-btn" id="seq-c" onclick="tapSequence('C')">[ MÜNZE ]</button>
+</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/station5.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+  <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-cursor fuse="false" rayOrigin="mouse"
+              raycaster="objects: .clickable"
+              material="color: #7b00ff; opacity: 0.8"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
+    </a-cursor>
+  </a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+
+    <!-- PLATZHALTER: Totenkopf-Figur -->
+    <a-entity id="skull-figure" class="clickable" position="0 0.04 0">
+
+      <!-- Schädel-Körper -->
+      <a-sphere color="#1a0033" radius="0.055" position="0 0.02 0" opacity="0.95"
+                animation__bob="property: position; to: 0 0.035 0; dir: alternate; loop: true; dur: 2500; easing: easeInOutSine">
+      </a-sphere>
+      <!-- Kiefer -->
+      <a-box color="#0d0020" width="0.06" height="0.02" depth="0.04"
+             position="0 -0.015 0.01" opacity="0.9">
+      </a-box>
+      <!-- Augen: leer/dunkel -->
+      <a-sphere color="#000" radius="0.012" position="-0.02 0.025 0.045" opacity="1"></a-sphere>
+      <a-sphere color="#000" radius="0.012" position="0.02 0.025 0.045" opacity="1"></a-sphere>
+      <!-- Glüh lila -->
+      <a-sphere color="#7b00ff" radius="0.06" position="0 0.02 0" opacity="0.1"
+                animation="property: scale; to: 1.4 1.4 1.4; dir: alternate; loop: true; dur: 1800">
+      </a-sphere>
+
+    </a-entity>
+
+  </a-entity>
+</a-scene>
+
+<script src="js/interactions.js"></script>
+<script>
+  // Richtige Reihenfolge: BUCH → MÜNZE → BECHER (aus Station 3 Kachel-Symbolen)
+  // HINWEIS FÜR LEHRER: hier anpassen falls andere Reihenfolge gewünscht
+  const CORRECT_SEQUENCE = ['B', 'C', 'A'];
+  let currentSequence = [];
+  let sequenceActive = false;
+  let tapped = false;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await enableMotion();
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+  });
+
+  // Erster Tap → erklärt das Rätsel
+  document.querySelector('#skull-figure').addEventListener('click', () => {
+    if (tapped) return;
+    tapped = true;
+
+    const skull = document.querySelector('#skull-figure');
+    skull.setAttribute('animation__pulse', 'property: scale; to: 1.3 1.3 1.3; dur: 200; dir: alternate; loop: 4');
+
+    setTimeout(() => {
+      showHint(
+        '<span style="color:#7b00ff">// DAS LETZTE SIGNAL</span><br><br>' +
+        'Auf dem Tisch liegen drei Gegenstände:<br>' +
+        '<strong style="color:#e0e0e0">Becher, Buch, Münze</strong><br><br>' +
+        'Tippe sie in der <strong style="color:#7b00ff">richtigen Reihenfolge</strong> an.<br>' +
+        'Die Reihenfolge kennst du — du hast sie im WC gesehen.<br><br>' +
+        '<span style="color:#c00;font-size:0.85rem">⚠ Falsche Reihenfolge = Fehlschlag</span>',
+        () => {
+          sequenceActive = true;
+          document.getElementById('sequence-ui').style.display = 'flex';
+          document.querySelector('#scan-prompt').textContent = '▸ REIHENFOLGE EINGEBEN';
+        }
+      );
+    }, 600);
+  });
+
+  function tapSequence(item) {
+    if (!sequenceActive) return;
+
+    currentSequence.push(item);
+    const btn = document.getElementById('seq-' + item.toLowerCase());
+    btn.classList.add('active');
+
+    const pos = currentSequence.length - 1;
+
+    if (currentSequence[pos] !== CORRECT_SEQUENCE[pos]) {
+      // Falsch
+      btn.classList.remove('active');
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 400);
+
+      currentSequence = [];
+      document.querySelectorAll('.seq-btn').forEach(b => b.classList.remove('active'));
+
+      showHint(
+        '<span style="color:#c00">⚠ FALSCHE REIHENFOLGE</span><br><br>' +
+        'Die Schattenwelt reagiert nicht.<br>' +
+        'Versuche es erneut — denke an die Symbole.',
+        null
+      );
+      return;
+    }
+
+    if (currentSequence.length === CORRECT_SEQUENCE.length) {
+      // Richtig!
+      sequenceActive = false;
+      document.getElementById('sequence-ui').style.display = 'none';
+      document.querySelectorAll('.seq-btn').forEach(b => b.classList.remove('active'));
+
+      setTimeout(() => {
+        showHint(
+          '✓ <span style="color:#7b00ff">SEQUENZ KORREKT</span><br><br>' +
+          'Der Totenkopf leuchtet auf.<br><br>' +
+          'Eine verschlüsselte Nachricht erscheint:<br><br>' +
+          '<strong style="color:#e0e0e0; letter-spacing:0.2em">ULVV∅CHUR</strong><br><br>' +
+          '<span style="color:#555;font-size:0.85rem">' +
+          'Caesar-Verschlüsselung: Verschiebe jeden Buchstaben um -3.<br>' +
+          'Beispiel: D → A, F → C</span>',
+          () => {
+            markStationDone('station-5');
+            showNextStation();
+          }
+        );
+      }, 600);
+    }
+  }
+
+  function showNextStation() {
+    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
+    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
+    step++;
+    localStorage.setItem('schattenschule_step', step);
+    if (step >= route.length) {
+      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
+    } else {
+      const next = route[step];
+      showHint(
+        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
+        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
+        () => { window.location.href = next + '.html'; }
+      );
+    }
+  }
+
+  function getStationName(id) {
+    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
+             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  }
+</script>
+</body>
+</html>

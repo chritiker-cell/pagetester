@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 5 — Kodierte Nachricht</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display:flex; flex-direction:column; align-items:center; padding:2rem; gap:2rem; }
+    @media print {
+      body { background:none; padding:0; gap:0; }
+      .no-print { display:none; }
+      .page { box-shadow:none; margin:0; page-break-after:always; }
+      .page:last-child { page-break-after:auto; }
+    }
+    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
+    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+
+    .page {
+      width:210mm; min-height:297mm;
+      background:#1a1008;
+      box-shadow:3px 3px 15px rgba(0,0,0,0.5);
+      padding:14mm 16mm;
+      position:relative;
+      overflow:hidden;
+    }
+    .page.lehrer { background:#fff; font-family:sans-serif; font-size:9pt; color:#333; }
+
+    /* Hintergrund-Muster: okkulte Linien */
+    .page::before {
+      content:''; position:absolute; inset:0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 15mm, #ffffff08 15mm, #ffffff08 15.2mm),
+        repeating-linear-gradient(90deg, transparent, transparent 15mm, #ffffff08 15mm, #ffffff08 15.2mm);
+      pointer-events:none;
+    }
+
+    /* Außen-Seite (gefaltet) */
+    .aussen {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; min-height:120mm;
+      border:1px solid #ffffff22;
+      margin-bottom:4mm;
+      padding:8mm;
+      background:#0a0005;
+    }
+
+    .an-text {
+      font-family:'Special Elite',monospace;
+      font-size:10pt; letter-spacing:0.3em;
+      color:#666; margin-bottom:8mm; text-align:center;
+    }
+
+    /* MARKER: Totenkopf-Siegel */
+    .totenkopf-marker {
+      display:flex; flex-direction:column; align-items:center; gap:3mm;
+    }
+    .totenkopf-symbol { font-size:80pt; line-height:1; filter:drop-shadow(0 0 8px #7b00ff88); }
+    .totenkopf-label {
+      font-family:'Special Elite',monospace;
+      font-size:7.5pt; letter-spacing:0.3em; color:#7b00ff; text-align:center;
+    }
+    .totenkopf-ring {
+      width:55mm; height:55mm;
+      border:1.5px solid #7b00ff44;
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .totenkopf-ring::after {
+      content:''; position:absolute; inset:3mm;
+      border:1px solid #7b00ff22;
+      border-radius:50%;
+    }
+
+    .fuer-text {
+      font-family:'Special Elite',monospace;
+      font-size:13pt; letter-spacing:0.2em;
+      color:#c0c0c0; margin-top:8mm; text-align:center;
+      line-height:1.6;
+    }
+
+    /* Trennlinie */
+    .trenn {
+      border:none; border-top:1px solid #ffffff22;
+      margin:4mm 0;
+    }
+
+    /* Innen-Seite */
+    .innen-label {
+      font-family:'Special Elite',monospace;
+      font-size:7.5pt; letter-spacing:0.3em; color:#555;
+      margin-bottom:5mm; text-align:center;
+    }
+
+    .brief-text {
+      font-family:'Caveat',cursive;
+      font-size:14pt; color:#c0c0c0;
+      line-height:8.5mm; margin-bottom:5mm;
+    }
+    .brief-text em { color:#7b00ff; font-style:normal; font-weight:bold; }
+    .brief-text .rot { color:#c00; }
+
+    /* Caesar-Rätsel */
+    .caesar-box {
+      border:1px solid #7b00ff44;
+      padding:5mm;
+      background:#0a0015;
+      margin:4mm 0;
+    }
+    .caesar-titel {
+      font-family:'Special Elite',monospace;
+      font-size:8.5pt; letter-spacing:0.2em; color:#7b00ff;
+      margin-bottom:3mm;
+    }
+    .cipher-text {
+      font-family:'Special Elite',monospace;
+      font-size:20pt; letter-spacing:0.4em;
+      color:#e0e0e0; margin-bottom:3mm;
+    }
+    .caesar-tabelle {
+      width:100%; border-collapse:collapse;
+      font-family:monospace; font-size:7.5pt;
+    }
+    .caesar-tabelle td {
+      padding:0.5mm 1.5mm;
+      border:1px solid #ffffff11;
+      text-align:center; color:#888;
+    }
+    .caesar-tabelle td:nth-child(odd) { color:#7b00ff; }
+    .ergebnis-zeile-c {
+      margin-top:3mm;
+      font-family:'Caveat',cursive;
+      font-size:12pt; color:#888;
+    }
+    .ergebnis-zeile-c span {
+      display:inline-block; width:50mm;
+      border-bottom:1px solid #555; margin-left:2mm;
+    }
+
+    /* Sequenz-Erinnerung */
+    .sequenz-box {
+      border:1px dashed #7b00ff44;
+      padding:4mm;
+      background:#05000f;
+      margin:4mm 0;
+    }
+    .sequenz-symbole { font-size:22pt; letter-spacing:0.5em; color:#e0e0e0; margin:2mm 0; }
+    .sequenz-text { font-family:'Caveat',cursive; font-size:11pt; color:#888; }
+
+    .signatur {
+      font-family:'Caveat',cursive;
+      font-size:13pt; color:#555;
+      text-align:right; margin-top:5mm;
+    }
+
+    /* Lehrer */
+    .lehrer-titel { font-size:10pt; font-weight:bold; letter-spacing:0.1em; border-bottom:1px solid #999; padding-bottom:2mm; margin-bottom:4mm; }
+    .gelb-box { background:#fffde0; border:1px solid #ccaa00; padding:3mm 4mm; font-size:9pt; line-height:1.6; margin-bottom:4mm; }
+    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
+    .versteck-tbl th { background:#f0e0f0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
+    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
+    .versteck-tbl tr:nth-child(even) td { background:#fdf8ff; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Requisit 5 — Kodierte Nachricht (Station: Aufenthaltszone)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: BRIEF ═══ -->
+<div class="page">
+
+  <!-- AUSSEN (gefaltet sichtbar) -->
+  <div class="aussen">
+    <div class="an-text">— FÜR DEN LETZTEN ERMITTLER —</div>
+
+    <!-- MARKER: Totenkopf -->
+    <div class="totenkopf-marker">
+      <div class="totenkopf-ring">
+        <div style="text-align:center">
+          <div class="totenkopf-symbol">💀</div>
+        </div>
+      </div>
+      <div class="totenkopf-label">— SIEGEL DES LETZTEN SCHRITTS —</div>
+    </div>
+
+    <div class="fuer-text">
+      Scannt das Siegel.<br>
+      Dann faltet den Brief auf.
+    </div>
+  </div>
+
+  <hr class="trenn">
+
+  <!-- INNEN (aufgefaltet) -->
+  <div class="innen-label">// INNENSEITE — NUR ÖFFNEN WENN SIEGEL GESCANNT</div>
+
+  <div class="brief-text">
+    Ihr habt es fast geschafft.<br>
+    Ich, E. Morava, habe den Riss <em>nicht</em> allein geöffnet.<br>
+    Jemand hat mir geholfen. Jemand der <span class="rot">noch hier ist.</span><br><br>
+    Das letzte Rätsel liegt verschlüsselt vor euch.
+  </div>
+
+  <!-- Caesar-Rätsel -->
+  <div class="caesar-box">
+    <div class="caesar-titel">⚠ AUFGABE — Caesar-Verschlüsselung, Verschiebung -3:</div>
+    <div class="cipher-text">ULVV∅FKHU</div>
+    <table class="caesar-tabelle">
+      <tr>
+        <td>A</td><td>→D</td><td>B</td><td>→E</td><td>C</td><td>→F</td>
+        <td>D</td><td>→G</td><td>E</td><td>→H</td><td>F</td><td>→I</td>
+      </tr><tr>
+        <td>G</td><td>→J</td><td>H</td><td>→K</td><td>I</td><td>→L</td>
+        <td>J</td><td>→M</td><td>K</td><td>→N</td><td>L</td><td>→O</td>
+      </tr><tr>
+        <td>M</td><td>→P</td><td>N</td><td>→Q</td><td>O</td><td>→R</td>
+        <td>P</td><td>→S</td><td>Q</td><td>→T</td><td>R</td><td>→U</td>
+      </tr><tr>
+        <td>S</td><td>→V</td><td>T</td><td>→W</td><td>U</td><td>→X</td>
+        <td>V</td><td>→Y</td><td>W</td><td>→Z</td><td>X</td><td>→A</td>
+      </tr><tr>
+        <td>Y</td><td>→B</td><td>Z</td><td>→C</td>
+        <td colspan="8" style="color:#555;font-size:7pt">Beispiel: U-3 = R &nbsp;|&nbsp; L-3 = I &nbsp;|&nbsp; V-3 = S</td>
+      </tr>
+    </table>
+    <div class="ergebnis-zeile-c">Lösung: <span></span></div>
+  </div>
+
+  <!-- Sequenz-Erinnerung -->
+  <div class="sequenz-box">
+    <div class="sequenz-text">Erinnert euch an die Reihenfolge aus dem WC:</div>
+    <div class="sequenz-symbole">△ &nbsp; ☾ &nbsp; □</div>
+    <div class="sequenz-text" style="color:#7b00ff">
+      Tippe die drei Gegenstände auf dem Tisch in dieser Reihenfolge an.
+    </div>
+  </div>
+
+  <div class="signatur">— E.M.</div>
+
+</div>
+
+<!-- ═══ SEITE 2: LEHRER ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 5 / Aufenthaltszone (NICHT für Schüler)</div>
+  <div class="gelb-box">
+    <strong>Vorbereitung:</strong> Brief ausdrucken, entlang der Außen/Innen-Linie falten
+    (Totenkopf-Siegel außen sichtbar). Unter dem Tischtennistisch verstecken
+    (Klettverschluss oder doppelseitiges Klebeband).<br><br>
+    <strong>Drei Gegenstände auf dem Tisch:</strong> Einen Becher, ein Buch und eine Münze
+    auf den TT-Tisch legen. Richtige Reihenfolge laut Kachel-Symbolen: <strong>△=Buch → ☾=Münze → □=Becher</strong>
+    (entspricht B → C → A im Code von station-5.html).<br><br>
+    <strong>Caesar-Lösung:</strong> ULVV∅FKHU → <strong>RISS∅CHER</strong><br>
+    (∅ bleibt unverändert, als Trennzeichen — entspricht dem SOLUTION_WORD in boss.html)<br><br>
+    <strong>Hinweis:</strong> Das Lösungswort in boss.html auf <code>RISS∅CHER</code> setzen
+    (oder nach Wunsch ändern — muss überall konsistent sein).
+  </div>
+  <table class="versteck-tbl">
+    <tr><th>Element</th><th>Details</th></tr>
+    <tr><td>Marker-Bild</td><td>Totenkopf-Siegel (💀) auf der Außenseite des gefalteten Briefs</td></tr>
+    <tr><td>Physisches Rätsel 1</td><td>Caesar-Cipher -3: ULVV∅FKHU → RISS∅CHER</td></tr>
+    <tr><td>Physisches Rätsel 2</td><td>Drei Gegenstände in Reihenfolge tippen (Buch → Münze → Becher)</td></tr>
+    <tr><td>AR-Aktion</td><td>Tap auf Totenkopf → Sequenz-UI erscheint → richtige Reihenfolge → Caesar-Text</td></tr>
+    <tr><td>Gegenstände auf Tisch</td><td>Becher (A), Buch (B), Münze (C) — Lösung: B→C→A</td></tr>
+    <tr><td>Versteck-Ort</td><td>Unter dem Tischtennistisch (mit Klettverschluss befestigen)</td></tr>
+    <tr><td>Laptop-Code</td><td>4783 (47 aus Station 3 + 83 aus UV-Licht)</td></tr>
+    <tr><td>Lösungswort für Lehrer</td><td><strong>RISS∅CHER</strong> (in boss.html anpassen)</td></tr>
+  </table>
+  <div style="margin-top:4mm;padding:3mm;background:#ffe0e0;border:1px solid #c00;font-size:8.5pt;">
+    ⚠ Lösungswort in <code>boss.html</code> Zeile <code>const SOLUTION_WORD</code> auf <strong>RISS∅CHER</strong> setzen!<br>
+    ⚠ Korrekte Sequenz in <code>station-5.html</code>: <code>const CORRECT_SEQUENCE = ['B', 'C', 'A']</code> — passt bereits.
+  </div>
+</div>
+</body>
+</html>
