@@ -56,6 +56,17 @@
     ⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN
   </div>
 
+  <!-- QR-Code -->
+  <div style="margin-top:3rem;margin-bottom:1rem;text-align:center">
+    <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:1rem">
+      — SCAN TO ENTER —
+    </div>
+    <div id="qrcode" style="display:inline-block;padding:0.75rem;background:#0a0a0a;border:1px solid #7b00ff44"></div>
+    <div style="font-size:0.55rem;color:#333;margin-top:0.75rem;letter-spacing:0.15em">
+      schule3.itcoach-wehofer.de/EscapeRoom
+    </div>
+  </div>
+
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
   <div id="reset-hint" style="margin-top:2rem;font-size:0.6rem;color:#222;cursor:default"
        onclick="handleResetTap()">∅</div>
@@ -63,6 +74,7 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/interactions.js"></script>
 <script>
   // Gruppen-Routen (jede Gruppe startet an anderer Station)
@@ -83,6 +95,16 @@
   }
 
   // Lehrer-Reset: 5x auf ∅ tippen
+  // QR-Code generieren
+  new QRCode(document.getElementById('qrcode'), {
+    text: 'https://schule3.itcoach-wehofer.de/EscapeRoom/',
+    width: 160,
+    height: 160,
+    colorDark: '#7b00ff',
+    colorLight: '#0a0a0a',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
   let resetTaps = 0;
   function handleResetTap() {
     resetTaps++;
