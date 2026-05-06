@@ -40,15 +40,15 @@ jobs:
         cp -r schule4.itcoach-wehofer.de/clefbuddy/dist/* schule4.itcoach-wehofer.de/clefbuddy/
         rm -rf schule4.itcoach-wehofer.de/clefbuddy/dist
 
-    - name: Deploy schule3 EscapeRoom
+    - name: Deploy schule3
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       continue-on-error: true
       with:
         server: 195.242.102.132
         username: schulprojekt
         password: ${{ secrets.ftp_password }}
-        local-dir: schule3.itcoach-wehofer.de/EscapeRoom/
-        server-dir: schule3.itcoach-wehofer.de/EscapeRoom/
+        local-dir: schule3.itcoach-wehofer.de/
+        server-dir: schule3.itcoach-wehofer.de/
         exclude: |
           **/.git*/**
           **/.claude/**
