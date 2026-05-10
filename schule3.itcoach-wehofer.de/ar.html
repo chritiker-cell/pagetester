@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>AR Test — Schattenschule</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body style="margin:0;overflow:hidden;background:#1a0033;">
 
@@ -19,14 +20,16 @@
     A-Frame lädt...
   </div>
 
-  <a-scene id="scene" vr-mode-ui="enabled: false">
-    <a-sky color="#1a1a2e"></a-sky>
-    <a-entity position="0 0 -3">
-      <a-box color="#7b00ff" scale="0.5 0.5 0.5"
+  <a-scene id="scene"
+    mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: yes;"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-box color="#7b00ff" scale="0.2 0.2 0.2"
         animation="property: rotation; to: 0 360 0; loop: true; dur: 2000; easing: linear">
       </a-box>
     </a-entity>
-    <a-camera></a-camera>
   </a-scene>
 
   <script>
