@@ -80,19 +80,18 @@
     </button>
   </div>
 
-  <!-- AR Stop-Button (erscheint wenn AR aktiv) -->
-  <button id="ar-stop-btn" onclick="stopAR()" style="display:none;position:fixed;top:1rem;right:1rem;z-index:10000;
-    background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
-    font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
-    × STOP AR
-  </button>
-
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
   <div id="reset-hint" style="margin-top:1rem;font-size:0.6rem;color:#222;cursor:default"
        onclick="handleResetTap()">∅</div>
 
-
 </div>
+
+<!-- AR Stop-Button — AUSSERHALB #landing damit er beim AR-Test sichtbar bleibt -->
+<button id="ar-stop-btn" onclick="stopAR()" style="display:none;position:fixed;top:1rem;right:1rem;z-index:10000;
+  background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
+  font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
+  × STOP AR
+</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/interactions.js"></script>
@@ -145,6 +144,12 @@
   }
 
   function startAR() {
+    const testCanvas = document.createElement('canvas');
+    const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+    if (!gl) {
+      alert('WebGL nicht verfügbar — AR nicht möglich auf diesem Gerät/Browser.');
+      return;
+    }
     document.getElementById('landing').style.display = 'none';
     document.getElementById('ar-stop-btn').style.display = 'block';
     document.body.style.overflow = 'hidden';
