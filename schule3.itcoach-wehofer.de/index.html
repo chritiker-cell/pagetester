@@ -76,27 +76,13 @@
     </button>
   </div>
 
-  <!-- AR Overlay -->
+  <!-- AR Overlay (a-scene wird dynamisch beim Start eingefügt) -->
   <div id="ar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:#000;">
     <button onclick="stopAR()" style="position:fixed;top:1rem;right:1rem;z-index:10000;
       background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
       font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
       × STOP
     </button>
-    <a-scene id="ar-scene"
-      mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: false; uiLoading: yes; uiError: yes; uiScanning: yes;"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false">
-      <a-assets>
-        <a-asset-item id="det" src="assets/models/private_detectiv.glb"></a-asset-item>
-      </a-assets>
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-gltf-model src="#det" position="0 0.15 0" scale="0.3 0.3 0.3"
-          animation="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
-        </a-gltf-model>
-      </a-entity>
-    </a-scene>
   </div>
 
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
@@ -138,19 +124,39 @@
   });
 
   function startAR() {
-    document.getElementById('ar-overlay').style.display = 'block';
+    const overlay = document.getElementById('ar-overlay');
+    overlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    const scene = document.getElementById('ar-scene');
-    const go = () => {
+
+    const scene = document.createElement('a-scene');
+    scene.id = 'ar-scene';
+    scene.setAttribute('mindar-image', 'imageTargetSrc: assets/targets/station1.mind; autoStart: false; uiLoading: yes; uiError: yes; uiScanning: yes;');
+    scene.setAttribute('vr-mode-ui', 'enabled: false');
+    scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+    scene.innerHTML = `
+      <a-assets>
+        <a-asset-item id="det" src="assets/models/private_detectiv.glb"></a-asset-item>
+      </a-assets>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-gltf-model src="#det" position="0 0.15 0" scale="0.3 0.3 0.3"
+          animation="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+        </a-gltf-model>
+      </a-entity>
+    `;
+    overlay.appendChild(scene);
+
+    scene.addEventListener('loaded', () => {
       const sys = scene.systems['mindar-image-system'];
-      if (!sys) { setTimeout(go, 300); return; }
-      sys.start();
-    };
-    if (scene.hasLoaded) go();
-    else scene.addEventListener('loaded', go, { once: true });
+      if (sys) sys.start();
+    }, { once: true });
   }
   function stopAR() {
-    try { document.getElementById('ar-scene').systems['mindar-image-system'].stop(); } catch(e) {}
+    const scene = document.getElementById('ar-scene');
+    if (scene) {
+      try { scene.systems['mindar-image-system'].stop(); } catch(e) {}
+      scene.remove();
+    }
     document.getElementById('ar-overlay').style.display = 'none';
     document.body.style.overflow = '';
   }
