@@ -80,14 +80,12 @@
     </button>
   </div>
 
-  <!-- AR Overlay (a-scene wird dynamisch beim Start eingefügt) -->
-  <div id="ar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:#000;">
-    <button onclick="stopAR()" style="position:fixed;top:1rem;right:1rem;z-index:10000;
-      background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
-      font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
-      × STOP
-    </button>
-  </div>
+  <!-- AR Stop-Button (erscheint wenn AR aktiv) -->
+  <button id="ar-stop-btn" onclick="stopAR()" style="display:none;position:fixed;top:1rem;right:1rem;z-index:10000;
+    background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
+    font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
+    × STOP AR
+  </button>
 
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
   <div id="reset-hint" style="margin-top:1rem;font-size:0.6rem;color:#222;cursor:default"
@@ -147,8 +145,8 @@
   }
 
   function startAR() {
-    const overlay = document.getElementById('ar-overlay');
-    overlay.style.display = 'block';
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('ar-stop-btn').style.display = 'block';
     document.body.style.overflow = 'hidden';
 
     const scene = document.createElement('a-scene');
@@ -167,7 +165,7 @@
         </a-gltf-model>
       </a-entity>
     `;
-    overlay.appendChild(scene);
+    document.body.appendChild(scene);
   }
   function stopAR() {
     const scene = document.getElementById('ar-scene');
@@ -175,7 +173,8 @@
       try { scene.systems['mindar-image-system'].stop(); } catch(e) {}
       scene.remove();
     }
-    document.getElementById('ar-overlay').style.display = 'none';
+    document.getElementById('ar-stop-btn').style.display = 'none';
+    document.getElementById('landing').style.display = 'block';
     document.body.style.overflow = '';
   }
 
