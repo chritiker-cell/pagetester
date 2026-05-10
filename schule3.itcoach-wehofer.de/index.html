@@ -130,7 +130,7 @@
 
     const scene = document.createElement('a-scene');
     scene.id = 'ar-scene';
-    scene.setAttribute('mindar-image', 'imageTargetSrc: assets/targets/station1.mind; autoStart: false; uiLoading: yes; uiError: yes; uiScanning: yes;');
+    scene.setAttribute('mindar-image', 'imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: yes;');
     scene.setAttribute('vr-mode-ui', 'enabled: false');
     scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
     scene.innerHTML = `
@@ -145,11 +145,6 @@
       </a-entity>
     `;
     overlay.appendChild(scene);
-
-    scene.addEventListener('loaded', () => {
-      const sys = scene.systems['mindar-image-system'];
-      if (sys) sys.start();
-    }, { once: true });
   }
   function stopAR() {
     const scene = document.getElementById('ar-scene');
