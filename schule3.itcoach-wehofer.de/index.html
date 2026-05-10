@@ -71,8 +71,12 @@
   <!-- AR Test -->
   <div style="margin-top:2rem;margin-bottom:2rem;text-align:center">
     <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:0.75rem">— AR TEST —</div>
+    <button class="group-btn" onclick="testKamera()" style="max-width:260px;display:inline-block;margin-bottom:0.5rem">
+      [ 1. KAMERA TEST ]
+    </button>
+    <br>
     <button class="group-btn" onclick="startAR()" style="max-width:260px;display:inline-block">
-      [ AR KAMERA TESTEN ]
+      [ 2. AR TEST (MindAR) ]
     </button>
   </div>
 
@@ -122,6 +126,25 @@
     colorLight: '#0a0a0a',
     correctLevel: QRCode.CorrectLevel.M
   });
+
+  async function testKamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.setAttribute('playsinline', '');
+      video.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:9999;background:#000';
+      document.body.appendChild(video);
+      video.play();
+      const btn = document.createElement('button');
+      btn.textContent = '× STOP';
+      btn.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:10000;background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;font-family:\'Courier New\',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer';
+      btn.onclick = () => { stream.getTracks().forEach(t => t.stop()); video.remove(); btn.remove(); };
+      document.body.appendChild(btn);
+    } catch(e) {
+      alert('Kamera Fehler: ' + e.name + ' — ' + e.message);
+    }
+  }
 
   function startAR() {
     const overlay = document.getElementById('ar-overlay');
