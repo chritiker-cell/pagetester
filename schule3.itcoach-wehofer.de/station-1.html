@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Station 1 — Klassenzimmer</title>
   <link rel="stylesheet" href="style.css">
-  <!-- MindAR + A-Frame -->
+  <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android 16/Chrome 148 -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
@@ -21,7 +22,7 @@
 
 <!-- AR Scene -->
 <a-scene
-  mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+  mindar-image="imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.01;"
   color-space="sRGB"
   renderer="colorManagement: true"
   vr-mode-ui="enabled: false"
@@ -64,9 +65,8 @@
   <a-entity mindar-image-target="targetIndex: 1" id="vk-anchor">
 
     <!-- TISCH (Platzhalter — später: gltf-model="#tisch-model") -->
-    <a-entity id="vk-tisch" position="0 0.1 0" scale="0.01 0.01 0.01"
-              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start"
-              animation__fly="property: position; to: 0 1.2 0; dur: 700; delay: 2200; easing: easeInBack; startEvents: tisch-start">
+    <a-entity id="vk-tisch" class="clickable" position="0 0.1 0" scale="0.01 0.01 0.01"
+              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start">
       <!-- Tischplatte -->
       <a-box color="#6b4226" width="0.45" height="0.04" depth="0.28" position="0 0 0"
              roughness="0.9" metalness="0.05">
@@ -79,8 +79,8 @@
     </a-entity>
 
     <!-- MONSTER (Platzhalter — später: gltf-model="#monster-model") -->
-    <a-entity id="vk-monster" position="0 0 0" scale="0 0 0"
-              animation__appear="property: scale; to: 1 1 1; dur: 500; easing: easeOutBack; startEvents: monster-start">
+    <a-entity id="vk-monster" position="0 -0.15 0" visible="false"
+              animation__rise="property: position; from: 0 -0.15 0; to: 0 0 0; dur: 800; easing: easeOutQuad; startEvents: monster-start">
 
       <!-- Körper -->
       <a-cylinder color="#0d001a" radius="0.07" height="0.22" position="0 0.11 0"></a-cylinder>
@@ -163,20 +163,30 @@
   });
 
   // Visitenkarte gescannt → Tisch-Animation starten
+  let tischTapped = false;
+
   document.querySelector('#vk-anchor').addEventListener('targetFound', () => {
     const tisch = document.querySelector('#vk-tisch');
     const monster = document.querySelector('#vk-monster');
 
     // Reset
+    tischTapped = false;
     tisch.setAttribute('position', '0 0.1 0');
     tisch.setAttribute('scale', '0.01 0.01 0.01');
-    monster.setAttribute('scale', '0 0 0');
+    monster.setAttribute('visible', false);
+    monster.setAttribute('position', '0 -0.15 0');
 
-    // Tisch-Animation starten
+    // Tisch hochzoomen
     tisch.emit('tisch-start');
+  });
 
-    // Monster erscheint wenn Tisch oben ist
-    setTimeout(() => monster.emit('monster-start'), 2500);
+  // Tap auf Tisch → Monster kriecht von unten hervor
+  document.querySelector('#vk-tisch').addEventListener('click', () => {
+    if (tischTapped) return;
+    tischTapped = true;
+    const monster = document.querySelector('#vk-monster');
+    monster.setAttribute('visible', true);
+    monster.emit('monster-start');
   });
 
   // iOS DeviceMotion Permission
