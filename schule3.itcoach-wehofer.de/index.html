@@ -25,7 +25,7 @@
     Kollegen berichten von seltsamen Geräuschen aus den Wänden.<br><br>
     Drei Tage später fand man sein Notizbuch — leer. Bis auf eine Seite.
     Sie trägt nur die Worte:<br><br>
-    <span style="color:#7b00ff;font-style:italic">"Die Schattenschule ist immer noch offen."</span><br><br>
+    <span style="color:#cc3300;font-style:italic">"Die Schattenschule ist immer noch offen."</span><br><br>
     Ihr seid die einzige Hoffnung. Euer Gerät kann sehen was wir nicht sehen.
     Findet E. Morava. Schließt den Riss.
   </div>
@@ -35,19 +35,19 @@
   </div>
 
   <div class="group-buttons">
-    <button class="group-btn" onclick="startGroup('A')">
+    <button class="group-btn" onclick="showStationInfo('A')">
       [ GRUPPE A ] &nbsp;→ Klassenzimmer
     </button>
-    <button class="group-btn" onclick="startGroup('B')">
+    <button class="group-btn" onclick="showStationInfo('B')">
       [ GRUPPE B ] &nbsp;→ Garderobe
     </button>
-    <button class="group-btn" onclick="startGroup('C')">
+    <button class="group-btn" onclick="showStationInfo('C')">
       [ GRUPPE C ] &nbsp;→ WC
     </button>
-    <button class="group-btn" onclick="startGroup('D')">
+    <button class="group-btn" onclick="showStationInfo('D')">
       [ GRUPPE D ] &nbsp;→ Balkon
     </button>
-    <button class="group-btn" onclick="startGroup('E')">
+    <button class="group-btn" onclick="showStationInfo('E')">
       [ GRUPPE E ] &nbsp;→ Aufenthaltszone
     </button>
   </div>
@@ -61,7 +61,7 @@
     <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:1rem">
       — SCAN TO ENTER —
     </div>
-    <div id="qrcode" style="display:inline-block;padding:0.75rem;background:#0a0a0a;border:1px solid #7b00ff44"></div>
+    <div id="qrcode" style="display:inline-block;padding:0.75rem;background:#0a0a0a;border:1px solid #cc330044"></div>
     <div style="font-size:0.55rem;color:#333;margin-top:0.75rem;letter-spacing:0.15em">
       schule3.itcoach-wehofer.de/EscapeRoom
     </div>
@@ -79,10 +79,25 @@
 
 </div>
 
+<!-- Station Info Modal -->
+<div id="station-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9998;overflow-y:auto;padding:2rem 1rem;justify-content:center;align-items:flex-start;">
+  <div style="max-width:380px;width:100%;border:1px solid #cc3300;background:#0a0a0a;padding:1.5rem;box-shadow:0 0 30px #cc330033;margin:auto;">
+    <div id="modal-label" style="font-size:0.6rem;letter-spacing:0.3em;color:#cc3300;margin-bottom:0.5rem;"></div>
+    <div id="modal-name" style="font-size:1.1rem;color:#e0e0e0;letter-spacing:0.2em;margin-bottom:1.25rem;"></div>
+    <div style="font-size:0.6rem;letter-spacing:0.2em;color:#555;margin-bottom:0.5rem;">// ABLAUF</div>
+    <div id="modal-desc" style="font-size:0.85rem;color:#999;line-height:1.8;margin-bottom:1.5rem;border-left:2px solid #cc330044;padding-left:0.75rem;"></div>
+    <div style="font-size:0.6rem;letter-spacing:0.2em;color:#555;margin-bottom:0.75rem;">// MATERIALIEN ZUM DRUCKEN</div>
+    <div id="modal-prints" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;"></div>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="group-btn" onclick="document.getElementById('station-modal').style.display='none'" style="flex:1;font-size:0.8rem;padding:0.6rem;">[ ← ZURÜCK ]</button>
+      <button id="modal-start-btn" class="group-btn" style="flex:2;font-size:0.9rem;">[ STARTEN → ]</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/interactions.js"></script>
 <script>
-  // Gruppen-Routen (jede Gruppe startet an anderer Station)
   const ROUTES = {
     A: ['station-1', 'station-2', 'station-3', 'station-4', 'station-5'],
     B: ['station-2', 'station-3', 'station-4', 'station-5', 'station-1'],
@@ -90,6 +105,69 @@
     D: ['station-4', 'station-5', 'station-1', 'station-2', 'station-3'],
     E: ['station-5', 'station-1', 'station-2', 'station-3', 'station-4'],
   };
+
+  const STATION_INFO = {
+    1: {
+      name: 'KLASSENZIMMER',
+      desc: 'Haltet das Morava-Foto vor die Kamera — eine Schattenfigur erscheint. Tippt die Figur an, um den versteckten Hinweis zu erhalten. Richtet die Kamera anschließend auf die Visitenkarte für weitere AR-Inhalte.',
+      prints: [
+        { label: '[ REQUISIT 1 — NOTIZBUCH ]', url: 'print/requisit-1.html' },
+        { label: '[ ZETTEL STATION 1 — SYMBOLE ]', url: 'print/zettel-station1.html' }
+      ]
+    },
+    2: {
+      name: 'GARDEROBE',
+      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      prints: [
+        { label: '[ REQUISIT 2 DRUCKEN ]', url: 'print/requisit-2.html' }
+      ]
+    },
+    3: {
+      name: 'WC',
+      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      prints: [
+        { label: '[ REQUISIT 3 DRUCKEN ]', url: 'print/requisit-3.html' }
+      ]
+    },
+    4: {
+      name: 'BALKON',
+      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      prints: [
+        { label: '[ REQUISIT 4 DRUCKEN ]', url: 'print/requisit-4.html' }
+      ]
+    },
+    5: {
+      name: 'AUFENTHALTSZONE',
+      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      prints: [
+        { label: '[ REQUISIT 5 DRUCKEN ]', url: 'print/requisit-5.html' }
+      ]
+    }
+  };
+
+  function showStationInfo(group) {
+    const stationNum = parseInt(ROUTES[group][0].replace('station-', ''));
+    const info = STATION_INFO[stationNum];
+    document.getElementById('modal-label').textContent = '// STATION ' + String(stationNum).padStart(2, '0') + ' — GRUPPE ' + group;
+    document.getElementById('modal-name').textContent = info.name;
+    document.getElementById('modal-desc').textContent = info.desc;
+    const printsEl = document.getElementById('modal-prints');
+    printsEl.innerHTML = '';
+    info.prints.forEach(p => {
+      const a = document.createElement('a');
+      a.href = p.url;
+      a.target = '_blank';
+      a.className = 'group-btn';
+      a.textContent = p.label;
+      a.style.cssText = 'display:block;text-decoration:none;font-size:0.8rem;text-align:center;padding:0.6rem;';
+      printsEl.appendChild(a);
+    });
+    document.getElementById('modal-start-btn').onclick = () => {
+      document.getElementById('station-modal').style.display = 'none';
+      startGroup(group);
+    };
+    document.getElementById('station-modal').style.display = 'flex';
+  }
 
   function startGroup(group) {
     resetProgress();
@@ -105,7 +183,7 @@
     text: 'https://schule3.itcoach-wehofer.de/',
     width: 160,
     height: 160,
-    colorDark: '#7b00ff',
+    colorDark: '#cc3300',
     colorLight: '#0a0a0a',
     correctLevel: QRCode.CorrectLevel.M
   });
