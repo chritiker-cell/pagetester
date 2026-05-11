@@ -165,25 +165,28 @@
 
   // Visitenkarte gescannt → Tisch-Animation starten
   let tischTapped = false;
+  let tischBereit = false;
 
   document.querySelector('#vk-anchor').addEventListener('targetFound', () => {
     const tisch = document.querySelector('#vk-tisch');
     const monster = document.querySelector('#vk-monster');
 
-    // Reset
     tischTapped = false;
+    tischBereit = false;
     tisch.setAttribute('position', '0 0.1 0');
     tisch.setAttribute('scale', '0.01 0.01 0.01');
     monster.setAttribute('visible', false);
     monster.setAttribute('position', '0 -0.15 0');
 
-    // Tisch hochzoomen
     tisch.emit('tisch-start');
+
+    // Nach Tisch-Animation: Tippen auf Bildschirm aktivieren
+    setTimeout(() => { tischBereit = true; }, 2000);
   });
 
-  // Tap auf Tischplatte → Monster kriecht von unten hervor
-  document.querySelector('#vk-tischplatte').addEventListener('click', () => {
-    if (tischTapped) return;
+  // Beliebiges Antippen → Monster (zuverlässiger als A-Frame Raycaster auf Mobile)
+  document.addEventListener('touchend', () => {
+    if (!tischBereit || tischTapped) return;
     tischTapped = true;
     const monster = document.querySelector('#vk-monster');
     monster.setAttribute('visible', true);
