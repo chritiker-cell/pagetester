@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android 16/Chrome 148 -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
@@ -42,7 +43,7 @@
   </a-camera>
 
   <!-- TARGET 0: Morava-Foto → Schattenfigur erscheint -->
-  <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
+  <a-entity mindar-image-target="targetIndex: 1" id="ar-anchor">
 
     <a-gltf-model id="shadow-figure" class="clickable"
               src="#detektiv-model"
@@ -63,7 +64,7 @@
   </a-entity>
 
   <!-- TARGET 1: Visitenkarte → Tisch-Animation + Monster -->
-  <a-entity mindar-image-target="targetIndex: 1" id="vk-anchor">
+  <a-entity mindar-image-target="targetIndex: 0" id="vk-anchor">
 
     <!-- TISCH (Platzhalter — später: gltf-model="#tisch-model") -->
     <a-entity id="vk-tisch" class="clickable" position="0 0.1 0" scale="0.01 0.01 0.01"
@@ -83,6 +84,7 @@
     <!-- MONSTER -->
     <a-gltf-model id="vk-monster" src="#monster-model"
                   position="0 -0.15 0" scale="0.3 0.3 0.3" visible="false"
+                  animation-mixer="clip: *; loop: repeat; crossFadeDuration: 0"
                   animation__rise="property: position; from: 0 -0.15 0; to: 0 0 0; dur: 800; easing: easeOutQuad; startEvents: monster-start">
     </a-gltf-model>
 
