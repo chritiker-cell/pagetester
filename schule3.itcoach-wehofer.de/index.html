@@ -6,7 +6,6 @@
   <title>SCHATTENSCHULE</title>
   <link rel="stylesheet" href="style.css">
   <style>body { overflow-y: auto; }</style>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
 <div id="landing">
@@ -68,19 +67,9 @@
     </div>
   </div>
 
-  <!-- AR Test -->
   <div style="margin-top:2rem;margin-bottom:2rem;text-align:center">
-    <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:0.75rem">— AR TEST —</div>
-    <button class="group-btn" onclick="testKamera()" style="max-width:260px;display:inline-block;margin-bottom:0.5rem">
-      [ 1. KAMERA TEST ]
-    </button>
-    <br>
-    <a href="ar.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
-      [ 2. AR TEST (MindAR) ]
-    </a>
-    <br>
-    <a href="station-1.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none;margin-top:0.5rem">
-      [ 3. VISITENKARTE TEST ]
+    <a href="station-1.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
+      [ AR TEST ]
     </a>
   </div>
 
@@ -89,13 +78,6 @@
        onclick="handleResetTap()">∅</div>
 
 </div>
-
-<!-- AR Stop-Button — AUSSERHALB #landing damit er beim AR-Test sichtbar bleibt -->
-<button id="ar-stop-btn" onclick="stopAR()" style="display:none;position:fixed;top:1rem;right:1rem;z-index:10000;
-  background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;
-  font-family:'Courier New',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer">
-  × STOP AR
-</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/interactions.js"></script>
@@ -127,65 +109,6 @@
     colorLight: '#0a0a0a',
     correctLevel: QRCode.CorrectLevel.M
   });
-
-  async function testKamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.setAttribute('playsinline', '');
-      video.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:9999;background:#000';
-      document.body.appendChild(video);
-      video.play();
-      const btn = document.createElement('button');
-      btn.textContent = '× STOP';
-      btn.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:10000;background:rgba(0,0,0,0.8);border:1px solid #7b00ff44;color:#7b00ff;font-family:\'Courier New\',monospace;font-size:0.7rem;padding:0.4rem 0.8rem;cursor:pointer';
-      btn.onclick = () => { stream.getTracks().forEach(t => t.stop()); video.remove(); btn.remove(); };
-      document.body.appendChild(btn);
-    } catch(e) {
-      alert('Kamera Fehler: ' + e.name + ' — ' + e.message);
-    }
-  }
-
-  function startAR() {
-    const testCanvas = document.createElement('canvas');
-    const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
-    if (!gl) {
-      alert('WebGL nicht verfügbar — AR nicht möglich auf diesem Gerät/Browser.');
-      return;
-    }
-    document.getElementById('landing').style.display = 'none';
-    document.getElementById('ar-stop-btn').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-
-    const scene = document.createElement('a-scene');
-    scene.id = 'ar-scene';
-    scene.setAttribute('mindar-image', 'imageTargetSrc: assets/targets/station1.mind; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: yes;');
-    scene.setAttribute('vr-mode-ui', 'enabled: false');
-    scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-    scene.innerHTML = `
-      <a-assets>
-        <a-asset-item id="det" src="assets/models/private_detectiv.glb"></a-asset-item>
-      </a-assets>
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-gltf-model src="#det" position="0 0.15 0" scale="0.3 0.3 0.3"
-          animation="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
-        </a-gltf-model>
-      </a-entity>
-    `;
-    document.body.appendChild(scene);
-  }
-  function stopAR() {
-    const scene = document.getElementById('ar-scene');
-    if (scene) {
-      try { scene.systems['mindar-image-system'].stop(); } catch(e) {}
-      scene.remove();
-    }
-    document.getElementById('ar-stop-btn').style.display = 'none';
-    document.getElementById('landing').style.display = 'block';
-    document.body.style.overflow = '';
-  }
 
   let resetTaps = 0;
   function handleResetTap() {
