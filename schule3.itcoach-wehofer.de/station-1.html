@@ -67,8 +67,9 @@
     <!-- TISCH (Platzhalter — später: gltf-model="#tisch-model") -->
     <a-entity id="vk-tisch" class="clickable" position="0 0.1 0" scale="0.01 0.01 0.01"
               animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start">
-      <!-- Tischplatte -->
-      <a-box color="#6b4226" width="0.45" height="0.04" depth="0.28" position="0 0 0"
+      <!-- Tischplatte (clickable für Monster-Trigger) -->
+      <a-box id="vk-tischplatte" class="clickable"
+             color="#6b4226" width="0.45" height="0.04" depth="0.28" position="0 0 0"
              roughness="0.9" metalness="0.05">
       </a-box>
       <!-- 4 Tischbeine -->
@@ -180,8 +181,8 @@
     tisch.emit('tisch-start');
   });
 
-  // Tap auf Tisch → Monster kriecht von unten hervor
-  document.querySelector('#vk-tisch').addEventListener('click', () => {
+  // Tap auf Tischplatte → Monster kriecht von unten hervor
+  document.querySelector('#vk-tischplatte').addEventListener('click', () => {
     if (tischTapped) return;
     tischTapped = true;
     const monster = document.querySelector('#vk-monster');
