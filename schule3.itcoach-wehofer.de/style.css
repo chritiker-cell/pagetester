@@ -19,19 +19,19 @@ body {
 }
 
 .hint-box {
-  border: 1px solid #7b00ff;
+  border: 1px solid #cc3300;
   padding: 2rem;
   max-width: 340px;
   width: 90%;
   background: #0a0a0a;
-  box-shadow: 0 0 30px #7b00ff44;
+  box-shadow: 0 0 30px #cc330044;
   text-align: center;
 }
 
 .hint-glitch {
   font-size: 0.7rem;
   letter-spacing: 0.3em;
-  color: #7b00ff;
+  color: #cc3300;
   margin-bottom: 1rem;
   animation: glitch 3s infinite;
 }
@@ -45,8 +45,8 @@ body {
 
 .hint-close {
   background: none;
-  border: 1px solid #7b00ff;
-  color: #7b00ff;
+  border: 1px solid #cc3300;
+  color: #cc3300;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
   padding: 0.5rem 1.2rem;
@@ -54,7 +54,7 @@ body {
   letter-spacing: 0.1em;
 }
 
-.hint-close:active { background: #7b00ff22; }
+.hint-close:active { background: #cc330022; }
 
 /* Station UI */
 #station-ui {
@@ -71,7 +71,7 @@ body {
 .station-label {
   font-size: 0.65rem;
   letter-spacing: 0.25em;
-  color: #7b00ff;
+  color: #cc3300;
 }
 
 .station-title {
@@ -86,7 +86,7 @@ body {
   transform: translateX(-50%);
   font-size: 0.75rem;
   letter-spacing: 0.2em;
-  color: #7b00ff99;
+  color: #cc330099;
   animation: pulse 2s ease-in-out infinite;
   z-index: 100;
   text-align: center;
@@ -156,7 +156,7 @@ body {
 }
 
 .report-box .label {
-  color: #7b00ff;
+  color: #cc3300;
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   margin-bottom: 0.5rem;
@@ -177,7 +177,7 @@ body {
 
 .group-btn {
   background: none;
-  border: 1px solid #7b00ff;
+  border: 1px solid #cc3300;
   color: #c0c0c0;
   font-family: 'Courier New', monospace;
   font-size: 1rem;
@@ -193,7 +193,7 @@ body {
 .group-btn:nth-child(4) { animation-delay: 0.3s; }
 .group-btn:nth-child(5) { animation-delay: 2.1s; }
 
-.group-btn:active, .group-btn:hover { background: #7b00ff22; }
+.group-btn:active, .group-btn:hover { background: #cc330022; }
 
 .warning {
   margin-top: 1.5rem;
