@@ -68,7 +68,8 @@
 
     <!-- TISCH (Platzhalter — später: gltf-model="#tisch-model") -->
     <a-entity id="vk-tisch" class="clickable" position="0 0.1 0" scale="0.01 0.01 0.01"
-              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start">
+              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start"
+              animation__fly="property: position; to: 0 1.8 0; dur: 500; easing: easeInQuad; startEvents: tisch-fly">
       <!-- Tischplatte (clickable für Monster-Trigger) -->
       <a-box id="vk-tischplatte" class="clickable"
              color="#6b4226" width="0.45" height="0.04" depth="0.28" position="0 0 0"
@@ -165,13 +166,19 @@
     setTimeout(() => { tischBereit = true; }, 2000);
   });
 
-  // Beliebiges Antippen → Monster (zuverlässiger als A-Frame Raycaster auf Mobile)
+  // Beliebiges Antippen → Monster + Tisch wegschießen
   document.addEventListener('touchend', () => {
     if (!tischBereit || tischTapped) return;
     tischTapped = true;
+
     const monster = document.querySelector('#vk-monster');
+    const tisch = document.querySelector('#vk-tisch');
+
     monster.setAttribute('visible', true);
     monster.emit('monster-start');
+
+    tisch.emit('tisch-fly');
+    setTimeout(() => tisch.setAttribute('visible', false), 520);
   });
 
   // iOS DeviceMotion Permission
