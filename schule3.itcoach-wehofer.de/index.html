@@ -2,17 +2,45 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SCHATTENSCHULE</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { overflow-y: auto; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { overflow-y: auto; overflow-x: hidden; }
+    #landing { padding-left: 16px; padding-right: 16px; }
+    .report-box, .group-buttons { width: 100%; }
+
+    /* Großer Einstieg für die Schüler */
+    .start-btn {
+      display: block; width: 100%; max-width: 380px; margin: 0 0 0.9rem; padding: 1.15rem 1rem;
+      border: 2px solid #cc3300; background: #cc33001a; color: #f0f0f0; text-decoration: none;
+      font: bold 1.15rem 'Courier New', monospace; letter-spacing: 0.18em; text-align: center;
+      box-shadow: 0 0 22px #cc330055, inset 0 0 18px #cc330022;
+      animation: startPulse 2.6s ease-in-out infinite;
+    }
+    .start-btn:hover, .start-btn:active { background: #cc330040; }
+    .start-sub { max-width: 380px; font-size: 0.8rem; color: #777; line-height: 1.7; }
+    .start-sub strong { color: #c0c0c0; }
+    @keyframes startPulse { 50% { box-shadow: 0 0 34px #cc330088, inset 0 0 22px #cc330033; } }
+
+    /* Bereich für Lehrkräfte */
+    .teacher {
+      width: 100%; max-width: 380px; margin-top: 3.5rem; padding: 1.25rem 1rem 1rem;
+      border-top: 1px dashed #333; text-align: center;
+    }
+    .teacher-head { font-size: 0.65rem; letter-spacing: 0.3em; color: #666; margin-bottom: 1.1rem; }
+    .teacher-sub  { font-size: 0.6rem; letter-spacing: 0.25em; color: #555; margin: 1.6rem 0 0.75rem; }
     .lehrer-btn {
-      display: block; max-width: 380px; width: 90%; margin: 0 0 2rem; padding: 0.8rem 1rem;
+      display: block; width: 100%; padding: 0.8rem 1rem;
       border: 1px solid #333; background: #070707; color: #888; text-decoration: none;
       font-size: 0.75rem; letter-spacing: 0.15em; text-align: center;
     }
     .lehrer-btn:hover, .lehrer-btn:active { color: #cc3300; border-color: #cc3300; }
+    .teacher .group-buttons { max-width: none; margin: 0 auto; }
+    .teacher .group-btn { font-size: 0.85rem; padding: 0.7rem; }
+    .teacher-note { font-size: 0.65rem; color: #555; margin-top: 0.5rem; letter-spacing: 0.05em; line-height: 1.6; }
+    #qrcode { display: inline-block; padding: 0.75rem; background: #0a0a0a; border: 1px solid #cc330044; }
   </style>
 </head>
 <body>
@@ -28,7 +56,7 @@
 
   <div class="report-box">
     <div class="label">// POLIZEIBERICHT NR. 2024-∅∅7</div>
-    Am Abend des 14. November wurde Schüler <strong style="color:#e0e0e0">E. MORAVA</strong>
+    Am Abend des 14. November wurde Privatdetektiv <strong style="color:#e0e0e0">E. MORAVA</strong>
     zuletzt in diesem Gebäude gesehen. Die Überwachungskameras zeigten nur Rauschen.
     Kollegen berichten von seltsamen Geräuschen aus den Wänden.<br><br>
     Drei Tage später fand man sein Notizbuch — leer. Bis auf eine Seite.
@@ -38,66 +66,49 @@
     Findet E. Morava. Schließt den Riss.
   </div>
 
-  <!-- Für Lehrkräfte: Ablauf als PDF (öffnet im Browser) -->
-  <a href="print/ablauf-lehrkraefte.pdf" target="_blank" rel="noopener" class="lehrer-btn">
-    📄 FÜR LEHRKRÄFTE: PROJEKT &amp; ABLAUF (PDF)
-  </a>
-
-  <div style="font-size:0.7rem;color:#555;margin-bottom:1rem;letter-spacing:0.2em">
-    — DIE 4 STATIONEN —
+  <!-- Einstieg für die Gruppen -->
+  <a href="scan.html" class="start-btn">▶ SCANNER STARTEN</a>
+  <div class="start-sub">
+    Richtet die Kamera auf die Motive an den Stationen.
+    Jede Station verrät euch <strong>einen Teil des Codes</strong> —
+    mit allen 4 Teilen knackt ihr am Ende den Laptop der Schattenschule.
   </div>
 
-  <div class="group-buttons">
-    <button class="group-btn" onclick="showStationInfo(1)">
-      [ ▲ STATION 1 ] &nbsp;→ Moravas Büro
-    </button>
-    <button class="group-btn" onclick="showStationInfo(2)">
-      [ ● STATION 2 ] &nbsp;→ Funkraum
-    </button>
-    <button class="group-btn" onclick="showStationInfo(3)">
-      [ ■ STATION 3 ] &nbsp;→ Altes Labor
-    </button>
-    <button class="group-btn" onclick="showStationInfo(4)">
-      [ ✦ STATION 4 ] &nbsp;→ Archiv
-    </button>
-  </div>
+  <div class="warning">⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN</div>
 
-  <div style="max-width:380px;width:90%;font-size:0.8rem;color:#777;line-height:1.7;margin-top:1.5rem">
-    Jede Station verrät euch <strong style="color:#c0c0c0">einen Teil des Codes</strong>.
-    Mit allen 4 Teilen knackt ihr am Ende den Laptop der Schattenschule.
-  </div>
+  <!-- ═══ Für Lehrkräfte ═══ -->
+  <div class="teacher">
+    <div class="teacher-head">// FÜR LEHRKRÄFTE</div>
 
-  <div class="warning">
-    ⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN
-  </div>
-
-  <!-- QR-Code -->
-  <div style="margin-top:3rem;margin-bottom:1rem;text-align:center">
-    <div style="font-size:0.6rem;letter-spacing:0.3em;color:#555;margin-bottom:1rem">
-      — SCAN TO ENTER —
-    </div>
-    <div id="qrcode" style="display:inline-block;padding:0.75rem;background:#0a0a0a;border:1px solid #cc330044"></div>
-    <div style="font-size:0.55rem;color:#333;margin-top:0.75rem;letter-spacing:0.15em">
-      schule3.itcoach-wehofer.de/EscapeRoom
-    </div>
-  </div>
-
-  <div style="margin-top:2rem;margin-bottom:2rem;text-align:center">
-    <a href="scan.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
-      [ SCANNER TESTEN ]
+    <a href="print/ablauf-lehrkraefte.pdf" target="_blank" rel="noopener" class="lehrer-btn">
+      📄 PROJEKT &amp; ABLAUF (PDF)
     </a>
-    <br><br>
-    <a href="hack.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
-      [ LAPTOP-TERMINAL ]
-    </a>
-    <div style="font-size:0.6rem;color:#444;margin-top:0.5rem;letter-spacing:0.1em">
-      Auf jedem Gruppen-Laptop öffnen: schule3.itcoach-wehofer.de/hack.html
-    </div>
-  </div>
 
-  <!-- Lehrer-Reset: 5x tippen (oder Button im Lehrer-Kasten) -->
-  <div id="reset-hint" style="margin-top:1rem;padding:0.6rem 1rem;font-size:0.75rem;color:#555;letter-spacing:0.15em;cursor:pointer;user-select:none"
-       onclick="handleResetTap()">∅ RESET (5× TIPPEN)</div>
+    <div class="teacher-sub">— DIE 4 STATIONEN · DRUCKMATERIAL —</div>
+    <div class="group-buttons">
+      <button class="group-btn" onclick="showStationInfo(1)">[ ▲ STATION 1 ] &nbsp;→ Moravas Büro</button>
+      <button class="group-btn" onclick="showStationInfo(2)">[ ● STATION 2 ] &nbsp;→ Funkraum</button>
+      <button class="group-btn" onclick="showStationInfo(3)">[ ■ STATION 3 ] &nbsp;→ Altes Labor</button>
+      <button class="group-btn" onclick="showStationInfo(4)">[ ✦ STATION 4 ] &nbsp;→ Archiv</button>
+    </div>
+
+    <div class="teacher-sub">— QR-CODE ZUM SCANNER —</div>
+    <div id="qrcode"></div>
+    <div class="teacher-note">schule3.itcoach-wehofer.de/scan.html</div>
+    <a href="print/qr-scanner.html" target="_blank" rel="noopener" class="lehrer-btn" style="margin-top:0.75rem">
+      🖨 QR-CODE ALS A4 DRUCKEN
+    </a>
+
+    <div class="teacher-sub">— LAPTOP-TERMINAL —</div>
+    <a href="hack.html" class="group-btn" style="display:block;text-decoration:none;font-size:0.85rem;padding:0.7rem">
+      [ LAPTOP-TERMINAL ÖFFNEN ]
+    </a>
+    <div class="teacher-note">Auf jedem Gruppen-Laptop öffnen: schule3.itcoach-wehofer.de/hack.html</div>
+
+    <!-- Lehrer-Reset: 5x tippen -->
+    <div id="reset-hint" style="margin-top:1.75rem;padding:0.6rem 1rem;font-size:0.75rem;color:#555;letter-spacing:0.15em;cursor:pointer;user-select:none"
+         onclick="handleResetTap()">∅ RESET (5× TIPPEN)</div>
+  </div>
 
 </div>
 
@@ -120,6 +131,7 @@
   // Die Reihenfolge der Stationen legt der Scanner selbst fest:
   // die zuerst gescannte Station bestimmt die empfohlene Route (siehe scan.html).
   const AUFGABENBLATT = { label: '[ AUFGABENBLATT (JEDE GRUPPE) ]', url: 'print/aufgabenblatt.html' };
+  const SCANNER_URL = 'https://schule3.itcoach-wehofer.de/scan.html';
 
   const STATION_INFO = {
     1: {
@@ -133,7 +145,7 @@
     },
     2: {
       name: 'FUNKRAUM',
-      desc: 'Scannt das AR-Ziel. Eine Kreatur hat Moravas Funksignal abgefangen — ihre Augen morsen sein Kennwort. Schreibt mit und entschlüsselt es mit der Morse-Tabelle. Tippt dann auf den Bildschirm: Im Funkgerät meldet sich Morava und gibt euch das Code-Fragment für Feld ●.',
+      desc: 'Scannt das Funkgerät. Eine Kreatur hat Moravas Funksignal abgefangen — ihre Augen morsen sein Kennwort. Schreibt mit und entschlüsselt es mit der Morse-Tabelle. Tippt dann auf den Bildschirm: Im Funkgerät meldet sich Morava und gibt euch das Code-Fragment für Feld ●.',
       prints: [
         AUFGABENBLATT,
         { label: '[ MORSE-TABELLE ]', url: 'print/morse-tabelle.html' },
@@ -142,19 +154,13 @@
     },
     3: {
       name: 'ALTES LABOR',
-      desc: 'Scannt das AR-Ziel und tippt das Auge an. Sucht das Beweismittel-Etikett im Raum — die Frage darauf ist gespiegelt. Lest und beantwortet sie. Ihr erhaltet das Code-Fragment für Feld ■.',
-      prints: [
-        AUFGABENBLATT,
-        { label: '[ REQUISIT 3 — BEWEISMITTEL-ETIKETT ]', url: 'print/requisit-3.html' }
-      ]
+      desc: 'In Vorbereitung — Fortsetzung folgt. Geplant: Spurensicherung mit Fingerabdrücken und Alibi-Abgleich. Bis dahin gibt die Lehrkraft das Code-Fragment für Feld ■ aus.',
+      prints: [ AUFGABENBLATT ]
     },
     4: {
       name: 'ARCHIV',
-      desc: 'Scannt das AR-Ziel und tippt den Totenkopf an. Moravas Brief verrät die Reihenfolge der Gegenstände. Danach entschlüsselt ihr eine Caesar-Nachricht. Ihr erhaltet das Code-Fragment für Feld ✦.',
-      prints: [
-        AUFGABENBLATT,
-        { label: '[ REQUISIT 4 — MORAVAS BRIEF ]', url: 'print/requisit-4.html' }
-      ]
+      desc: 'In Vorbereitung — Fortsetzung folgt. Geplant: die stehengebliebenen Uhren. Bis dahin gibt die Lehrkraft das Code-Fragment für Feld ✦ aus.',
+      prints: [ AUFGABENBLATT ]
     }
   };
 
@@ -177,10 +183,9 @@
     document.getElementById('station-modal').style.display = 'flex';
   }
 
-  // Lehrer-Reset: 5x auf ∅ tippen
-  // QR-Code generieren
+  // QR-Code: führt direkt zum Scanner
   new QRCode(document.getElementById('qrcode'), {
-    text: 'https://schule3.itcoach-wehofer.de/',
+    text: SCANNER_URL,
     width: 160,
     height: 160,
     colorDark: '#cc3300',
@@ -189,13 +194,9 @@
   });
 
   // Fortschritt auf diesem Gerät löschen (Stationen, Code-Teile, Route, Sperre)
-  function resetDevice(ask) {
-    if (ask && !confirm('Fortschritt auf diesem Gerät wirklich zurücksetzen?')) return false;
+  function resetDevice() {
     resetProgress();
     localStorage.clear();
-    const msg = document.getElementById('reset-msg');
-    if (msg) { msg.textContent = '✓ Zurückgesetzt — der Scanner startet wieder von vorne.'; setTimeout(() => { msg.textContent = ''; }, 3000); }
-    return true;
   }
 
   let resetTaps = 0, resetTimer = null;
@@ -206,7 +207,7 @@
     const el = document.getElementById('reset-hint');
     if (resetTaps >= 5) {
       resetTaps = 0;
-      resetDevice(false);
+      resetDevice();
       el.textContent = '✓ ZURÜCKGESETZT';
       setTimeout(() => { el.textContent = '∅ RESET (5× TIPPEN)'; }, 1800);
     } else {

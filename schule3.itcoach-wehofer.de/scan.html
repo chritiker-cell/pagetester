@@ -25,6 +25,14 @@
       font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem; cursor: pointer;
     }
     #sound-btn.on { border-color: #cc3300; color: #e0e0e0; }
+    #sound-btn.nudge { border-color: #33ff77; color: #33ff77; animation: soundNudge 1s ease-in-out infinite; }
+    @keyframes soundNudge { 50% { box-shadow: 0 0 14px #33ff77; } }
+    #radio-tip {
+      display: none; margin-top: 0.6rem; padding: 0.55rem 0.7rem; border-left: 2px solid #d9a441;
+      color: #d9a441; font-size: 0.8rem; line-height: 1.55; text-align: left;
+    }
+    #radio-tip.on { display: block; }
+    #radio-msg.morava { color: #7dffa0; text-shadow: 0 0 6px #33ff6655; }
 
     #scan-prompt { line-height: 1.6; }
     #scan-prompt .rec { display: block; color: #e0e0e0; letter-spacing: 0.15em; font-size: 0.8rem; }
@@ -101,6 +109,11 @@
     <button id="radio-send" type="button">[ SENDEN ]</button>
   </div>
   <div id="radio-feedback"></div>
+  <div id="radio-tip">
+    <strong>Tipp:</strong> Ein rundes Aufblitzen = <strong>Punkt</strong>, ein langer Schlitz = <strong>Strich</strong>.
+    Nach dem <strong style="color:#33ff77">grünen Aufleuchten</strong> beginnt Buchstabe 1 — das Kennwort hat
+    <strong>4 Buchstaben</strong>. Lange Pause = neuer Buchstabe. Vergleicht jeden Buchstaben mit der Morse-Tabelle.
+  </div>
 </div>
 
 <!--
@@ -330,6 +343,7 @@
     MORSE: { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
              N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..' },
     gen: 0, visible: false, firstCycleDone: false, soundOn: false, audioCtx: null, lockTick: null,
+    wrongCount: 0, nudged: false,
 
     init() {
       this.tablet = makeTablet('station-2', '0 0.66 0.06');
@@ -356,6 +370,13 @@
     onFound() {
       this.visible = true;
       if (!isSolved('station-2')) this.startSignal();
+      // Beim ersten Erkennen kurz auf den Ton-Knopf hinweisen (mit Ton ist Mitschreiben leichter)
+      if (!isSolved('station-2') && !this.nudged && !this.soundOn) {
+        this.nudged = true;
+        const b = $('sound-btn');
+        b.classList.add('nudge'); b.textContent = '🔊 TON AN? LEICHTER MITZUSCHREIBEN';
+        setTimeout(() => { b.classList.remove('nudge'); if (!this.soundOn) b.textContent = '🔇 TON'; }, 7000);
+      }
       this.updateAction();
     },
     onLost() { this.visible = false; this.stopSignal(); },
@@ -405,6 +426,7 @@
       if (this.soundOn && !this.audioCtx) {
         try { this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { this.soundOn = false; }
       }
+      $('sound-btn').classList.remove('nudge');
       $('sound-btn').classList.toggle('on', this.soundOn);
       $('sound-btn').textContent = this.soundOn ? '🔊 TON' : '🔇 TON';
     },
@@ -476,12 +498,33 @@
       if (v === this.KENNWORT.toUpperCase()) { this.receiveMorava(); return; }
       $('radio-status').textContent = '▯▯▯▯ KEIN SIGNAL — NUR RAUSCHEN';
       $('radio-input').value = '';
+      this.wrongCount++;
+      if (this.wrongCount >= 2) $('radio-tip').classList.add('on');   // nach 2 Fehlversuchen gezielter Tipp
       try { localStorage.setItem(LOCK_KEY, String(Date.now() + WRONG_ANSWER_LOCK_SECONDS * 1000)); } catch {}
       this.updateLock();
     },
+    // Kurzes, leises Funkrauschen (Klick auf SENDEN zählt als Nutzer-Geste, daher erlaubt)
+    rauschen(sec) {
+      try {
+        if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const a = this.audioCtx, len = Math.floor(a.sampleRate * sec);
+        const buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.sin(i / 900));
+        const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+        src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.7;
+        g.gain.setValueAtTime(0.0, a.currentTime);
+        g.gain.linearRampToValueAtTime(0.06, a.currentTime + 0.15);
+        g.gain.setValueAtTime(0.06, a.currentTime + sec - 0.4);
+        g.gain.linearRampToValueAtTime(0, a.currentTime + sec);
+        src.connect(f).connect(g).connect(a.destination);
+        src.start();
+      } catch { /* ohne Ton weiter */ }
+    },
     async receiveMorava() {
       $('radio-row').style.display = 'none';
+      $('radio-tip').classList.remove('on');
       $('radio-feedback').textContent = '';
+      this.rauschen(2.4);
       $('radio-status').textContent = '▮▯▯▯ SIGNAL WIRD STÄRKER …';
       await wait(900);
       $('radio-status').textContent = '▮▮▮▯ VERBINDUNG …';
@@ -497,6 +540,7 @@
       ];
       const box = $('radio-msg');
       box.innerHTML = '';
+      box.classList.add('morava');
       for (const line of lines) {
         const p = document.createElement('div');
         box.appendChild(p);

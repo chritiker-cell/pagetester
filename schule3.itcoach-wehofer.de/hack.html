@@ -36,6 +36,8 @@
     .btn.ghost { border-color: #444; color: #999; font-size: 0.85rem; padding: 0.5rem 1rem; }
     .btn.wrong { border-color: #c00; color: #c00; }
     .err { color: #c00; font-size: 0.9rem; min-height: 1.5em; margin: 0.75rem 0; }
+    .panel .err:empty { min-height: 0; margin: 0.4rem 0 0; }
+    .panel #hint-area:empty { min-height: 0; margin-top: 0; }
 
     /* Login */
     .digits { display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -185,12 +187,70 @@
     /* Sieg */
     .victory-title { font-size: 1.8rem; color: var(--acc); letter-spacing: 0.3em; animation: glitch 2s infinite; margin-bottom: 0.5rem; }
     .solution-word {
-      font-size: 2.2rem; letter-spacing: 0.4em; color: var(--txt);
-      border: 1px solid var(--acc); padding: 1rem 2rem; margin: 1rem 0;
+      font-size: 1.8rem; letter-spacing: 0.22em; color: var(--txt); max-width: 94vw;
+      border: 1px solid var(--acc); padding: 1rem 1.6rem; margin: 1rem 0;
       box-shadow: 0 0 30px #33ff6644;
     }
     .final-time { font-size: 1.1rem; color: var(--txt); letter-spacing: 0.15em; margin-bottom: 1rem; }
     .final-time strong { color: var(--acc); font-size: 1.6rem; }
+    #v-group { color: var(--acc); font-size: 1rem; letter-spacing: 0.25em; margin-top: 0.75rem; min-height: 1.2em; }
+    #v-morava {
+      min-height: 3.2em; max-width: 560px; margin: 1.25rem 0 0.25rem; color: #7dffa0; font-size: 1rem;
+      line-height: 1.6; text-shadow: 0 0 8px #33ff6655;
+    }
+    .v-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    /* Login: Gruppenname */
+    .group-row { margin-bottom: 1.6rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .group-row label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--acc); }
+    #group-name {
+      width: min(340px, 86vw); background: #000; border: 1px solid #33ff6666; border-bottom: 2px solid var(--acc);
+      color: var(--txt); font: bold 1.15rem 'Courier New', monospace; text-align: center; padding: 0.5rem; outline: none;
+      letter-spacing: 0.08em;
+    }
+    #group-name:focus { border-color: var(--acc); box-shadow: 0 0 14px #33ff6666; }
+
+    /* Zwischen-Einblendung „Firewall durchbrochen“ */
+    #breach {
+      position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #03200dee 0%, #000000f2 70%); text-align: center; padding: 1rem;
+    }
+    #breach.on { display: flex; animation: brIn 0.25s ease-out; }
+    #breach .br-small { font-size: 0.8rem; letter-spacing: 0.4em; color: #33ff66aa; margin-bottom: 0.6rem; }
+    #breach .br-big {
+      font-size: clamp(1.8rem, 6vw, 3.4rem); color: var(--acc); letter-spacing: 0.25em; font-weight: bold;
+      text-shadow: 0 0 18px #33ff66, 0 0 40px #33ff6666; animation: glitch 0.6s infinite;
+    }
+    #breach .br-bar { width: min(420px, 80vw); height: 8px; border: 1px solid var(--acc); margin-top: 1.4rem; }
+    #breach .br-bar i { display: block; height: 100%; width: 0; background: var(--acc); box-shadow: 0 0 12px var(--acc); }
+    #breach.on .br-bar i { animation: brFill 1.3s ease-out forwards; }
+    @keyframes brIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+    @keyframes brFill { to { width: var(--br-to, 100%); } }
+
+    /* Urkunde: nur beim Drucken sichtbar */
+    #certificate { display: none; }
+    @media print {
+      @page { size: A4 landscape; margin: 0; }
+      body.print-cert > *:not(#certificate) { display: none !important; }
+      body.print-cert { background: #fff !important; }
+      body.print-cert #certificate {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        width: 297mm; height: 209mm; padding: 16mm; color: #111; background: #fff;
+        font-family: 'Courier New', monospace;
+      }
+      #certificate .c-frame {
+        width: 100%; height: 100%; border: 3mm double #111; padding: 12mm 16mm;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5mm;
+      }
+      #certificate .c-sym { font-size: 14pt; letter-spacing: 10mm; }
+      #certificate .c-title { font-size: 40pt; font-weight: bold; letter-spacing: 6mm; }
+      #certificate .c-sub { font-size: 12pt; letter-spacing: 3mm; color: #444; }
+      #certificate .c-group { font-size: 26pt; font-weight: bold; border-bottom: 0.5mm solid #111; padding: 0 10mm 2mm; min-width: 140mm; }
+      #certificate .c-text { font-size: 13pt; line-height: 1.6; max-width: 200mm; }
+      #certificate .c-meta { font-size: 12pt; display: flex; gap: 20mm; margin-top: 4mm; }
+      #certificate .c-sign { margin-top: 10mm; display: flex; gap: 40mm; font-size: 10pt; color: #444; }
+      #certificate .c-sign span { border-top: 0.4mm solid #111; padding-top: 1.5mm; min-width: 60mm; }
+    }
   </style>
 </head>
 <body>
@@ -208,7 +268,7 @@
 </div>
 
 <div id="hud">
-  <span>// SCHATTENSCHULE-TERMINAL</span>
+  <span id="hud-name">// SCHATTENSCHULE-TERMINAL</span>
   <span class="fw-bar" id="fw-bar"><span style="margin-right:0.4rem">FIREWALL</span></span>
   <span id="timer">00:00</span>
 </div>
@@ -217,6 +277,10 @@
 <div class="screen active" id="screen-login">
   <div class="term-head">// SYSTEM: SCHATTENSCHULE-ARCHIV</div>
   <div class="term-title">FORSCHUNGSPROTOKOLL<br>ZUGRIFF GESPERRT</div>
+  <div class="group-row">
+    <label for="group-name">GRUPPENNAME</label>
+    <input id="group-name" maxlength="24" autocomplete="off" spellcheck="false" placeholder="z. B. Die Füchse">
+  </div>
   <div style="color:#999;margin-bottom:1.25rem;font-size:0.95rem">Gebt den Zugangscode aus euren 4 Stationen ein — sortiert nach Moravas Zeichen:</div>
   <div class="digits" id="digits"></div>
   <div class="err" id="login-err"></div>
@@ -269,13 +333,40 @@
 <div class="screen" id="screen-victory">
   <div class="victory-title">RISS GESCHLOSSEN</div>
   <div style="font-size:0.75rem;letter-spacing:0.2em;color:#777">SCHATTENSCHULE VERSIEGELT</div>
-  <div style="font-size:0.95rem;color:#aaa;margin:1.5rem 0 0.5rem;line-height:1.6">
-    E. MORAVA ist frei.<br>Gebt eurer Lehrkraft das Lösungswort und eure Zeit:
+  <div id="v-group"></div>
+  <div id="v-morava"></div>
+  <div style="font-size:0.95rem;color:#aaa;margin:0.75rem 0 0.25rem;line-height:1.6">
+    Gebt eurer Lehrkraft das Lösungswort und eure Zeit:
   </div>
   <div class="solution-word" id="solution-display"></div>
   <div class="final-time">BENÖTIGTE ZEIT: <strong id="final-time"></strong></div>
   <div style="font-size:0.85rem;color:#666;max-width:380px;line-height:1.6">
     Das Protokoll ist geschlossen. Die Schattenwelt zieht sich zurück. Für jetzt.
+  </div>
+  <div class="v-actions">
+    <button class="btn" id="cert-btn">🖨 URKUNDE DRUCKEN</button>
+  </div>
+</div>
+
+<!-- Einblendung zwischen den Firewalls -->
+<div id="breach" aria-live="polite">
+  <div class="br-small" id="br-small"></div>
+  <div class="br-big" id="br-big">DURCHBROCHEN</div>
+  <div class="br-bar"><i id="br-fill"></i></div>
+</div>
+
+<!-- Urkunde (nur Druck) -->
+<div id="certificate">
+  <div class="c-frame">
+    <div class="c-sym">▲ ● ■ ✦</div>
+    <div class="c-title">URKUNDE</div>
+    <div class="c-sub">SCHATTENSCHULE · FALL 2024-∅∅7</div>
+    <div class="c-text">Hiermit wird bestätigt, dass die Ermittlungsgruppe</div>
+    <div class="c-group" id="c-group"></div>
+    <div class="c-text">alle vier Stationen gelöst, die Firewalls durchbrochen, den Wächter besiegt
+      und Privatdetektiv E. Morava aus der Schattenwelt befreit hat.<br>Der Riss ist geschlossen.</div>
+    <div class="c-meta"><span>Zeit: <strong id="c-time"></strong></span><span>Datum: <strong id="c-date"></strong></span></div>
+    <div class="c-sign"><span>Lehrkraft</span><span>E. Morava, Privatdetektiv</span></div>
   </div>
 </div>
 
@@ -287,7 +378,7 @@
 // Der Zugangscode kommt aus js/interactions.js → STATIONS (Fragmente in Feld-Reihenfolge ▲ ● ■ ✦)
 const CODE_GROUPS  = getStationsByField();
 const CORRECT_CODE = CODE_GROUPS.map(s => s.code).join('');
-const SOLUTION_WORD = 'RISS∅CHER';
+const SOLUTION_WORD = 'RISS GESCHLOSSEN';
 // Finale „Hacker-Duell“: pro Phase Befehle zum Abtippen (ohne Umlaute), zeit = Sekunden pro Befehl,
 // spruch = was der Wächter zu Beginn der Phase sagt. Jeder richtig getippte Befehl = 1 Treffer.
 const DUELL = [
@@ -405,7 +496,13 @@ CODE_GROUPS.forEach((g, gi) => {
 });
 const digitInputs = [...document.querySelectorAll('.digit')];
 const CODE_LEN = digitInputs.length;
-digitInputs[0].focus();
+$('group-name').focus();
+$('group-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); digitInputs[0].focus(); } });
+let groupName = '';
+function setGroupName() {
+  groupName = $('group-name').value.trim().replace(/\s+/g, ' ');
+  if (groupName) $('hud-name').textContent = '// GRUPPE: ' + groupName.toUpperCase();
+}
 
 digitInputs.forEach((inp, i) => {
   inp.addEventListener('input', () => {
@@ -433,6 +530,7 @@ function checkCode() {
   const code = digitInputs.map(d => d.value).join('');
   if (code === CORRECT_CODE) {
     loggedIn = true;
+    setGroupName();
     $('login-err').style.color = '#33ff66';
     $('login-err').textContent = '✓ ZUGRIFF GEWÄHRT — FIREWALL WIRD GEHACKT …';
     setTimeout(() => { startTimer(); startLevel(0); }, 900);
@@ -487,7 +585,7 @@ function startLevel(i) {
       clearTimeout(hintTimer);
       $('lvl-err').style.color = '#33ff66';
       $('lvl-err').textContent = '✓ FIREWALL ' + (i + 1) + ' DURCHBROCHEN';
-      setTimeout(() => { $('lvl-err').style.color = ''; startLevel(i + 1); }, 1200);
+      setTimeout(() => showBreach(i + 1, () => { $('lvl-err').style.color = ''; startLevel(i + 1); }), 500);
     }
   };
   const extraCleanup = RENDERERS[lvl.type](lvl, ctx);
@@ -629,7 +727,7 @@ const RENDERERS = {
       g.strokeStyle = '#33ff6680'; g.lineWidth = 1;
       g.strokeRect(z.x + 0.5, z.y + 0.5, z.w - 1, z.h - 1);
       g.fillStyle = '#33ff66'; g.font = '10px Courier New'; g.textAlign = 'center';
-      g.fillText(z.label, z.x + z.w / 2, z.y + z.h / 2 + 3);
+      g.fillText(z.label, z.x + z.w / 2, z.y + 13);   // Beschriftung oben im Feld (Mitte ist der Startplatz)
     }
 
     function draw() {
@@ -1081,14 +1179,42 @@ function updateHPBar() {
   $('hp-text').textContent = Math.ceil(pct) + '%';
 }
 
+// Vollbild-Einblendung nach jeder Firewall (ca. 1,7 s)
+function showBreach(nDone, then) {
+  const all = nDone >= LEVELS.length;
+  $('br-small').textContent = all ? '// ' + LEVELS.length + ' / ' + LEVELS.length + ' FIREWALLS' : '// FIREWALL ' + nDone + ' / ' + LEVELS.length;
+  $('br-big').textContent = all ? 'ALLE FIREWALLS DURCHBROCHEN' : 'DURCHBROCHEN';
+  $('br-fill').style.setProperty('--br-to', (nDone / LEVELS.length * 100) + '%');
+  const b = $('breach');
+  b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  setTimeout(() => { b.classList.remove('on'); then(); }, all ? 2200 : 1700);
+}
+
 function showVictory() {
   clearInterval(timerId);
   const elapsed = startTime ? Date.now() - startTime : 0;
   $('hud').classList.remove('on');
   $('solution-display').textContent = SOLUTION_WORD;
   $('final-time').textContent = fmtTime(elapsed);
+  $('v-group').textContent = groupName ? 'GRUPPE: ' + groupName.toUpperCase() : '';
+  // Urkunde vorbereiten
+  $('c-group').textContent = groupName || '____________________';
+  $('c-time').textContent = fmtTime(elapsed);
+  $('c-date').textContent = new Date().toLocaleDateString('de-AT');
   showScreen('victory');
+  // Morava meldet sich
+  const msg = '» … hier Morava. Ich bin zurück! Ohne euch wäre ich für immer in der Schattenwelt geblieben. Danke, Detektive. «';
+  const el = $('v-morava'); el.textContent = '';
+  let k = 0;
+  const tw = setInterval(() => { el.textContent = msg.slice(0, ++k); if (k >= msg.length) clearInterval(tw); }, 30);
 }
+
+$('cert-btn').addEventListener('click', () => {
+  document.body.classList.add('print-cert');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-cert'), 500);
+});
+window.addEventListener('afterprint', () => document.body.classList.remove('print-cert'));
 
 // ── Lehrer-Testmodus: hack.html?lehrer=N ────────────────────────────────
 const testLevel = parseInt(new URLSearchParams(location.search).get('lehrer'), 10);
