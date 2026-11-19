@@ -47,7 +47,8 @@ jobs:
       env:
         FTP_SERVER: ${{ secrets.FTP_SCHULE3_SERVER }}
         FTP_USER: ${{ secrets.FTP_SCHULE3_USER }}
-        LFTP_PASSWORD: ${{ secrets.FTP_SCHULE3_PASSWORD }}
+        # Ersatz: ist FTP_SCHULE3_PASSWORD leer, wird ftp_password (gleicher Benutzer schulprojekt) verwendet
+        LFTP_PASSWORD: ${{ secrets.FTP_SCHULE3_PASSWORD || secrets.ftp_password }}
       run: |
         sudo apt-get install -y lftp -q
         # Eingaben bereinigen: Leerzeichen/Zeilenumbrüche beim Einfügen ins Secret entfernen,
