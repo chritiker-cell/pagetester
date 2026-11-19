@@ -163,7 +163,7 @@
          Modell-Ursprung liegt in der Mitte → um 0,949 × Skalierung anheben, damit die Füße auf dem Blatt stehen.
          Augen-Koordinaten sind Modell-Koordinaten (Mitte der Augenhöhlen). -->
     <a-entity id="creature">
-      <a-entity id="kreatur" position="0 0.404 0" scale="0.425 0.425 0.425" visible="false">
+      <a-entity id="kreatur" position="0 0.503 0" scale="0.53 0.53 0.53" visible="false">
         <a-gltf-model id="kreatur-modell" data-src="assets/models/kreatur-funkraum.glb" data-prio="1"></a-gltf-model>
         <a-sphere id="eye-l" radius="0.05" position="-0.085 0.43 0.38" color="#330000" opacity="0.4" material="shader: flat">
           <a-sphere class="glow" radius="0.064" color="#ff2a2a" opacity="0" material="shader: flat; transparent: true"></a-sphere>
@@ -537,10 +537,8 @@
   }
 
   function defaultPrompt() {
-    // Empfehlung erst, wenn die Gruppe ihre erste Station gescannt hat
-    const next = getRoute().length ? nextRecommended() : null;
-    setPrompt('▸ RICHTET DIE KAMERA AUF EIN MOTIV' +
-              (next ? '<span class="rec">EMPFOHLEN: ' + stationLabel(next) + '</span>' : ''));
+    // Keine dauerhafte Empfehlung unten – die nächste Station wird nur nach dem Lösen kurz eingeblendet
+    setPrompt('▸ RICHTET DIE KAMERA AUF EIN MOTIV');
   }
 
   // Die zuerst gescannte Station legt die Reihenfolge fest (Rotation ab dort),
