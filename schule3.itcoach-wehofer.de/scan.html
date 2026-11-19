@@ -25,6 +25,12 @@
       font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem; cursor: pointer;
     }
     #sound-btn.on { border-color: #cc3300; color: #e0e0e0; }
+    #home-btn {
+      position: fixed; top: 3.2rem; left: 0.75rem; z-index: 120;
+      background: #000c; border: 1px solid #444; color: #999; text-decoration: none;
+      font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem;
+    }
+    #reset-tap { cursor: pointer; user-select: none; -webkit-user-select: none; }
     #sound-btn.nudge { border-color: #33ff77; color: #33ff77; animation: soundNudge 1s ease-in-out infinite; }
     @keyframes soundNudge { 50% { box-shadow: 0 0 14px #33ff77; } }
     #radio-tip {
@@ -84,12 +90,13 @@
 <body>
 
 <div id="station-ui">
-  <span class="station-label">◉ SCANNER</span>
+  <span class="station-label" id="reset-tap" title="Lehrkraft: 5× tippen = Reset">◉ SCANNER</span>
   <span class="station-title" id="station-title">MOTIV SUCHEN</span>
   <span class="station-label" id="progress-counter"></span>
 </div>
 
 <div id="signal-hud"></div>
+<a id="home-btn" href="index.html">⌂ START</a>
 <button id="sound-btn" type="button">🔇 TON</button>
 <div id="scan-prompt"></div>
 <button id="action-btn" type="button" hidden></button>
@@ -631,7 +638,7 @@
 
   // Tipp auf den Bildschirm → an die aktive Station (große Fläche statt genau auf die wackelnde Figur)
   document.addEventListener('pointerup', e => {
-    if (e.target.closest('#radio, button, #hint-overlay, #station-ui, input')) return;
+    if (e.target.closest('#radio, button, #hint-overlay, #station-ui, #home-btn, input')) return;
     const mod = MODULES.find(m => m.id === activeId);
     if (mod && mod.onTap) mod.onTap();
   });
@@ -665,6 +672,22 @@
   $('kreatur-modell').addEventListener('model-loaded', () => $('kreatur').setAttribute('visible', true));
   document.querySelector('a-scene').addEventListener('arReady', ladeModelle);
   setTimeout(ladeModelle, 8000);   // Sicherheitsnetz, falls arReady ausbleibt
+
+  // ── Lehrer-Reset direkt im Scanner: 5× innerhalb von 2 s auf „◉ SCANNER“ tippen ──
+  let resetTaps = 0, resetTimer = null;
+  $('reset-tap').addEventListener('click', () => {
+    resetTaps++;
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(() => { resetTaps = 0; $('reset-tap').textContent = '◉ SCANNER'; }, 2000);
+    if (resetTaps >= 5) {
+      resetTaps = 0;
+      try { resetProgress(); localStorage.clear(); } catch {}
+      $('reset-tap').textContent = '✓ RESET';
+      setTimeout(() => location.reload(), 700);
+    } else if (resetTaps >= 2) {
+      $('reset-tap').textContent = 'RESET ' + (5 - resetTaps) + '×';
+    }
+  });
 
   MODULES.forEach(m => m.init());
   updateHeader();
