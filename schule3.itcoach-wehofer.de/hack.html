@@ -139,13 +139,48 @@
     .pipe-cable.dst { left: -3px; right: 48%; background: #1f4a2c; }
     .pipe-cable.dst.on { background: #7dffa0; box-shadow: 0 0 6px #33ff66; }
 
-    /* Boss */
-    #boss-canvas { border: 1px solid #33ff6644; display: block; touch-action: none; cursor: crosshair; }
-    #hp-bar-wrap { width: min(640px, 90vw); margin-bottom: 1rem; }
+    /* Finale: Hacker-Duell gegen den Wächter */
+    #duell { width: min(760px, 94vw); }
+    #hp-bar-wrap { width: 100%; margin-bottom: 0.8rem; }
     .hp-label { font-size: 0.7rem; letter-spacing: 0.2em; color: #c00; margin-bottom: 0.3rem; display: flex; justify-content: space-between; }
     #hp-bar-bg { background: #1a0000; height: 9px; width: 100%; }
-    #hp-bar { height: 9px; background: #c00; transition: width 0.2s; box-shadow: 0 0 10px #c00; width: 100%; }
-    #boss-instruction { font-size: 0.85rem; color: #33ff66cc; margin-top: 0.75rem; letter-spacing: 0.1em; }
+    #hp-bar { height: 9px; background: #c00; transition: width 0.3s; box-shadow: 0 0 10px #c00; width: 100%; }
+    #stage {
+      position: relative; width: 100%; height: min(42vh, 400px); min-height: 240px; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 95%, #3a0000 0%, #0a0000 45%, #000 75%);
+      border: 1px solid #c0000055; box-shadow: inset 0 0 60px #000, 0 0 30px #c0000022;
+    }
+    #stage a-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+    #flash { position: absolute; inset: 0; background: #ff0000; opacity: 0; pointer-events: none; z-index: 3; transition: opacity 0.4s; }
+    #stage-load { position: absolute; bottom: 10px; left: 0; right: 0; font-size: 0.7rem; color: #c00; letter-spacing: 0.25em; z-index: 2; }
+    #w-fallback { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: 3.5rem; z-index: 1; padding-bottom: 12%; }
+    #w-fallback i { width: 26px; height: 26px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 25px 8px #ff2a2a; animation: dPulse 2.2s infinite; }
+    .a-enter-vr, .a-enter-ar, .a-orientation-modal { display: none !important; }
+    #w-dialog {
+      min-height: 3.2em; white-space: pre-line; color: #ff5a5a; font-size: 1.05rem; letter-spacing: 0.08em;
+      margin: 0.9rem 0 0.5rem; text-shadow: 0 0 10px #c00; line-height: 1.55;
+    }
+    #w-start { border-color: #c00; color: #ff5a5a; }
+    #w-start:hover, #w-start:focus-visible { background: #c0000022; }
+    #w-cmd-wrap { display: none; }
+    #w-cmd { font: bold 1.7rem 'Courier New', monospace; letter-spacing: 0.08em; margin: 0.2rem 0 0.7rem; white-space: pre-wrap; word-break: break-all; }
+    #w-cmd .ok   { color: var(--acc); text-shadow: 0 0 8px var(--acc); }
+    #w-cmd .cur  { color: #fff; border-bottom: 3px solid var(--acc); animation: dBlink 1s steps(1) infinite; }
+    #w-cmd .rest { color: #5a5a5a; }
+    #w-input {
+      width: min(520px, 90vw); background: #000; border: 1px solid #33ff6666; border-bottom: 2px solid var(--acc);
+      color: var(--txt); font: bold 1.3rem 'Courier New', monospace; padding: 0.5rem 0.8rem; outline: none; text-align: center;
+    }
+    #w-input:focus { box-shadow: 0 0 14px #33ff6655; }
+    #w-input.bad { border-color: #c00; animation: dShake 0.25s; }
+    #atk-wrap { width: min(520px, 90vw); margin: 0.9rem auto 0; }
+    #atk-bg { height: 7px; background: #1a0000; }
+    #atk-bar { height: 7px; width: 0; background: linear-gradient(90deg, #c00, #ff6a00); box-shadow: 0 0 10px #c00; }
+    #w-msg { min-height: 1.4em; margin-top: 0.7rem; font-size: 0.85rem; letter-spacing: 0.15em; }
+    @keyframes dPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @keyframes dBlink { 50% { border-color: transparent; } }
+    @keyframes dShake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
     /* Sieg */
     .victory-title { font-size: 1.8rem; color: var(--acc); letter-spacing: 0.3em; animation: glitch 2s infinite; margin-bottom: 0.5rem; }
@@ -203,13 +238,31 @@
 
 <!-- 3. Finale -->
 <div class="screen" id="screen-boss">
-  <div class="lvl-label" style="margin-bottom:0.75rem">// LETZTE SPERRE: DER WÄCHTER</div>
-  <div id="hp-bar-wrap">
-    <div class="hp-label"><span>DÄMON — GESUNDHEIT</span><span id="hp-text">100%</span></div>
-    <div id="hp-bar-bg"><div id="hp-bar"></div></div>
+  <div id="duell">
+    <div class="lvl-label" style="margin-bottom:0.75rem">// LETZTE SPERRE: DER WÄCHTER</div>
+    <div id="hp-bar-wrap">
+      <div class="hp-label"><span>WÄCHTER — INTEGRITÄT</span><span id="hp-text">100%</span></div>
+      <div id="hp-bar-bg"><div id="hp-bar"></div></div>
+    </div>
+    <div id="stage">
+      <div id="w-fallback"><i></i><i></i></div>
+      <canvas id="fx"></canvas>
+      <div id="flash"></div>
+      <div id="stage-load">◌ DER WÄCHTER ERSCHEINT …</div>
+    </div>
+    <div id="w-dialog"></div>
+    <button class="btn" id="w-start" hidden>▸ DUELL STARTEN</button>
+    <div id="w-cmd-wrap">
+      <div class="lvl-label" id="w-phase"></div>
+      <div id="w-cmd"></div>
+      <input id="w-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Befehl eintippen">
+      <div id="atk-wrap">
+        <div class="hp-label"><span>ANGRIFF DES WÄCHTERS</span><span id="atk-text"></span></div>
+        <div id="atk-bg"><div id="atk-bar"></div></div>
+      </div>
+      <div id="w-msg"></div>
+    </div>
   </div>
-  <canvas id="boss-canvas"></canvas>
-  <div id="boss-instruction">▸ KLICKT AUF DEN DÄMON, UM IHN ZU TREFFEN</div>
 </div>
 
 <!-- 4. Sieg -->
@@ -235,7 +288,16 @@
 const CODE_GROUPS  = getStationsByField();
 const CORRECT_CODE = CODE_GROUPS.map(s => s.code).join('');
 const SOLUTION_WORD = 'RISS∅CHER';
-const BOSS_MAX_HP   = 20;              // Treffer bis zum Sieg
+// Finale „Hacker-Duell“: pro Phase Befehle zum Abtippen (ohne Umlaute), zeit = Sekunden pro Befehl,
+// spruch = was der Wächter zu Beginn der Phase sagt. Jeder richtig getippte Befehl = 1 Treffer.
+const DUELL = [
+  { zeit: 14, befehle: ['SCAN', 'PING', 'LOCK', 'TRACE'],
+    spruch: 'Ihr glaubt, ihr könnt mich aufspüren?' },
+  { zeit: 11, befehle: ['FIREWALL AN', 'RISS SCHLIESSEN', 'ZUGANG SPERREN', 'MORAVA FREI'],
+    spruch: 'Ihr seid hartnäckig … jetzt werde ich ernst!' },
+  { zeit: 9,  befehle: ['sudo bann --waechter', 'protokoll.loeschen()', 'schatten.exit()', 'SYSTEM RESET'],
+    spruch: 'Ich lasse mich nicht löschen!' },
+];
 const HINT_AFTER_ERRORS  = 2;          // Tipp-Button nach so vielen Fehlversuchen …
 const HINT_AFTER_SECONDS = 90;         // … oder nach so vielen Sekunden
 // Zum Testen: hack.html?lehrer=3 springt direkt zu Firewall 3 (5 = Finale)
@@ -739,112 +801,282 @@ const RENDERERS = {
   },
 };
 
-// ── Finale: Dämon (aus boss.html übernommen, für Maus angepasst) ─────────
-const canvas = $('boss-canvas');
-const cx = canvas.getContext('2d');
-let bossHP, bossX, bossY, bossVX, bossVY, bossSize, baseSpeed, animId, bossPhase;
-const particles = [];
+// ── Finale: Hacker-Duell gegen den Wächter (3D-Monster aus dem Funkraum) ──
+const AFRAME_URL = 'https://aframe.io/releases/1.6.0/aframe.min.js';
+const W_MODEL    = 'assets/models/kreatur-funkraum.glb';
+const W_TOTAL    = DUELL.reduce((n, p) => n + p.befehle.length, 0);
+const fxCanvas = $('fx');
+const fx = fxCanvas.getContext('2d');
+const wInput = $('w-input');
+let D = null;                      // Zustand des Duells
+const fxParts = [];
 
-function startBossFight() {
+function startBossFight() { startDuell(); }
+
+function ladeAFrame() {
+  return new Promise((res, rej) => {
+    if (window.AFRAME) return res();
+    const s = document.createElement('script');
+    s.src = AFRAME_URL; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+function baueSzene() {
+  // Modell-Ursprung liegt in der Mitte (Höhe ca. −0.95 … +0.95); Augen = Modellkoordinaten wie in scan.html
+  const auge = x =>
+    '<a-sphere class="w-eye" radius="0.05" position="' + x + ' 0.43 0.38" color="#ff2a2a" material="shader: flat">' +
+      '<a-sphere class="glow" radius="0.07" color="#ff2a2a" opacity="0.35" material="shader: flat; transparent: true"></a-sphere>' +
+    '</a-sphere>';
+  $('stage').insertAdjacentHTML('afterbegin',
+    '<a-scene embedded vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" loading-screen="enabled: false" ' +
+    'device-orientation-permission-ui="enabled: false" renderer="colorManagement: true; antialias: true" ' +
+    'background="color: #000" fog="type: exponential; color: #000; density: 0.2">' +
+      '<a-entity camera="fov: 45" position="0 -0.15 2.7" rotation="5 0 0" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>' +
+      '<a-entity light="type: ambient; color: #663333; intensity: 0.7"></a-entity>' +
+      '<a-entity light="type: directional; color: #ffffff; intensity: 0.6" position="0 1 2"></a-entity>' +
+      '<a-entity light="type: point; color: #ff2200; intensity: 2.5; distance: 6" position="0 -1.3 1.2"></a-entity>' +
+      '<a-entity id="w-dist" position="0 -2.6 0"' +
+        ' animation__rise="property: position; to: 0 0 0; dur: 2600; easing: easeOutCubic; startEvents: rise"' +
+        ' animation__near="property: position; to: 0 0 0.4; dur: 1200; easing: easeInOutQuad; startEvents: near"' +
+        ' animation__die="property: scale; to: 0.01 0.01 0.01; dur: 1800; easing: easeInBack; startEvents: die">' +
+        '<a-entity id="w-jolt"' +
+          ' animation__hit="property: position; from: 0 0 -0.25; to: 0 0 0; dur: 380; easing: easeOutQuad; startEvents: hit"' +
+          ' animation__atk="property: position; from: 0 0.05 0.75; to: 0 0 0; dur: 650; easing: easeOutQuad; startEvents: atk">' +
+          '<a-entity id="w-sway" rotation="0 -8 0" animation__sway="property: rotation; to: 0 8 0; dir: alternate; loop: true; dur: 3200; easing: easeInOutSine">' +
+            '<a-gltf-model id="w-model" src="' + W_MODEL + '"></a-gltf-model>' +
+            auge(-0.085) + auge(0.085) +
+          '</a-entity>' +
+        '</a-entity>' +
+      '</a-entity>' +
+    '</a-scene>');
+  $('w-model').addEventListener('model-loaded', () => {
+    if (!D) return;
+    D.loaded = true;
+    $('stage-load').textContent = '';
+    $('w-fallback').style.display = 'none';
+    $('w-dist').emit('rise');
+  });
+}
+
+function zeigeRueckfall() {
+  if (!D || D.loaded) return;
+  $('stage-load').textContent = '';
+  $('w-fallback').style.display = 'flex';
+}
+
+function setWEyes(color) {
+  document.querySelectorAll('.w-eye').forEach(e => {
+    e.setAttribute('color', color);
+    const g = e.querySelector('.glow'); if (g) g.setAttribute('color', color);
+  });
+  document.querySelectorAll('#w-fallback i').forEach(i => {
+    i.style.background = color; i.style.boxShadow = '0 0 25px 8px ' + color;
+  });
+}
+const baseEyeColor = () => (D && D.phase >= 1 ? '#ffd21a' : '#ff2a2a');
+
+function emitW(id, ev) { const el = $(id); if (el && el.emit) el.emit(ev); }
+
+function tippe(text, cb) {
+  clearInterval(D.tw);
+  const el = $('w-dialog'); el.textContent = '';
+  let i = 0;
+  D.tw = setInterval(() => {
+    el.textContent = text.slice(0, ++i);
+    if (i >= text.length) { clearInterval(D.tw); if (cb) cb(); }
+  }, 38);
+}
+
+function resizeFx() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  fxCanvas.width = fxCanvas.clientWidth * dpr;
+  fxCanvas.height = fxCanvas.clientHeight * dpr;
+  fx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function startDuell() {
   showScreen('boss');
-  const W = Math.min(640, window.innerWidth - 40);
-  const H = Math.max(260, Math.min(420, window.innerHeight - 260));
-  canvas.width = W;
-  canvas.height = H;
-  bossSize = Math.max(22, W * 0.06);
-  baseSpeed = W / 220;
-  bossX = W / 2; bossY = H / 2;
-  bossVX = baseSpeed; bossVY = baseSpeed * 0.8;
-  bossHP = BOSS_MAX_HP;
-  bossPhase = 1;
+  D = { hp: W_TOTAL, phase: 0, idx: 0, attacks: 0, active: false, running: true,
+        cmd: '', good: '', t0: 0, limit: 0, tw: null, shake: null, loaded: false };
   updateHPBar();
-  canvas.addEventListener('pointerdown', handleBossHit);
-  animId = requestAnimationFrame(bossLoop);
+  $('w-cmd-wrap').style.display = 'none';
+  $('w-start').hidden = true;
+  $('stage-load').textContent = '◌ DER WÄCHTER ERSCHEINT …';
+  resizeFx();
+  window.addEventListener('resize', resizeFx);
+
+  if (!$('stage').querySelector('a-scene')) {
+    ladeAFrame().then(baueSzene).catch(zeigeRueckfall);
+  }
+  setTimeout(zeigeRueckfall, 10000);   // kein WebGL / offline → glühende Augen in der Dunkelheit
+
+  tippe('IHR HABT MEINE FIREWALLS GEBROCHEN …\nABER AN MIR KOMMT IHR NICHT VORBEI.', () => {
+    $('w-start').hidden = false;
+    $('w-start').focus();
+  });
+  requestAnimationFrame(duellLoop);
 }
 
-function handleBossHit(e) {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
-  if (Math.hypot(mx - bossX, my - bossY) > bossSize + 10) return;
+$('w-start').addEventListener('click', () => {
+  $('w-start').hidden = true;
+  $('w-cmd-wrap').style.display = 'block';
+  tippe(DUELL[0].spruch);
+  naechsterBefehl();
+});
 
-  bossHP--;
+// Klick irgendwo im Finale → zurück ins Eingabefeld
+$('screen-boss').addEventListener('pointerup', e => {
+  if (D && D.active && e.target !== $('w-start')) wInput.focus();
+});
+
+function naechsterBefehl() {
+  const p = DUELL[D.phase];
+  D.cmd = p.befehle[D.idx];
+  D.good = '';
+  wInput.value = '';
+  D.limit = p.zeit * 1000 * (D.attacks >= 4 ? 1.5 : 1);
+  D.t0 = performance.now();
+  D.active = true;
+  $('w-phase').textContent = '// PHASE ' + (D.phase + 1) + ' / ' + DUELL.length + ' — TIPPT DEN BEFEHL';
+  renderCmd();
+  wInput.focus();
+}
+
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function renderCmd() {
+  const n = D.good.length, c = D.cmd;
+  $('w-cmd').innerHTML =
+    '<span class="ok">' + esc(c.slice(0, n)) + '</span>' +
+    (n < c.length ? '<span class="cur">' + esc(c[n] === ' ' ? ' ' : c[n]) + '</span>' +
+                    '<span class="rest">' + esc(c.slice(n + 1)) + '</span>' : '');
+}
+
+wInput.addEventListener('input', () => {
+  if (!D || !D.active) { wInput.value = ''; return; }
+  const v = wInput.value.replace(/^\s+/, '');
+  if (D.cmd.toUpperCase().startsWith(v.toUpperCase())) {
+    D.good = D.cmd.slice(0, v.length);          // Schreibweise des Befehls übernehmen
+  } else {
+    wInput.classList.remove('bad'); void wInput.offsetWidth; wInput.classList.add('bad');
+  }
+  wInput.value = D.good;
+  renderCmd();
+  if (D.good.length === D.cmd.length) treffer();
+});
+wInput.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+
+function burst(n, colors) {
+  const w = fxCanvas.clientWidth, h = fxCanvas.clientHeight;
+  for (let i = 0; i < n; i++) {
+    fxParts.push({ x: w / 2 + (Math.random() - 0.5) * 60, y: h * 0.38, vx: (Math.random() - 0.5) * 9, vy: (Math.random() - 0.7) * 7,
+                   life: 1, ch: Math.random() < 0.5 ? '0' : '1', color: colors[i % colors.length], fall: false });
+  }
+}
+
+function treffer() {
+  D.active = false;
+  D.hp--;
   updateHPBar();
-  spawnHitParticles(bossX, bossY);
-  screenShake(canvas);
-
-  const speedMult = 1 + (1 - bossHP / BOSS_MAX_HP) * 1.8;
-  bossVX = (Math.random() < 0.5 ? 1 : -1) * baseSpeed * speedMult;
-  bossVY = (Math.random() < 0.5 ? 1 : -1) * baseSpeed * 0.8 * speedMult;
-
-  if (bossHP <= BOSS_MAX_HP * 0.4 && bossPhase === 1) {
-    bossPhase = 2;
-    $('boss-instruction').textContent = '⚠ ER WIRD STÄRKER — TREFFT IHN WEITER!';
-  }
-  if (bossHP <= 0) {
-    cancelAnimationFrame(animId);
-    canvas.removeEventListener('pointerdown', handleBossHit);
-    setTimeout(showVictory, 400);
-  }
-}
-
-function spawnHitParticles(x, y) {
-  for (let i = 0; i < 10; i++) {
-    particles.push({ x, y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 1,
-                     color: Math.random() < 0.5 ? '#33ff66' : '#ff2a2a' });
+  emitW('w-jolt', 'hit');
+  setWEyes('#ffffff');
+  setTimeout(() => setWEyes(baseEyeColor()), 220);
+  screenShake($('stage'));
+  burst(22, ['#33ff66', '#7dffa0', '#ff2a2a']);
+  $('w-msg').style.color = '#33ff66';
+  $('w-msg').textContent = '✓ TREFFER — BEFEHL AUSGEFÜHRT';
+  $('atk-bar').style.width = '0%';
+  D.idx++;
+  if (D.hp <= 0) { setTimeout(sieg, 450); return; }
+  if (D.idx >= DUELL[D.phase].befehle.length) {
+    D.phase++; D.idx = 0;
+    setTimeout(phasenWechsel, 600);
+  } else {
+    setTimeout(naechsterBefehl, 550);
   }
 }
 
-function bossLoop() {
-  const W = canvas.width, H = canvas.height;
-  cx.clearRect(0, 0, W, H);
-
-  cx.strokeStyle = '#33ff6614';
-  cx.lineWidth = 1;
-  for (let x = 0; x < W; x += 30) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, H); cx.stroke(); }
-  for (let y = 0; y < H; y += 30) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
-
-  bossX += bossVX; bossY += bossVY;
-  if (bossX < bossSize) { bossX = bossSize; bossVX = Math.abs(bossVX); }
-  if (bossX > W - bossSize) { bossX = W - bossSize; bossVX = -Math.abs(bossVX); }
-  if (bossY < bossSize) { bossY = bossSize; bossVY = Math.abs(bossVY); }
-  if (bossY > H - bossSize) { bossY = H - bossSize; bossVY = -Math.abs(bossVY); }
-
-  const glowSize = bossSize * (1 + Math.sin(Date.now() / 400) * 0.15);
-  const bossColor = bossPhase === 1 ? '#ff2a2a' : '#ff0000';
-
-  cx.shadowColor = bossColor;
-  cx.shadowBlur = 20;
-  cx.fillStyle = bossColor + '33';
-  cx.beginPath(); cx.arc(bossX, bossY, glowSize * 1.4, 0, Math.PI * 2); cx.fill();
-  cx.fillStyle = '#1a0000';
-  cx.beginPath(); cx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); cx.fill();
-  cx.strokeStyle = bossColor;
-  cx.lineWidth = 2;
-  cx.beginPath(); cx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); cx.stroke();
-
-  cx.shadowBlur = 0;
-  cx.fillStyle = bossPhase === 1 ? '#ff0040' : '#ffff00';
-  const eyeOff = glowSize * 0.3;
-  cx.beginPath(); cx.arc(bossX - eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); cx.fill();
-  cx.beginPath(); cx.arc(bossX + eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); cx.fill();
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx; p.y += p.vy; p.life -= 0.05;
-    if (p.life <= 0) { particles.splice(i, 1); continue; }
-    cx.globalAlpha = p.life;
-    cx.fillStyle = p.color;
-    cx.fillRect(p.x - 2, p.y - 2, 4, 4);
+function phasenWechsel() {
+  $('w-msg').style.color = '#ff5a5a';
+  $('w-msg').textContent = '⚠ DER WÄCHTER WIRD STÄRKER';
+  setWEyes(baseEyeColor());
+  const d = $('w-dist');
+  if (d && d.setAttribute) {
+    d.setAttribute('animation__near', 'to', D.phase >= 2 ? '0 0 0.8' : '0 0 0.4');
+    d.emit('near');
   }
-  cx.globalAlpha = 1;
+  if (D.phase >= 2 && !D.shake) D.shake = setInterval(() => { if (D.active) screenShake($('stage')); }, 2200);
+  tippe(DUELL[D.phase].spruch);
+  setTimeout(naechsterBefehl, 1900);
+}
 
-  animId = requestAnimationFrame(bossLoop);
+function angriff() {
+  D.active = false;
+  D.attacks++;
+  emitW('w-jolt', 'atk');
+  const fl = $('flash'); fl.style.transition = 'none'; fl.style.opacity = '0.55';
+  requestAnimationFrame(() => { fl.style.transition = 'opacity 0.5s'; fl.style.opacity = '0'; });
+  screenShake($('duell'));
+  let msg;
+  if (D.idx > 0) { D.idx--; D.hp++; updateHPBar(); msg = '✕ ANGRIFF! DER WÄCHTER REPARIERT SICH (+1)'; }
+  else msg = '✕ ANGRIFF! VERSUCHT ES NOCHMAL';
+  if (D.attacks === 4) msg += ' — IHR BEKOMMT MEHR ZEIT';
+  $('w-msg').style.color = '#ff3b3b';
+  $('w-msg').textContent = msg;
+  wInput.value = '';
+  setTimeout(naechsterBefehl, 1300);
+}
+
+function sieg() {
+  D.active = false;
+  clearInterval(D.shake);
+  $('w-cmd-wrap').style.display = 'none';
+  tippe('NEIN … DAS LICHT …!\nDIE SCHATTENWELT … ZERFÄLLT …');
+  emitW('w-dist', 'die');
+  const m = $('w-model');
+  let k = 0;
+  const flicker = setInterval(() => {
+    k++;
+    if (m && m.setAttribute) m.setAttribute('visible', k % 2 === 0);
+    document.querySelectorAll('#w-fallback i').forEach(i => { i.style.opacity = k % 2 ? 0.2 : 1; });
+    if (k > 20) { clearInterval(flicker); if (m && m.setAttribute) m.setAttribute('visible', false); $('w-fallback').style.display = 'none'; }
+  }, 90);
+  D.rainUntil = performance.now() + 3500;
+  setTimeout(() => { D.running = false; window.removeEventListener('resize', resizeFx); showVictory(); }, 4200);
+}
+
+function duellLoop(now) {
+  if (!D || !D.running) return;
+  if (D.active) {
+    const frac = Math.min(1, (now - D.t0) / D.limit);
+    $('atk-bar').style.width = (frac * 100) + '%';
+    $('atk-text').textContent = Math.max(0, Math.ceil((D.limit - (now - D.t0)) / 1000)) + ' s';
+    if (frac >= 1) angriff();
+  }
+  // 0/1-Regen beim Sieg
+  const w = fxCanvas.clientWidth, h = fxCanvas.clientHeight;
+  if (D.rainUntil && now < D.rainUntil) {
+    for (let i = 0; i < 6; i++) fxParts.push({ x: Math.random() * w, y: -10, vx: 0, vy: 3 + Math.random() * 4, life: 1,
+                                               ch: Math.random() < 0.5 ? '0' : '1', color: Math.random() < 0.8 ? '#33ff66' : '#ff2a2a', fall: true });
+  }
+  fx.clearRect(0, 0, w, h);
+  fx.font = 'bold 14px Courier New, monospace';
+  for (let i = fxParts.length - 1; i >= 0; i--) {
+    const p = fxParts[i];
+    p.x += p.vx; p.y += p.vy;
+    if (!p.fall) { p.vy += 0.2; p.life -= 0.025; } else if (p.y > h + 10) p.life = 0;
+    if (p.life <= 0) { fxParts.splice(i, 1); continue; }
+    fx.globalAlpha = p.life;
+    fx.fillStyle = p.color;
+    fx.fillText(p.ch, p.x, p.y);
+  }
+  fx.globalAlpha = 1;
+  requestAnimationFrame(duellLoop);
 }
 
 function updateHPBar() {
-  const pct = Math.max(0, bossHP / BOSS_MAX_HP * 100);
+  const pct = Math.max(0, D.hp / W_TOTAL * 100);
   $('hp-bar').style.width = pct + '%';
   $('hp-text').textContent = Math.ceil(pct) + '%';
 }
