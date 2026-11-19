@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Morse-Tabelle — Funkraum</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; height: 297mm; min-height: 0; overflow: hidden; }
+      .page:last-child { page-break-after: auto; }
+    }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; }
+    .no-print button { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; }
+
+    .page {
+      width: 210mm; min-height: 297mm;
+      background: #f4f1e8;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 13mm 15mm;
+      position: relative;
+      font-family: 'Special Elite', monospace;
+      color: #1a1a1a;
+    }
+    .page::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: repeating-linear-gradient(0deg, #0000 0, #0000 6mm, #0000000a 6mm, #0000000a 6.2mm);
+    }
+    .page.lehrer { background: #fff; font-family: sans-serif; font-size: 9.5pt; color: #333; }
+    .page.lehrer::before { display: none; }
+
+    /* Kopf */
+    .kopf { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1a1a1a; padding-bottom: 3mm; margin-bottom: 5mm; position: relative; }
+    .kopf-titel { font-size: 21pt; letter-spacing: 0.12em; }
+    .kopf-titel span { color: #8b1a1a; }
+    .kopf-sub { font-size: 7.5pt; letter-spacing: 0.3em; color: #555; margin-top: 1mm; }
+    .kopf-sym {
+      width: 15mm; height: 15mm; border: 2px solid #8b1a1a; color: #8b1a1a;
+      display: flex; align-items: center; justify-content: center; font-size: 20pt;
+    }
+
+    /* Legende */
+    .legende { display: flex; gap: 4mm; margin-bottom: 5mm; position: relative; }
+    .leg { flex: 1; border: 1.5px solid #1a1a1a; background: #fffdf6; padding: 2.5mm 3mm; display: flex; align-items: center; gap: 3mm; font-size: 8.5pt; line-height: 1.35; }
+    .leg .vis { flex: none; display: flex; align-items: center; justify-content: center; width: 16mm; height: 9mm; background: #1a0505; }
+    .leg strong { font-size: 10pt; }
+
+    /* Zeichen (wie die Augen der Kreatur) */
+    .dot  { display: inline-block; width: 3.4mm; height: 3.4mm; border-radius: 50%; background: #8b1a1a; }
+    .dash { display: inline-block; width: 8.5mm; height: 2.4mm; border-radius: 1.2mm; background: #8b1a1a; }
+    .vis .dot  { background: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
+    .vis .dash { background: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
+    .vis .flash { width: 6mm; height: 6mm; border-radius: 50%; background: #33ff77; box-shadow: 0 0 10px 3px #33ff77; }
+
+    /* Alphabet */
+    .alphabet { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.2mm; position: relative; }
+    .zeichen {
+      display: flex; align-items: center; gap: 3mm;
+      border: 1px solid #1a1a1a55; background: #fffdf6;
+      padding: 1.6mm 2.5mm; min-height: 11.5mm;
+    }
+    .zeichen .bst { font-size: 17pt; width: 7mm; text-align: center; flex: none; }
+    .zeichen .code { display: flex; align-items: center; gap: 1.6mm; flex-wrap: nowrap; }
+    .zeichen .txt { margin-left: auto; font-size: 7pt; color: #777; letter-spacing: 0.1em; }
+
+    /* Notizfelder */
+    .abschnitt { font-size: 8.5pt; letter-spacing: 0.25em; color: #8b1a1a; margin: 6mm 0 3mm; position: relative; }
+    .notiz { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; position: relative; }
+    .notiz-feld { border: 1.5px solid #1a1a1a; background: #fffdf6; text-align: center; padding: 2mm; }
+    .notiz-feld .nr { font-size: 7pt; letter-spacing: 0.2em; color: #555; }
+    .notiz-feld .zeichenzeile { height: 11mm; border-bottom: 1px dashed #999; margin: 1.5mm 0; }
+    .notiz-feld .bstfeld { height: 12mm; border: 1px solid #999; margin-top: 2mm; }
+    .notiz-hinweis { font-family: 'Caveat', cursive; font-size: 12.5pt; color: #444; margin-top: 3mm; position: relative; }
+
+    /* Bildschirm: nichts abschneiden, auf schmalen Fenstern umbrechen (Druck bleibt A4 mit 3 Spalten) */
+    @media screen {
+      body { overflow-x: hidden; }
+      .page { max-width: 100%; }
+    }
+    @media screen and (max-width: 820px) {
+      body { padding: 0.75rem; gap: 1rem; }
+      .page { width: 100%; min-height: 0; padding: 6mm 5mm 16mm; }
+      .legende { flex-direction: column; gap: 2mm; }
+      .alphabet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .notiz { grid-template-columns: repeat(2, 1fr); }
+      .kopf-titel { font-size: 15pt; }
+    }
+
+    .fuss { position: absolute; bottom: 9mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; font-size: 7pt; color: #888; letter-spacing: 0.15em; }
+
+    /* Lehrer */
+    .lehrer-titel { font-size: 10.5pt; font-weight: bold; letter-spacing: 0.1em; border-bottom: 1px solid #999; padding-bottom: 2mm; margin-bottom: 4mm; }
+    .gelb-box { background: #fffde0; border: 1px solid #ccaa00; padding: 3mm 4mm; line-height: 1.6; margin-bottom: 4mm; }
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { background: #f6e6e0; border: 1px solid #aaa; padding: 2mm 3mm; text-align: left; width: 32%; }
+    .tbl td { border: 1px solid #ccc; padding: 2mm 3mm; line-height: 1.5; }
+    code { background: #f2f2f2; padding: 0 1mm; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Morse-Tabelle — Station ● Funkraum (1 Exemplar pro Station, empfohlen: laminiert)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: MORSE-TABELLE ═══ -->
+<div class="page">
+  <div class="kopf">
+    <div>
+      <div class="kopf-titel">MORAVAS <span>FUNK-NOTIZEN</span></div>
+      <div class="kopf-sub">INTERNATIONALER MORSECODE · FUNKRAUM · AKTE 2024-∅∅7</div>
+    </div>
+    <div class="kopf-sym">●</div>
+  </div>
+
+  <div class="legende">
+    <div class="leg">
+      <div class="vis"><span class="flash"></span></div>
+      <div><strong>Grünes Aufleuchten</strong><br>Das Signal beginnt von vorne.</div>
+    </div>
+    <div class="leg">
+      <div class="vis"><span class="dot"></span></div>
+      <div><strong>Punkt</strong><br>Auge blitzt kurz und rund auf.</div>
+    </div>
+    <div class="leg">
+      <div class="vis"><span class="dash"></span></div>
+      <div><strong>Strich</strong><br>Auge leuchtet lang als Schlitz.</div>
+    </div>
+  </div>
+
+  <div class="alphabet" id="alphabet"></div>
+
+  <div class="abschnitt">// ABGEFANGENES SIGNAL — HIER MITSCHREIBEN</div>
+  <div class="notiz">
+    <div class="notiz-feld"><div class="nr">BUCHSTABE 1</div><div class="zeichenzeile"></div><div class="bstfeld"></div></div>
+    <div class="notiz-feld"><div class="nr">BUCHSTABE 2</div><div class="zeichenzeile"></div><div class="bstfeld"></div></div>
+    <div class="notiz-feld"><div class="nr">BUCHSTABE 3</div><div class="zeichenzeile"></div><div class="bstfeld"></div></div>
+    <div class="notiz-feld"><div class="nr">BUCHSTABE 4</div><div class="zeichenzeile"></div><div class="bstfeld"></div></div>
+  </div>
+  <div class="notiz-hinweis">
+    Zeichne oben jedes Aufblitzen mit (● oder ▬), unten kommt der Buchstabe hin.
+    Die Kreatur wiederholt ihr Signal — verpasst ihr etwas, wartet auf das grüne Aufleuchten.
+    Das fertige Wort ist <strong>Moravas Kennwort</strong> für das Funkgerät.
+  </div>
+
+  <div class="fuss"><span>SCHATTENSCHULE · FUNKRAUM</span><span>— E.M.</span></div>
+</div>
+
+<!-- ═══ SEITE 2: LEHRER ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 2 / Funkraum (NICHT für Schüler)</div>
+  <div class="gelb-box">
+    <strong>Ablauf:</strong> Marker scannen → die Augen der Kreatur morsen das Kennwort in Schleife
+    (grünes Aufleuchten = Anfang, oben zeigt ein Zähler „BUCHSTABE 1/4“) → Schüler schreiben mit und entschlüsseln
+    mit dieser Tabelle → nach einem vollständigen Durchgang Bildschirm antippen → Funkgerät öffnet sich →
+    Kennwort eingeben → Morava meldet sich und funkt das Code-Fragment.<br><br>
+    <strong>Kennwort:</strong> <code>CLUE</code> &nbsp;=&nbsp; C <code>–·–·</code> · L <code>·–··</code> · U <code>··–</code> · E <code>·</code><br>
+    <strong>Code-Fragment für Feld ●:</strong> <strong>725</strong>
+  </div>
+  <table class="tbl">
+    <tr><th>Material</th><td>Diese Tabelle (laminiert oder in Klarsichthülle), Stifte, ggf. Notizpapier. Optional als Deko: altes Radio / Walkie-Talkie.</td></tr>
+    <tr><th>Falsches Kennwort</th><td>Funkgerät zeigt „Nur Rauschen“ und ist 30 s gesperrt (gegen Raten).</td></tr>
+    <tr><th>Häufige Fehler</th><td>Das <strong>E</strong> ist nur ein einzelner kurzer Punkt und wird leicht übersehen — auf den Zähler „BUCHSTABE 4/4“ hinweisen.</td></tr>
+    <tr><th>Tipp-Stufen (mündlich)</th><td>1. „Wartet auf das grüne Aufleuchten und schreibt erst dann mit.“<br>2. „Achtet auf die Form: rund = Punkt, Schlitz = Strich.“<br>3. „Das Wort ist Englisch und hat mit Detektiven zu tun.“</td></tr>
+    <tr><th>Ton</th><td>Oben rechts lässt sich ein Piepton passend zum Blinken einschalten (hilft beim Mitschreiben, wenn es ruhig genug ist).</td></tr>
+    <tr><th>Anpassen</th><td>Kennwort und Tempo in <code>station-2.html</code> (oben im Script), Fragment in <code>js/interactions.js</code> → <code>STATIONS</code>.</td></tr>
+  </table>
+</div>
+
+<script>
+  const MORSE = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..',
+    J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.',
+    S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..'
+  };
+  const wrap = document.getElementById('alphabet');
+  for (const [letter, code] of Object.entries(MORSE)) {
+    const vis = [...code].map(c => c === '.' ? '<span class="dot"></span>' : '<span class="dash"></span>').join('');
+    const txt = code.replace(/\./g, '·').replace(/-/g, '–');
+    wrap.insertAdjacentHTML('beforeend',
+      '<div class="zeichen"><span class="bst">' + letter + '</span><span class="code">' + vis + '</span><span class="txt">' + txt + '</span></div>');
+  }
+</script>
+</body>
+</html>

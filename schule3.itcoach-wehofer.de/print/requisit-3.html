@@ -7,6 +7,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
     @media print {
       body { background: none; padding: 0; gap: 0; }
       .no-print { display: none; }
@@ -148,7 +149,7 @@
 </head>
 <body>
 <div class="no-print">
-  <span>Requisit 3 — Beweismittel-Etikett (Station: WC / Spiegel)</span>
+  <span>Requisit 3 — Beweismittel-Etikett (Station: Altes Labor)</span>
   <button onclick="window.print()">🖨 Drucken</button>
 </div>
 
@@ -189,26 +190,19 @@
       <span class="etik-wert">Codierte Nachricht — Klasse SHADOW</span>
     </div>
 
-    <!-- RÄTSEL: Gespiegelter Text -->
-    <div class="spiegel-box">
-      <div class="spiegel-titel">⚠ AUFGABE — Lies die Botschaft:</div>
-      <div class="spiegel-text">74</div>
+    <!-- RÄTSEL: Gespiegelte Frage -->
+    <div class="spiegel-box" style="text-align:center">
+      <div class="spiegel-titel" style="text-align:left">⚠ AUFGABE — Lies und beantworte die Frage:</div>
+      <div class="spiegel-text" style="font-size:16pt;line-height:1.5">WIE VIELE BEINE<br>HAT EINE SPINNE?</div>
       <div class="spiegel-anweisung">
-        Halte dieses Blatt vor einen Spiegel<br>
-        oder dein Gerät — dann wird es lesbar.
+        Die Schattenwelt schreibt verkehrt herum …<br>
+        Ein Spiegel hilft. Oder das Licht von hinten.
       </div>
     </div>
 
-    <!-- Kachel-Symbole Hinweis -->
-    <div class="symbole-box">
-      <div class="symbole-hinweis">ZUSATZ-BEOBACHTUNG: Schaut an die Kacheln.</div>
-      <div class="symbole-hinweis">Drei bekannte Symbole — ihre Reihenfolge ist wichtig:</div>
-      <div class="symbole-reihe">△ &nbsp; ☾ &nbsp; □</div>
-      <div class="symbole-hinweis" style="color:#8b1a1a">Merkt euch diese Reihenfolge für später.</div>
-    </div>
-
     <div style="margin-top:4mm; font-family:'Caveat',cursive; font-size:11pt; color:#555; text-align:center;">
-      Scannt das Siegel — schüttelt das Gerät wenn ihr bereit seid.
+      Scannt das Siegel und tippt das Auge an — gebt die Antwort dann im Gerät ein.<br>
+      <span style="font-family:'Special Elite',monospace;font-size:8pt;color:#8b1a1a">→ Code-Fragment für Feld ■</span>
     </div>
 
   </div>
@@ -217,29 +211,25 @@
 
 <!-- ═══ SEITE 2: LEHRER ═══ -->
 <div class="page lehrer">
-  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 3 / WC-Spiegel (NICHT für Schüler)</div>
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 3 / Altes Labor (NICHT für Schüler)</div>
   <div class="gelb-box">
-    <strong>Vorbereitung:</strong> Etikett ausdrucken und laminieren (optional). Im WC verstecken —
-    empfohlen: hinter den Spiegel geklemmt, sodass es nicht sofort sichtbar ist. Schüler müssen kurz suchen.<br><br>
+    <strong>Vorbereitung:</strong> Etikett auf normales (dünnes) Papier drucken und im Labor-Bereich verstecken —
+    z. B. hinter die Tafel oder unter das Lehrerpult geklebt. Schüler müssen kurz suchen.<br><br>
     <strong>Marker:</strong> Das Auge-Symbol (👁) in der Mitte des Etiketts dient als MindAR-Target.
     Beim Laminieren darauf achten, dass kein Glanz das Tracking stört.<br><br>
-    <strong>Gespiegelter Text:</strong> <code>74</code> ist CSS-gespiegelt gedruckt → im Spiegel liest man <strong>47</strong>
-    (erste Hälfte des Laptop-Codes).<br><br>
-    <strong>Kachel-Symbole:</strong> △ ☾ □ — diese Reihenfolge muss physisch auf Kacheln angebracht werden
-    (Aufkleber oder Kreide-Stift) für Station 5 (Sequenz-Rätsel).
+    <strong>Gespiegelte Frage:</strong> „WIE VIELE BEINE HAT EINE SPINNE?“ ist gespiegelt gedruckt.
+    Lösung: <strong>8</strong> → das Gerät gibt das Code-Fragment <strong>803</strong> für Feld ■ (Laptop-Code 417 · 725 · 803 · 184).<br><br>
+    <strong>Lesbar machen:</strong> Einen kleinen Handspiegel an der Station bereitlegen —
+    oder das Blatt gegen das Fenster halten und von hinten lesen.
   </div>
   <table class="versteck-tbl">
     <tr><th>Element</th><th>Details</th></tr>
     <tr><td>Marker-Bild</td><td>Auge-Symbol in der Mitte (👁)</td></tr>
-    <tr><td>Physisches Rätsel 1</td><td>Gespiegelter Text "74" → Spiegel → "47" (1. Code-Hälfte)</td></tr>
-    <tr><td>Physisches Rätsel 2</td><td>Kachel-Symbole △ ☾ □ merken → für Station 5 Sequenz</td></tr>
-    <tr><td>AR-Aktion</td><td>Tap auf Auge → Spiegel-Hinweis → Schütteln → Code "47" + Kachel-Info</td></tr>
-    <tr><td>Versteck-Ort</td><td>Hinter/neben dem WC-Spiegel, nicht sofort sichtbar</td></tr>
-    <tr><td>Nächste Station</td><td>Balkon (Requisit 4)</td></tr>
+    <tr><td>Physisches Rätsel</td><td>Gespiegelte Frage lesen und beantworten → 8</td></tr>
+    <tr><td>AR-Aktion</td><td>Tap auf Auge → Hinweis auf das Etikett → Antwort im Gerät eingeben → Ziffer 8</td></tr>
+    <tr><td>Versteck-Ort</td><td>Altes Labor, nicht sofort sichtbar</td></tr>
+    <tr><td>Material</td><td>Handspiegel (optional)</td></tr>
   </table>
-  <div style="margin-top:4mm;padding:3mm;background:#ffe0e0;border:1px solid #c00;font-size:8.5pt;">
-    ⚠ Kachel-Symbole △ ☾ □ für den Spieltag vorbereiten! (z.B. mit ablösbaren Aufklebern auf 3 Kacheln)
-  </div>
 </div>
 </body>
 </html>

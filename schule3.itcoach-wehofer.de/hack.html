@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCHATTENSCHULE — Terminal</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --acc: #33ff66; --txt: #e0e0e0; --dim: #555; --hint: #d9a441; }
+    body { overflow: auto; }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1rem 2rem;
+      text-align: center;
+    }
+    .screen.active { display: flex; }
+
+    .term-head  { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.5rem; }
+    .term-title { font-size: 1.5rem; color: var(--acc); letter-spacing: 0.2em; margin-bottom: 2rem; animation: glitch 3s infinite; line-height: 1.5; }
+
+    .btn {
+      background: none;
+      border: 1px solid var(--acc);
+      color: var(--txt);
+      font: 1rem 'Courier New', monospace;
+      padding: 0.8rem 1.6rem;
+      cursor: pointer;
+      letter-spacing: 0.15em;
+    }
+    .btn:hover, .btn:focus-visible { background: #33ff6622; outline: none; }
+    .btn.ghost { border-color: #444; color: #999; font-size: 0.85rem; padding: 0.5rem 1rem; }
+    .btn.wrong { border-color: #c00; color: #c00; }
+    .err { color: #c00; font-size: 0.9rem; min-height: 1.5em; margin: 0.75rem 0; }
+
+    /* Login */
+    .digits { display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .digit-box { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+    .digit-group { display: flex; gap: 0.35rem; }
+    .digit-box > span { color: var(--acc); font-size: 1.1rem; height: 1.5rem; line-height: 1.5rem; display: block; }
+    .digit {
+      width: 3.6rem; height: 4.4rem;
+      background: #000;
+      border: 1px solid #33ff6666; border-bottom: 2px solid var(--acc);
+      color: var(--txt);
+      font: bold 2.2rem 'Courier New', monospace;
+      text-align: center;
+      outline: none;
+    }
+    .digit:focus { border-color: var(--acc); box-shadow: 0 0 14px #33ff6666; }
+
+    /* HUD */
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: none; justify-content: space-between; align-items: center;
+      padding: 0.7rem 1rem;
+      font-size: 0.75rem; letter-spacing: 0.2em; color: var(--acc);
+      background: linear-gradient(#000 60%, transparent);
+      z-index: 10;
+    }
+    #hud.on { display: flex; }
+    .fw-bar { display: flex; gap: 5px; align-items: center; }
+    .fw-bar i { width: 30px; height: 9px; border: 1px solid var(--acc); display: block; }
+    .fw-bar i.done { background: var(--acc); box-shadow: 0 0 8px var(--acc); }
+    #timer { color: var(--txt); font-size: 0.95rem; }
+
+    /* Level-Panel */
+    .panel {
+      border: 1px solid var(--acc);
+      background: #0a0a0a;
+      padding: 1.75rem 1.5rem;
+      max-width: 760px; width: 100%;
+      box-shadow: 0 0 30px #33ff6622;
+    }
+    .lvl-label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--acc); margin-bottom: 0.4rem; }
+    .lvl-title { font-size: 1.25rem; color: var(--txt); letter-spacing: 0.15em; margin-bottom: 1rem; }
+    .lvl-text  { color: #aaa; line-height: 1.7; margin-bottom: 1.25rem; font-size: 1rem; }
+    .lvl-text strong { color: var(--txt); }
+    .choices { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .choices .btn { min-width: 5rem; font-size: 1.3rem; }
+    .answer-row { display: flex; gap: 0.75rem; justify-content: center; }
+    .answer-input {
+      background: #000; border: 1px solid #33ff6666; border-bottom: 2px solid var(--acc);
+      color: var(--txt); font: bold 1.6rem 'Courier New', monospace;
+      width: 8rem; text-align: center; outline: none; padding: 0.4rem;
+    }
+    #hint-area { margin-top: 1.25rem; min-height: 2.5rem; }
+    .hint-text2 {
+      color: var(--hint); font-size: 0.95rem; line-height: 1.6;
+      border-left: 2px solid var(--hint); padding-left: 0.75rem; text-align: left;
+      max-width: 560px; margin: 0 auto;
+    }
+    .btn.hint-btn { border-color: var(--hint); color: var(--hint); font-size: 0.85rem; padding: 0.5rem 1rem; }
+
+    .fig svg { width: min(320px, 80vw); height: auto; margin-bottom: 1.25rem; }
+
+    /* Labyrinth */
+    /* Ausweich-Spiel */
+    .dodge-canvas { display: block; width: 100%; max-width: 640px; margin: 0 auto 1rem; border: 1px solid #33ff6644; touch-action: none; }
+    .pad { display: grid; grid-template-columns: repeat(3, 3.6rem); gap: 0.35rem; justify-content: center; }
+    .pad .btn { padding: 0.6rem 0; font-size: 1.2rem; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .pad .btn.held { background: #33ff6633; }
+    .slow-btn { margin-top: 0.9rem; font-size: 0.8rem; padding: 0.5rem 1rem; border-color: #d9a441; color: #d9a441; }
+
+    /* Stromkreis */
+    .pipes-wrap { display: flex; justify-content: center; margin-bottom: 1rem; }
+    .pipes {
+      display: grid; gap: 3px;
+      grid-template-columns: min(84px, 18vw) repeat(4, min(78px, 15vw)) min(84px, 18vw);
+    }
+    .pipes .tile { aspect-ratio: 1; background: #000; cursor: pointer; outline: 1px solid #111; }
+    .pipes .tile:hover { background: #04200e; }
+    .pipes .tile.end { outline: 2px dashed #33ff6699; outline-offset: -2px; }
+    .pipes svg { width: 100%; height: 100%; display: block; }
+    .pipes .side { position: relative; }
+    .pipe-end {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+      font-size: 0.6rem; letter-spacing: 0.15em; line-height: 1.2; z-index: 1;
+    }
+    .pipe-end .ico { font-size: 1.6rem; line-height: 1; }
+    .pipe-end.src { left: 0; color: #33ff66; }
+    .pipe-end.dst { right: 0; color: #888; }
+    .pipe-end.dst.on { color: #7dffa0; text-shadow: 0 0 8px #33ff66; }
+    .pipe-cable { position: absolute; top: 50%; height: 16%; transform: translateY(-50%); border-radius: 2px; }
+    .pipe-cable.src { left: 48%; right: -3px; background: #7dffa0; box-shadow: 0 0 6px #33ff66; }
+    .pipe-cable.dst { left: -3px; right: 48%; background: #1f4a2c; }
+    .pipe-cable.dst.on { background: #7dffa0; box-shadow: 0 0 6px #33ff66; }
+
+    /* Boss */
+    #boss-canvas { border: 1px solid #33ff6644; display: block; touch-action: none; cursor: crosshair; }
+    #hp-bar-wrap { width: min(640px, 90vw); margin-bottom: 1rem; }
+    .hp-label { font-size: 0.7rem; letter-spacing: 0.2em; color: #c00; margin-bottom: 0.3rem; display: flex; justify-content: space-between; }
+    #hp-bar-bg { background: #1a0000; height: 9px; width: 100%; }
+    #hp-bar { height: 9px; background: #c00; transition: width 0.2s; box-shadow: 0 0 10px #c00; width: 100%; }
+    #boss-instruction { font-size: 0.85rem; color: #33ff66cc; margin-top: 0.75rem; letter-spacing: 0.1em; }
+
+    /* Sieg */
+    .victory-title { font-size: 1.8rem; color: var(--acc); letter-spacing: 0.3em; animation: glitch 2s infinite; margin-bottom: 0.5rem; }
+    .solution-word {
+      font-size: 2.2rem; letter-spacing: 0.4em; color: var(--txt);
+      border: 1px solid var(--acc); padding: 1rem 2rem; margin: 1rem 0;
+      box-shadow: 0 0 30px #33ff6644;
+    }
+    .final-time { font-size: 1.1rem; color: var(--txt); letter-spacing: 0.15em; margin-bottom: 1rem; }
+    .final-time strong { color: var(--acc); font-size: 1.6rem; }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <span>// SCHATTENSCHULE-TERMINAL</span>
+  <span class="fw-bar" id="fw-bar"><span style="margin-right:0.4rem">FIREWALL</span></span>
+  <span id="timer">00:00</span>
+</div>
+
+<!-- 1. Login -->
+<div class="screen active" id="screen-login">
+  <div class="term-head">// SYSTEM: SCHATTENSCHULE-ARCHIV</div>
+  <div class="term-title">FORSCHUNGSPROTOKOLL<br>ZUGRIFF GESPERRT</div>
+  <div style="color:#999;margin-bottom:1.25rem;font-size:0.95rem">Gebt den Zugangscode aus euren 4 Stationen ein — sortiert nach Moravas Zeichen:</div>
+  <div class="digits" id="digits"></div>
+  <div class="err" id="login-err"></div>
+  <button class="btn" id="login-btn">[ ZUGRIFF ANFORDERN ]</button>
+  <div style="margin-top:2.5rem;font-size:0.7rem;color:#333;letter-spacing:0.1em">WARNUNG: Unbefugter Zugriff wird protokolliert.</div>
+</div>
+
+<!-- 2. Firewall-Ebenen -->
+<div class="screen" id="screen-level">
+  <div class="panel">
+    <div class="lvl-label" id="lvl-label"></div>
+    <div class="lvl-title" id="lvl-title"></div>
+    <div class="lvl-text" id="lvl-text"></div>
+    <div id="lvl-body"></div>
+    <div class="err" id="lvl-err"></div>
+    <div id="hint-area"></div>
+  </div>
+</div>
+
+<!-- 3. Finale -->
+<div class="screen" id="screen-boss">
+  <div class="lvl-label" style="margin-bottom:0.75rem">// LETZTE SPERRE: DER WÄCHTER</div>
+  <div id="hp-bar-wrap">
+    <div class="hp-label"><span>DÄMON — GESUNDHEIT</span><span id="hp-text">100%</span></div>
+    <div id="hp-bar-bg"><div id="hp-bar"></div></div>
+  </div>
+  <canvas id="boss-canvas"></canvas>
+  <div id="boss-instruction">▸ KLICKT AUF DEN DÄMON, UM IHN ZU TREFFEN</div>
+</div>
+
+<!-- 4. Sieg -->
+<div class="screen" id="screen-victory">
+  <div class="victory-title">RISS GESCHLOSSEN</div>
+  <div style="font-size:0.75rem;letter-spacing:0.2em;color:#777">SCHATTENSCHULE VERSIEGELT</div>
+  <div style="font-size:0.95rem;color:#aaa;margin:1.5rem 0 0.5rem;line-height:1.6">
+    E. MORAVA ist frei.<br>Gebt eurer Lehrkraft das Lösungswort und eure Zeit:
+  </div>
+  <div class="solution-word" id="solution-display"></div>
+  <div class="final-time">BENÖTIGTE ZEIT: <strong id="final-time"></strong></div>
+  <div style="font-size:0.85rem;color:#666;max-width:380px;line-height:1.6">
+    Das Protokoll ist geschlossen. Die Schattenwelt zieht sich zurück. Für jetzt.
+  </div>
+</div>
+
+<script src="js/interactions.js"></script>
+<script>
+// ═════════════════════════════════════════════════════════════════════════
+//  HINWEIS FÜR LEHRER — hier lässt sich alles anpassen
+// ═════════════════════════════════════════════════════════════════════════
+// Der Zugangscode kommt aus js/interactions.js → STATIONS (Fragmente in Feld-Reihenfolge ▲ ● ■ ✦)
+const CODE_GROUPS  = getStationsByField();
+const CORRECT_CODE = CODE_GROUPS.map(s => s.code).join('');
+const SOLUTION_WORD = 'RISS∅CHER';
+const BOSS_MAX_HP   = 20;              // Treffer bis zum Sieg
+const HINT_AFTER_ERRORS  = 2;          // Tipp-Button nach so vielen Fehlversuchen …
+const HINT_AFTER_SECONDS = 90;         // … oder nach so vielen Sekunden
+// Zum Testen: hack.html?lehrer=3 springt direkt zu Firewall 3 (5 = Finale)
+
+const TRIANGLE_SVG =
+  '<svg viewBox="0 0 300 262" fill="none" stroke="#33ff66" stroke-width="3" stroke-linejoin="round">' +
+    '<polygon points="150,10 10,250 290,250"/>' +
+    '<line x1="150" y1="10" x2="100" y2="250"/>' +
+    '<line x1="150" y1="10" x2="200" y2="250"/>' +
+    '<line x1="80" y1="130" x2="220" y2="130"/>' +
+  '</svg>';
+
+const LEVELS = [
+  {
+    type: 'choice',
+    title: 'GEOMETRIE-SCHLOSS',
+    text: 'Das Schloss öffnet sich nur mit der richtigen Zahl.<br><strong>Wie viele Dreiecke stecken in dieser Figur?</strong>',
+    figure: TRIANGLE_SVG,
+    choices: ['6', '9', '12', '15'],
+    answer: '12',
+    hint: 'Zählt zuerst alle Dreiecke <em>oberhalb</em> der waagrechten Linie (alle haben die Spitze oben). ' +
+          'Dann alle großen, die bis ganz nach unten reichen. Auch zusammengesetzte Dreiecke zählen!'
+  },
+  {
+    type: 'dodge',
+    title: 'VIRENSCANNER',
+    text: 'Bringt das Datenpaket <strong>▣</strong> zum Server-Kern <strong style="color:#33ff66">◎</strong> — ' +
+          'ohne die <strong style="color:#ff2a2a">roten Scanner</strong> zu berühren. ' +
+          'Berührung = Absturz, zurück zum letzten sicheren Feld.<br>' +
+          'Pfeiltasten, W A S D oder die Buttons unten.',
+    hint: 'Im ersten Raum könnt ihr <em>zwischen</em> den Scanner-Säulen stehen bleiben und auf die nächste Lücke warten. ' +
+          'Im zweiten Raum: nicht durch die Mitte — schleicht in einer Ecke um den drehenden Arm herum.'
+  },
+  {
+    type: 'input',
+    title: 'ZAHLEN-CODE',
+    text: 'Der Server verlangt die nächste Zahl der Reihe:<br><br>' +
+          '<strong style="font-size:1.6rem;letter-spacing:0.15em">3 · 6 · 11 · 18 · 27 · ?</strong>',
+    answer: '38',
+    hint: 'Schaut, um wie viel die Zahlen jeweils größer werden: +3, +5, +7 … wie geht es weiter?'
+  },
+  {
+    type: 'pipes',
+    title: 'STROMKREIS',
+    text: 'Der Server-Kern hat keinen Strom. <strong>Klickt auf die Felder, um die Leitungen zu drehen</strong>, ' +
+          'bis eine Leitung vom <strong>START ⚡ links oben</strong> zum <strong>ZIEL 🖥 rechts unten</strong> führt.',
+    hint: 'Beginnt beim START links oben und arbeitet euch Feld für Feld vor. ' +
+          'Leuchtende Leitungen sind schon verbunden. Nicht alle Felder werden gebraucht.'
+  },
+];
+
+// ═════════════════════════════════════════════════════════════════════════
+//  Ab hier: Programmlogik
+// ═════════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+let startTime = null;
+let timerId = null;
+let levelIdx = 0;
+let cleanupLevel = null;
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function screenShake(el) {
+  el.style.transform = 'translate(-4px, 2px)';
+  setTimeout(() => { el.style.transform = 'translate(4px, -2px)'; }, 60);
+  setTimeout(() => { el.style.transform = ''; }, 120);
+}
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function startTimer() {
+  startTime = Date.now();
+  $('hud').classList.add('on');
+  timerId = setInterval(() => { $('timer').textContent = fmtTime(Date.now() - startTime); }, 500);
+}
+
+function updateFirewallBar() {
+  const bar = $('fw-bar');
+  bar.querySelectorAll('i').forEach(i => i.remove());
+  LEVELS.forEach((_, i) => {
+    const el = document.createElement('i');
+    if (i < levelIdx) el.className = 'done';
+    bar.appendChild(el);
+  });
+}
+
+// ── Login ───────────────────────────────────────────────────────────────
+// Pro Stations-Symbol so viele Felder, wie das Fragment Ziffern hat
+const digitsEl = $('digits');
+CODE_GROUPS.forEach((g, gi) => {
+  let inputs = '';
+  for (let k = 0; k < g.code.length; k++) {
+    inputs += '<input class="digit" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Feld ' +
+              g.symbol + ' Ziffer ' + (k + 1) + '">';
+  }
+  digitsEl.insertAdjacentHTML('beforeend',
+    '<div class="digit-box"><span>' + g.symbol + '</span><div class="digit-group">' + inputs + '</div></div>');
+});
+const digitInputs = [...document.querySelectorAll('.digit')];
+const CODE_LEN = digitInputs.length;
+digitInputs[0].focus();
+
+digitInputs.forEach((inp, i) => {
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/\D/g, '').slice(-1);
+    if (inp.value && i < CODE_LEN - 1) digitInputs[i + 1].focus();
+    if (digitInputs.every(d => d.value)) checkCode();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) digitInputs[i - 1].focus();
+    if (e.key === 'Enter') checkCode();
+  });
+  inp.addEventListener('paste', e => {
+    const txt = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, CODE_LEN);
+    if (!txt) return;
+    e.preventDefault();
+    [...txt].forEach((ch, j) => { digitInputs[j].value = ch; });
+    if (txt.length === CODE_LEN) checkCode(); else digitInputs[txt.length].focus();
+  });
+});
+$('login-btn').addEventListener('click', checkCode);
+
+let loggedIn = false;
+function checkCode() {
+  if (loggedIn) return;
+  const code = digitInputs.map(d => d.value).join('');
+  if (code === CORRECT_CODE) {
+    loggedIn = true;
+    $('login-err').style.color = '#33ff66';
+    $('login-err').textContent = '✓ ZUGRIFF GEWÄHRT — FIREWALL WIRD GEHACKT …';
+    setTimeout(() => { startTimer(); startLevel(0); }, 900);
+  } else {
+    $('login-err').style.color = '#c00';
+    $('login-err').textContent = code.length < CODE_LEN ? '⚠ ALLE FELDER AUSFÜLLEN' : '⚠ ZUGRIFF VERWEIGERT — CODE UNGÜLTIG';
+    if (code.length === CODE_LEN) {
+      digitInputs.forEach(d => { d.value = ''; });
+      digitInputs[0].focus();
+    }
+    screenShake($('screen-login'));
+  }
+}
+
+// ── Ebenen ──────────────────────────────────────────────────────────────
+function startLevel(i) {
+  if (cleanupLevel) { cleanupLevel(); cleanupLevel = null; }
+  levelIdx = i;
+  updateFirewallBar();
+  if (i >= LEVELS.length) { startBossFight(); return; }
+
+  const lvl = LEVELS[i];
+  showScreen('level');
+  $('lvl-label').textContent = '// FIREWALL ' + (i + 1) + ' / ' + LEVELS.length;
+  $('lvl-title').textContent = lvl.title;
+  $('lvl-text').innerHTML = lvl.text;
+  $('lvl-err').textContent = '';
+  $('lvl-body').innerHTML = '';
+  $('hint-area').innerHTML = '';
+
+  // Tipp-Logik: nach X Fehlern oder Y Sekunden erscheint der Tipp-Button
+  let errors = 0;
+  const offerHint = () => {
+    if ($('hint-area').innerHTML) return;
+    $('hint-area').innerHTML = '<button class="btn hint-btn">[ TIPP ANZEIGEN ]</button>';
+    $('hint-area').firstChild.onclick = () => {
+      $('hint-area').innerHTML = '<div class="hint-text2">💡 ' + lvl.hint + '</div>';
+    };
+  };
+  const hintTimer = setTimeout(offerHint, HINT_AFTER_SECONDS * 1000);
+
+  const ctx = {
+    body: $('lvl-body'),
+    hint: offerHint,
+    wrong(msg) {
+      errors++;
+      $('lvl-err').textContent = msg || '⚠ FALSCH — ZUGRIFF VERWEIGERT';
+      screenShake(document.querySelector('#screen-level .panel'));
+      if (errors >= HINT_AFTER_ERRORS) offerHint();
+    },
+    done() {
+      clearTimeout(hintTimer);
+      $('lvl-err').style.color = '#33ff66';
+      $('lvl-err').textContent = '✓ FIREWALL ' + (i + 1) + ' DURCHBROCHEN';
+      setTimeout(() => { $('lvl-err').style.color = ''; startLevel(i + 1); }, 1200);
+    }
+  };
+  const extraCleanup = RENDERERS[lvl.type](lvl, ctx);
+  cleanupLevel = () => { clearTimeout(hintTimer); if (extraCleanup) extraCleanup(); };
+}
+
+const RENDERERS = {
+  // Multiple Choice mit optionaler Figur
+  choice(lvl, ctx) {
+    ctx.body.innerHTML = (lvl.figure ? '<div class="fig">' + lvl.figure + '</div>' : '') + '<div class="choices"></div>';
+    const wrap = ctx.body.querySelector('.choices');
+    let solved = false;
+    lvl.choices.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = c;
+      b.onclick = () => {
+        if (solved) return;
+        if (c === lvl.answer) { solved = true; ctx.done(); }
+        else { b.classList.add('wrong'); ctx.wrong(); }
+      };
+      wrap.appendChild(b);
+    });
+  },
+
+  // Freie Antwort (Zahl/Wort)
+  input(lvl, ctx) {
+    ctx.body.innerHTML =
+      '<div class="answer-row"><input class="answer-input" autocomplete="off">' +
+      '<button class="btn">[ SENDEN ]</button></div>';
+    const inp = ctx.body.querySelector('input');
+    let solved = false;
+    const submit = () => {
+      if (solved) return;
+      const v = inp.value.trim().toUpperCase();
+      if (!v) return;
+      if (v === String(lvl.answer).toUpperCase()) { solved = true; ctx.done(); }
+      else { ctx.wrong(); inp.value = ''; inp.focus(); }
+    };
+    ctx.body.querySelector('button').onclick = submit;
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    inp.focus();
+  },
+
+  // Ausweich-Spiel: Datenpaket an Virenscannern vorbei zum Server-Kern
+  dodge(lvl, ctx) {
+    const W = 640, H = 360;
+    const ARENA = { x: 20, y: 30, w: 600, h: 300 };
+    const P = 14;                 // Kantenlänge Datenpaket
+    const SPEED = 140;            // Pixel pro Sekunde
+    const R = 8;                  // Radius Scanner
+    const START = { x: 20,  y: 145, w: 60, h: 70, label: 'START' };
+    const CHECK = { x: 300, y: 145, w: 40, h: 70, label: 'SAFE' };
+    const GOAL  = { x: 560, y: 145, w: 60, h: 70, label: '◎ KERN' };
+    const WALLS = [ { x: 300, y: 30, w: 40, h: 115 }, { x: 300, y: 215, w: 40, h: 115 } ];
+
+    // Raum 1: fünf Scanner-Säulen, abwechselnd auf und ab
+    const COLS = [110, 150, 190, 230, 270];
+    const COL_MIN = ARENA.y + R, COL_LEN = ARENA.h - 2 * R, COL_SPEED = 150;
+    // Raum 2: drehender Arm um die Mitte
+    const ARM_C = { x: 450, y: 180 }, ARM_R = [0, 35, 70, 100], ARM_W = 1.2;
+
+    ctx.body.innerHTML =
+      '<canvas class="dodge-canvas"></canvas>' +
+      '<div class="pad">' +
+        '<span></span><button class="btn" data-d="up">▲</button><span></span>' +
+        '<button class="btn" data-d="left">◀</button><button class="btn" data-d="down">▼</button><button class="btn" data-d="right">▶</button>' +
+      '</div>' +
+      '<div class="slow-wrap"></div>';
+    const cv = ctx.body.querySelector('canvas');
+    const g = cv.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const centerOf = z => ({ x: z.x + z.w / 2 - P / 2, y: z.y + z.h / 2 - P / 2 });
+    let spawn = centerOf(START);
+    let px = spawn.x, py = spawn.y;
+    let checkpoint = false, crashes = 0, flash = 0, solved = false;
+    let simT = 0, speedFactor = 1, last = performance.now(), raf = 0;
+    const held = { up: false, down: false, left: false, right: false };
+
+    const pingpong = (d, L) => { const m = d % (2 * L); return m < L ? m : 2 * L - m; };
+    function drones() {
+      const list = [];
+      COLS.forEach((x, i) => {
+        const off = (i % 2) * COL_LEN + i * 25;
+        list.push({ x, y: COL_MIN + pingpong(simT * COL_SPEED + off, COL_LEN) });
+      });
+      const a = simT * ARM_W;
+      ARM_R.forEach(r => {
+        list.push({ x: ARM_C.x + Math.cos(a) * r, y: ARM_C.y + Math.sin(a) * r });
+        if (r) list.push({ x: ARM_C.x - Math.cos(a) * r, y: ARM_C.y - Math.sin(a) * r });
+      });
+      return list;
+    }
+
+    const hitsRect = (x, y, r) => x < r.x + r.w && x + P > r.x && y < r.y + r.h && y + P > r.y;
+    const blocked = (x, y) =>
+      x < ARENA.x || y < ARENA.y || x + P > ARENA.x + ARENA.w || y + P > ARENA.y + ARENA.h ||
+      WALLS.some(w => hitsRect(x, y, w));
+    const inside = z => { const cx = px + P / 2, cy = py + P / 2; return cx > z.x && cx < z.x + z.w && cy > z.y && cy < z.y + z.h; };
+
+    function crash() {
+      crashes++;
+      flash = 0.35;
+      px = spawn.x; py = spawn.y;
+      if (crashes === 5) ctx.hint();
+      if (crashes === 10) {
+        const b = document.createElement('button');
+        b.className = 'btn slow-btn';
+        b.textContent = '[ SCANNER VERLANGSAMEN ]';
+        b.onclick = () => { speedFactor = 0.6; b.disabled = true; b.textContent = '✓ SCANNER LAUFEN LANGSAMER'; };
+        ctx.body.querySelector('.slow-wrap').appendChild(b);
+      }
+    }
+
+    function update(dt) {
+      simT += dt * speedFactor;
+      let dx = (held.right ? 1 : 0) - (held.left ? 1 : 0);
+      let dy = (held.down ? 1 : 0) - (held.up ? 1 : 0);
+      if (dx && dy) { dx *= Math.SQRT1_2; dy *= Math.SQRT1_2; }
+      const nx = px + dx * SPEED * dt, ny = py + dy * SPEED * dt;
+      if (!blocked(nx, py)) px = nx;
+      if (!blocked(px, ny)) py = ny;
+
+      if (!checkpoint && inside(CHECK)) { checkpoint = true; spawn = centerOf(CHECK); }
+      for (const d of drones()) {
+        const cx = Math.max(px, Math.min(d.x, px + P)), cy = Math.max(py, Math.min(d.y, py + P));
+        if ((d.x - cx) ** 2 + (d.y - cy) ** 2 < R * R) { crash(); break; }
+      }
+      if (inside(GOAL)) { solved = true; draw(); ctx.done(); }
+      if (flash > 0) flash -= dt;
+    }
+
+    function zone(z, pulse) {
+      g.fillStyle = pulse ? 'rgba(51,255,102,' + (0.12 + 0.1 * Math.sin(simT * 4)) + ')' : '#33ff661a';
+      g.fillRect(z.x, z.y, z.w, z.h);
+      g.strokeStyle = '#33ff6680'; g.lineWidth = 1;
+      g.strokeRect(z.x + 0.5, z.y + 0.5, z.w - 1, z.h - 1);
+      g.fillStyle = '#33ff66'; g.font = '10px Courier New'; g.textAlign = 'center';
+      g.fillText(z.label, z.x + z.w / 2, z.y + z.h / 2 + 3);
+    }
+
+    function draw() {
+      g.fillStyle = '#020a05'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = '#33ff6610'; g.lineWidth = 1;
+      for (let x = ARENA.x; x <= ARENA.x + ARENA.w; x += 20) { g.beginPath(); g.moveTo(x, ARENA.y); g.lineTo(x, ARENA.y + ARENA.h); g.stroke(); }
+      for (let y = ARENA.y; y <= ARENA.y + ARENA.h; y += 20) { g.beginPath(); g.moveTo(ARENA.x, y); g.lineTo(ARENA.x + ARENA.w, y); g.stroke(); }
+      g.strokeStyle = '#33ff6666'; g.strokeRect(ARENA.x + 0.5, ARENA.y + 0.5, ARENA.w - 1, ARENA.h - 1);
+
+      zone(START); zone(CHECK, !checkpoint); zone(GOAL, true);
+      WALLS.forEach(w => {
+        g.fillStyle = '#05301a'; g.fillRect(w.x, w.y, w.w, w.h);
+        g.strokeStyle = '#33ff6688'; g.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+      });
+
+      g.shadowColor = '#ff2a2a'; g.shadowBlur = 12;
+      for (const d of drones()) {
+        g.fillStyle = '#ff2a2a'; g.beginPath(); g.arc(d.x, d.y, R, 0, Math.PI * 2); g.fill();
+      }
+      g.shadowBlur = 0;
+      for (const d of drones()) {
+        g.fillStyle = '#4a0000'; g.beginPath(); g.arc(d.x, d.y, R * 0.4, 0, Math.PI * 2); g.fill();
+      }
+
+      g.shadowColor = '#33ff66'; g.shadowBlur = 14;
+      g.fillStyle = flash > 0 ? '#ff2a2a' : '#7dffa0';
+      g.fillRect(px, py, P, P);
+      g.shadowBlur = 0;
+
+      g.font = '11px Courier New'; g.fillStyle = '#33ff66';
+      g.textAlign = 'left';  g.fillText('▣ DATENPAKET' + (checkpoint ? '  ·  CHECKPOINT ✓' : ''), ARENA.x, 20);
+      g.textAlign = 'right'; g.fillStyle = crashes ? '#ff6b6b' : '#33ff66';
+      g.fillText('ABSTÜRZE: ' + crashes, ARENA.x + ARENA.w, 20);
+      if (flash > 0) {
+        g.fillStyle = 'rgba(255,42,42,' + (flash * 0.5) + ')'; g.fillRect(0, 0, W, H);
+      }
+    }
+
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!solved) { update(dt); draw(); }
+      if (!solved) raf = requestAnimationFrame(loop);
+    }
+    raf = requestAnimationFrame(loop);
+
+    // Steuerung: Tastatur
+    const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+                   w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
+    const onDown = e => { if (KEYS[e.key]) { e.preventDefault(); held[KEYS[e.key]] = true; } };
+    const onUp = e => { if (KEYS[e.key]) { e.preventDefault(); held[KEYS[e.key]] = false; } };
+    const onBlur = () => { Object.keys(held).forEach(k => { held[k] = false; }); };
+    document.addEventListener('keydown', onDown);
+    document.addEventListener('keyup', onUp);
+    window.addEventListener('blur', onBlur);
+
+    // Steuerung: Buttons gedrückt halten (Tablet/Touch)
+    ctx.body.querySelectorAll('[data-d]').forEach(b => {
+      const set = v => { held[b.dataset.d] = v; b.classList.toggle('held', v); };
+      b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(true); });
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => b.addEventListener(t, () => set(false)));
+      b.addEventListener('contextmenu', e => e.preventDefault());
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', onDown);
+      document.removeEventListener('keyup', onUp);
+      window.removeEventListener('blur', onBlur);
+    };
+  },
+
+  // Stromkreis: Kacheln drehen, bis Strom von oben links nach unten rechts fließt
+  pipes(lvl, ctx) {
+    const N = 4;
+    // Verbindungen als Bitmaske: 1 = oben, 2 = rechts, 4 = unten, 8 = links
+    // Lösungsweg: (0,0)→(0,1)→(1,1)→(2,1)→(2,2)→(2,3)→(3,3)→ raus nach rechts
+    const SOLUTION = {
+      '0,0': 10, '0,1': 12, '1,1': 5, '2,1': 3, '2,2': 10, '2,3': 12, '3,3': 3
+    };
+    const FILLERS = [5, 10, 3, 6, 12, 9, 7, 11, 13, 14];
+    const rot = m => ((m << 1) | (m >> 3)) & 15;
+    const DIRS = [[-1, 0, 1, 4], [0, 1, 2, 8], [1, 0, 4, 1], [0, -1, 8, 2]]; // dr, dc, eigenes Bit, Gegen-Bit
+
+    let grid;
+    function scramble() {
+      grid = [];
+      for (let r = 0; r < N; r++) {
+        grid.push([]);
+        for (let c = 0; c < N; c++) {
+          let m = SOLUTION[r + ',' + c] || FILLERS[Math.floor(Math.random() * FILLERS.length)];
+          const turns = 1 + Math.floor(Math.random() * 3);
+          for (let t = 0; t < turns; t++) m = rot(m);
+          grid[r].push(m);
+        }
+      }
+    }
+    function powered() {
+      const seen = new Set();
+      if (!(grid[0][0] & 8)) return { seen, win: false };
+      const q = [[0, 0]];
+      seen.add('0,0');
+      while (q.length) {
+        const [r, c] = q.shift();
+        for (const [dr, dc, b, o] of DIRS) {
+          if (!(grid[r][c] & b)) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nc < 0 || nr >= N || nc >= N) continue;
+          if (!(grid[nr][nc] & o)) continue;
+          const k = nr + ',' + nc;
+          if (!seen.has(k)) { seen.add(k); q.push([nr, nc]); }
+        }
+      }
+      return { seen, win: seen.has((N - 1) + ',' + (N - 1)) && !!(grid[N - 1][N - 1] & 2) };
+    }
+    do { scramble(); } while (powered().win);
+
+    ctx.body.innerHTML = '<div class="pipes-wrap"><div class="pipes"></div></div>';
+    const wrap = ctx.body.querySelector('.pipes');
+    let solved = false;
+
+    function tileSvg(m, on) {
+      const col = on ? '#7dffa0' : '#1f4a2c';
+      const glow = on ? ' style="filter:drop-shadow(0 0 4px #7dffa0)"' : '';
+      const seg = { 1: 'M50 50V0', 2: 'M50 50H100', 4: 'M50 50V100', 8: 'M50 50H0' };
+      let d = '';
+      for (const b of [1, 2, 4, 8]) if (m & b) d += seg[b];
+      return '<svg viewBox="0 0 100 100"' + glow + '><path d="' + d + '" stroke="' + col +
+             '" stroke-width="16" stroke-linecap="round" fill="none"/><circle cx="50" cy="50" r="9" fill="' + col + '"/></svg>';
+    }
+    // Raster mit 6 Spalten: links START (nur Zeile 1), 4 Kacheln, rechts ZIEL (nur letzte Zeile)
+    function draw() {
+      const { seen, win } = powered();
+      wrap.innerHTML = '';
+      for (let r = 0; r < N; r++) {
+        const left = document.createElement('div');
+        left.className = 'side';
+        if (r === 0) {
+          left.innerHTML = '<div class="pipe-cable src"></div>' +
+                           '<div class="pipe-end src"><span class="ico">⚡</span>START<br>STROM</div>';
+        }
+        wrap.appendChild(left);
+
+        for (let c = 0; c < N; c++) {
+          const cell = document.createElement('div');
+          const isEnd = (r === 0 && c === 0) || (r === N - 1 && c === N - 1);
+          cell.className = 'tile' + (isEnd ? ' end' : '');
+          cell.innerHTML = tileSvg(grid[r][c], seen.has(r + ',' + c));
+          cell.onclick = () => {
+            if (solved) return;
+            grid[r][c] = rot(grid[r][c]);
+            draw();
+          };
+          wrap.appendChild(cell);
+        }
+
+        const right = document.createElement('div');
+        right.className = 'side';
+        if (r === N - 1) {
+          const on = win ? ' on' : '';
+          right.innerHTML = '<div class="pipe-cable dst' + on + '"></div>' +
+                            '<div class="pipe-end dst' + on + '"><span class="ico">🖥</span>ZIEL<br>SERVER</div>';
+        }
+        wrap.appendChild(right);
+      }
+      if (win && !solved) { solved = true; ctx.done(); }
+    }
+    draw();
+  },
+};
+
+// ── Finale: Dämon (aus boss.html übernommen, für Maus angepasst) ─────────
+const canvas = $('boss-canvas');
+const cx = canvas.getContext('2d');
+let bossHP, bossX, bossY, bossVX, bossVY, bossSize, baseSpeed, animId, bossPhase;
+const particles = [];
+
+function startBossFight() {
+  showScreen('boss');
+  const W = Math.min(640, window.innerWidth - 40);
+  const H = Math.max(260, Math.min(420, window.innerHeight - 260));
+  canvas.width = W;
+  canvas.height = H;
+  bossSize = Math.max(22, W * 0.06);
+  baseSpeed = W / 220;
+  bossX = W / 2; bossY = H / 2;
+  bossVX = baseSpeed; bossVY = baseSpeed * 0.8;
+  bossHP = BOSS_MAX_HP;
+  bossPhase = 1;
+  updateHPBar();
+  canvas.addEventListener('pointerdown', handleBossHit);
+  animId = requestAnimationFrame(bossLoop);
+}
+
+function handleBossHit(e) {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  if (Math.hypot(mx - bossX, my - bossY) > bossSize + 10) return;
+
+  bossHP--;
+  updateHPBar();
+  spawnHitParticles(bossX, bossY);
+  screenShake(canvas);
+
+  const speedMult = 1 + (1 - bossHP / BOSS_MAX_HP) * 1.8;
+  bossVX = (Math.random() < 0.5 ? 1 : -1) * baseSpeed * speedMult;
+  bossVY = (Math.random() < 0.5 ? 1 : -1) * baseSpeed * 0.8 * speedMult;
+
+  if (bossHP <= BOSS_MAX_HP * 0.4 && bossPhase === 1) {
+    bossPhase = 2;
+    $('boss-instruction').textContent = '⚠ ER WIRD STÄRKER — TREFFT IHN WEITER!';
+  }
+  if (bossHP <= 0) {
+    cancelAnimationFrame(animId);
+    canvas.removeEventListener('pointerdown', handleBossHit);
+    setTimeout(showVictory, 400);
+  }
+}
+
+function spawnHitParticles(x, y) {
+  for (let i = 0; i < 10; i++) {
+    particles.push({ x, y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 1,
+                     color: Math.random() < 0.5 ? '#33ff66' : '#ff2a2a' });
+  }
+}
+
+function bossLoop() {
+  const W = canvas.width, H = canvas.height;
+  cx.clearRect(0, 0, W, H);
+
+  cx.strokeStyle = '#33ff6614';
+  cx.lineWidth = 1;
+  for (let x = 0; x < W; x += 30) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, H); cx.stroke(); }
+  for (let y = 0; y < H; y += 30) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
+
+  bossX += bossVX; bossY += bossVY;
+  if (bossX < bossSize) { bossX = bossSize; bossVX = Math.abs(bossVX); }
+  if (bossX > W - bossSize) { bossX = W - bossSize; bossVX = -Math.abs(bossVX); }
+  if (bossY < bossSize) { bossY = bossSize; bossVY = Math.abs(bossVY); }
+  if (bossY > H - bossSize) { bossY = H - bossSize; bossVY = -Math.abs(bossVY); }
+
+  const glowSize = bossSize * (1 + Math.sin(Date.now() / 400) * 0.15);
+  const bossColor = bossPhase === 1 ? '#ff2a2a' : '#ff0000';
+
+  cx.shadowColor = bossColor;
+  cx.shadowBlur = 20;
+  cx.fillStyle = bossColor + '33';
+  cx.beginPath(); cx.arc(bossX, bossY, glowSize * 1.4, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = '#1a0000';
+  cx.beginPath(); cx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); cx.fill();
+  cx.strokeStyle = bossColor;
+  cx.lineWidth = 2;
+  cx.beginPath(); cx.arc(bossX, bossY, glowSize, 0, Math.PI * 2); cx.stroke();
+
+  cx.shadowBlur = 0;
+  cx.fillStyle = bossPhase === 1 ? '#ff0040' : '#ffff00';
+  const eyeOff = glowSize * 0.3;
+  cx.beginPath(); cx.arc(bossX - eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); cx.fill();
+  cx.beginPath(); cx.arc(bossX + eyeOff, bossY - eyeOff * 0.3, glowSize * 0.12, 0, Math.PI * 2); cx.fill();
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    cx.globalAlpha = p.life;
+    cx.fillStyle = p.color;
+    cx.fillRect(p.x - 2, p.y - 2, 4, 4);
+  }
+  cx.globalAlpha = 1;
+
+  animId = requestAnimationFrame(bossLoop);
+}
+
+function updateHPBar() {
+  const pct = Math.max(0, bossHP / BOSS_MAX_HP * 100);
+  $('hp-bar').style.width = pct + '%';
+  $('hp-text').textContent = Math.ceil(pct) + '%';
+}
+
+function showVictory() {
+  clearInterval(timerId);
+  const elapsed = startTime ? Date.now() - startTime : 0;
+  $('hud').classList.remove('on');
+  $('solution-display').textContent = SOLUTION_WORD;
+  $('final-time').textContent = fmtTime(elapsed);
+  showScreen('victory');
+}
+
+// ── Lehrer-Testmodus: hack.html?lehrer=N ────────────────────────────────
+const testLevel = parseInt(new URLSearchParams(location.search).get('lehrer'), 10);
+if (testLevel >= 1 && testLevel <= LEVELS.length + 1) {
+  loggedIn = true;
+  startTimer();
+  startLevel(testLevel - 1);
+}
+</script>
+</body>
+</html>

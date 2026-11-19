@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Station 1 — Klassenzimmer</title>
+  <title>Station 1 — Moravas Büro</title>
   <link rel="stylesheet" href="style.css">
   <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android 16/Chrome 148 -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
@@ -15,7 +15,7 @@
 <!-- Station UI -->
 <div id="station-ui">
   <span class="station-label">STATION 01</span>
-  <span class="station-title">KLASSENZIMMER</span>
+  <span class="station-title">MORAVAS BÜRO</span>
   <span class="station-label" id="step-counter"></span>
 </div>
 
@@ -132,16 +132,9 @@
     if (!tapped || shaken) return;
     shaken = true;
 
-    showHint(
-      '<span style="color:#7b00ff">// SIGNAL AUS DER SCHATTENWELT</span><br><br>' +
-      'Die Rückseiten sprechen die Wahrheit.<br><br>' +
-      'Dein Code-Zeichen für den Laptop:<br>' +
-      '<span style="font-size:2em; color:#7b00ff; letter-spacing:0.1em"><strong>4</strong></span><br><br>' +
-      '<span style="color:#888; font-size:0.9em">Notiere es auf deinem Aufgabenblatt.</span>',
-      () => {
-        markStationDone('station-1');
-        showNextStation();
-      }
+    showDigit('station-1',
+      '<span style="color:#cc3300">// SIGNAL AUS DER SCHATTENWELT</span><br><br>' +
+      'Die Rückseiten sprechen die Wahrheit.'
     );
   });
 
@@ -183,43 +176,8 @@
   // iOS DeviceMotion Permission
   document.addEventListener('DOMContentLoaded', async () => {
     await enableMotion();
-
-    // Fortschritt anzeigen
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+    initStepCounter();
   });
-
-  function showNextStation() {
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    step++;
-    localStorage.setItem('schattenschule_step', step);
-
-    if (step >= route.length) {
-      // Alle Stationen erledigt → Boss
-      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
-    } else {
-      const nextStation = route[step];
-      showHint(
-        '✓ STATION ABGESCHLOSSEN<br><br>' +
-        'Nächste Station:<br>' +
-        '<strong style="color:#7b00ff">' + getStationName(nextStation) + '</strong>',
-        () => { window.location.href = nextStation + '.html'; }
-      );
-    }
-  }
-
-  function getStationName(id) {
-    const names = {
-      'station-1': 'KLASSENZIMMER',
-      'station-2': 'GANG',
-      'station-3': 'WC / SPIEGEL',
-      'station-4': 'BALKON',
-      'station-5': 'AUFENTHALTSZONE',
-    };
-    return names[id] || id.toUpperCase();
-  }
 </script>
 <!-- ===== ANLEITUNG ===== -->
 <div id="anleitung">
@@ -228,7 +186,7 @@
     <img src="Pictures/Morava_detektiv.jpg" alt="E. Morava" class="anl-hero-img">
     <div class="anl-hero-overlay"></div>
     <div class="anl-hero-text">
-      <div class="anl-sub">// STATION 01 · KLASSENZIMMER</div>
+      <div class="anl-sub">// STATION 01 · MORAVAS BÜRO</div>
       <div class="anl-title">AUFBAU-ANLEITUNG</div>
     </div>
   </div>

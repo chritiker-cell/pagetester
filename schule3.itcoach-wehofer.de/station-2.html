@@ -3,42 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Station 2 — Garderobe</title>
+  <title>Station 2 — Funkraum</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    #timer-bar-wrap {
-      position: fixed;
-      bottom: 4rem; left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      z-index: 100;
-      display: none;
+    #signal-hud {
+      position: fixed; top: 3.2rem; left: 50%; transform: translateX(-50%);
+      z-index: 120; display: none;
+      font-size: 0.8rem; letter-spacing: 0.25em; color: #e0e0e0;
+      background: #000c; border: 1px solid #cc330088; padding: 0.4rem 0.9rem;
+      white-space: nowrap;
     }
-    #timer-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      color: #c00;
-      text-align: center;
-      margin-bottom: 3px;
+    #signal-hud.start { color: #33ff77; border-color: #33ff77; }
+    #sound-btn {
+      position: fixed; top: 3.2rem; right: 0.75rem; z-index: 120;
+      background: #000c; border: 1px solid #444; color: #999;
+      font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em;
+      padding: 0.4rem 0.6rem; cursor: pointer;
     }
-    #timer-bg { background: #1a0000; height: 4px; }
-    #timer-fill { background: #c00; height: 4px; width: 100%; transition: width 0.5s linear; box-shadow: 0 0 8px #c00; }
+    #sound-btn.on { border-color: #cc3300; color: #e0e0e0; }
+
+    /* Funkgerät: fest am unteren Rand, NICHT in AR */
+    #radio {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: #0a0a0a; border-top: 2px solid #cc3300;
+      box-shadow: 0 -10px 40px #000;
+      padding: 1rem 1rem 1.25rem;
+      max-height: 60vh; overflow-y: auto;
+    }
+    #radio[hidden] { display: none; }
+    .radio-head {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.75rem; letter-spacing: 0.25em; color: #cc3300; margin-bottom: 0.75rem;
+    }
+    #radio-close { background: none; border: 1px solid #444; color: #999; font: 1rem 'Courier New', monospace; width: 2rem; height: 2rem; cursor: pointer; }
+    .radio-screen {
+      position: relative; overflow: hidden;
+      border: 1px solid #333; background: #050505;
+      min-height: 5.5rem; padding: 0.75rem; margin-bottom: 0.9rem;
+      font-size: 0.9rem; line-height: 1.6; color: #c0c0c0;
+    }
+    .radio-screen.noise::before {
+      content: ''; position: absolute; inset: -50%;
+      background: repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px),
+                  repeating-linear-gradient(90deg, #ffffff05 0 2px, transparent 2px 5px);
+      animation: noise 0.25s steps(3) infinite; pointer-events: none;
+    }
+    @keyframes noise { 0% { transform: translate(0,0); } 50% { transform: translate(-3%,2%); } 100% { transform: translate(2%,-3%); } }
+    #radio-status { font-size: 0.75rem; letter-spacing: 0.25em; color: #777; margin-bottom: 0.4rem; position: relative; }
+    #radio-status.ok { color: #cc3300; }
+    #radio-msg { position: relative; min-height: 1.5em; }
+    #radio-msg .code { display: block; text-align: center; font-size: 2rem; color: #ff5a1f; letter-spacing: 0.3em; margin: 0.4rem 0; text-shadow: 0 0 12px #cc3300; }
+    .radio-row { display: flex; gap: 0.5rem; align-items: stretch; }
+    .radio-row label { display: none; }
+    #radio-input {
+      flex: 1; min-width: 0;
+      background: #000; border: 1px solid #cc330066; border-bottom: 2px solid #cc3300;
+      color: #e0e0e0; font: bold 1.3rem 'Courier New', monospace; letter-spacing: 0.3em;
+      text-transform: uppercase; text-align: center; padding: 0.5rem; outline: none;
+    }
+    #radio-input::placeholder { color: #444; letter-spacing: 0.15em; font-size: 0.85rem; }
+    #radio-send, #radio-done {
+      background: none; border: 1px solid #cc3300; color: #e0e0e0;
+      font: 0.9rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0 1rem; cursor: pointer;
+    }
+    #radio-send:disabled { opacity: 0.35; }
+    #radio-done { width: 100%; padding: 0.8rem; margin-top: 0.75rem; }
+    #radio-feedback { color: #c00; font-size: 0.8rem; min-height: 1.3em; margin-top: 0.5rem; text-align: center; }
   </style>
 </head>
 <body>
 
 <div id="station-ui">
   <span class="station-label">STATION 02</span>
-  <span class="station-title">GARDEROBE</span>
+  <span class="station-title">FUNKRAUM</span>
   <span class="station-label" id="step-counter"></span>
 </div>
 
+<div id="signal-hud"></div>
+<button id="sound-btn" type="button">🔇 TON</button>
+
 <div id="scan-prompt">▸ OBJEKT SCANNEN</div>
 
-<div id="timer-bar-wrap">
-  <div id="timer-label">KREATUR VERSCHWINDET IN ...</div>
-  <div id="timer-bg"><div id="timer-fill"></div></div>
+<!-- Funkgerät (2D, fest am Bildschirmrand) -->
+<div id="radio" hidden>
+  <div class="radio-head">
+    <span>◉ MORAVAS FUNKGERÄT</span>
+    <button id="radio-close" type="button" aria-label="Funkgerät schließen">✕</button>
+  </div>
+  <div class="radio-screen noise" id="radio-screen">
+    <div id="radio-status">▯▯▯▯ KEIN SIGNAL</div>
+    <div id="radio-msg">Morava antwortet nur auf sein Kennwort.</div>
+  </div>
+  <div class="radio-row" id="radio-row">
+    <label for="radio-input">Kennwort</label>
+    <input id="radio-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KENNWORT">
+    <button id="radio-send" type="button">[ SENDEN ]</button>
+  </div>
+  <div id="radio-feedback"></div>
 </div>
 
 <a-scene
@@ -46,173 +109,302 @@
   color-space="sRGB" renderer="colorManagement: true"
   vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-  <a-camera position="0 0 0" look-controls="enabled: false">
-    <a-cursor fuse="false" rayOrigin="mouse"
-              raycaster="objects: .clickable"
-              material="color: #c00; opacity: 0.8"
-              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
-    </a-cursor>
-  </a-camera>
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
 
     <!-- PLATZHALTER: Kreatur (dunkel, unregelmäßig) -->
-    <a-entity id="creature" class="clickable" position="0 0.05 0">
-
-      <!-- Körper: verzerrt -->
-      <a-sphere color="#0d0020" radius="0.07" position="0 0 0" opacity="0.95"
+    <a-entity id="creature" position="0 0.05 0">
+      <a-sphere color="#0d0020" radius="0.07" opacity="0.95"
                 animation__pulse="property: scale; to: 1.1 0.9 1.1; dir: alternate; loop: true; dur: 800; easing: easeInOutSine">
       </a-sphere>
-      <!-- Glüh-Halo rot -->
-      <a-sphere color="#c00" radius="0.075" position="0 0 0" opacity="0.15"
+      <a-sphere id="halo" color="#c00" radius="0.075" opacity="0.15"
                 animation="property: scale; to: 1.4 1.4 1.4; dir: alternate; loop: true; dur: 1200">
       </a-sphere>
-      <!-- Augen blinken (Morse: -.-.  = C) -->
-      <a-sphere id="eye-l" color="#ff0000" radius="0.015" position="-0.025 0.02 0.06" opacity="1"></a-sphere>
-      <a-sphere id="eye-r" color="#ff0000" radius="0.015" position="0.025 0.02 0.06" opacity="1"></a-sphere>
+      <!-- Augen: Punkt = rundes Aufblitzen, Strich = Auge wird zum waagrechten Schlitz -->
+      <a-sphere id="eye-l" color="#330000" radius="0.014" position="-0.035 0.02 0.062" opacity="0.4" material="shader: flat"></a-sphere>
+      <a-sphere id="eye-r" color="#330000" radius="0.014" position="0.035 0.02 0.062" opacity="0.4" material="shader: flat"></a-sphere>
     </a-entity>
 
   </a-entity>
 </a-scene>
 
+<!--
+  HINWEIS FÜR LEHRER:
+  Rätsel: Die Augen der Kreatur morsen das Kennwort (internationaler Morsecode).
+  Punkt = kurzes rundes Aufblitzen, Strich = langes Leuchten, das Auge wird zum Schlitz.
+  Grünes Aufleuchten = Anfang. Oben zeigt ein Zähler, welcher Buchstabe gerade kommt.
+  Nach einem vollständigen Durchgang öffnet ein Tipp auf den Bildschirm das Funkgerät.
+  Kennwort richtig → Morava funkt das Code-Fragment (STATIONS['station-2'].code).
+  Morse-Tabelle zum Drucken: print/morse-tabelle.html
+-->
+
 <script src="js/interactions.js"></script>
 <script>
-  const CREATURE_TIMEOUT = 45000; // 45 Sekunden
-  let tapped = false;
-  let creatureTimer = null;
-  let timerInterval = null;
+  // ── Einstellungen ────────────────────────────────────────────────────────
+  const KENNWORT = 'CLUE';     // 4–5 Buchstaben, nur A–Z
+  const DOT = 400, DASH = 1200; // Dauer in ms
+  const SIGN_GAP = 500;          // zwischen Punkt/Strich innerhalb eines Buchstabens
+  const LETTER_GAP = 1500;       // zwischen Buchstaben
+  const START_FLASH = 700;       // grünes Aufleuchten am Anfang
+  const AFTER_START = 1500;
+  const REPEAT_PAUSE = 4000;     // Pause vor der Wiederholung
+
+  const MORSE = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..',
+    J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.',
+    S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..'
+  };
+
+  const FRAGMENT = STATIONS['station-2'].code;
+  const MORAVA_MESSAGE = [
+    '… krrrz … hier Morava … hört ihr mich?',
+    'Ich lebe. Ich bin auf der anderen Seite des Risses.',
+    KENNWORT + ' … das heißt Hinweis. Und hier ist meiner:',
+    '{CODE}',
+    'Schreibt es auf. Findet die anderen Teile. Beeilt euch …'
+  ];
+
+  // ── Zustand ──────────────────────────────────────────────────────────────
+  let gen = 0;               // erhöht sich bei jedem Stopp → laufende Sequenz bricht ab
+  let targetVisible = false;
+  let firstCycleDone = false;
+  let solved = false;
+  let soundOn = false;
+  let audioCtx = null;
+  let lockTick = null;
+
+  const $ = id => document.getElementById(id);
+  const eyes = () => [$('eye-l'), $('eye-r')];
+  const hud = $('signal-hud');
 
   document.addEventListener('DOMContentLoaded', async () => {
     await enableMotion();
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+    initStepCounter();
   });
 
-  // Morse-Blinken der Augen (.-. = R, Hinweis auf Rätsel)
-  // Kurz = 200ms, Lang = 600ms, Pause = 200ms
-  const morsePattern = [200, 200, 600, 200, 200, 200]; // .-. mit Lücken
-  let morseIdx = 0;
-  let morseOn = true;
-
-  function runMorse() {
-    const eyeL = document.querySelector('#eye-l');
-    const eyeR = document.querySelector('#eye-r');
-    if (!eyeL) { setTimeout(runMorse, 500); return; }
-
-    const duration = morsePattern[morseIdx % morsePattern.length];
-    morseOn = !morseOn;
-    const opacity = morseOn ? '1' : '0.05';
-    eyeL.setAttribute('opacity', opacity);
-    eyeR.setAttribute('opacity', opacity);
-    morseIdx++;
-
-    // Pause zwischen Wiederholungen
-    const delay = morseIdx >= morsePattern.length * 2 ? 2000 : duration;
-    if (morseIdx >= morsePattern.length * 2) morseIdx = 0;
-    setTimeout(runMorse, delay);
-  }
-
-  // Start wenn AR-Target gefunden
-  document.querySelector('a-scene').addEventListener('targetFound', () => {
-    document.getElementById('scan-prompt').style.display = 'none';
-    document.getElementById('timer-bar-wrap').style.display = 'block';
-    runMorse();
-    startCreatureTimer();
-  });
-
-  document.querySelector('a-scene').addEventListener('targetLost', () => {
-    document.getElementById('scan-prompt').style.display = 'block';
-  });
-
-  function startCreatureTimer() {
-    let elapsed = 0;
-    const fill = document.getElementById('timer-fill');
-    timerInterval = setInterval(() => {
-      elapsed += 500;
-      const pct = Math.max(0, 100 - (elapsed / CREATURE_TIMEOUT * 100));
-      fill.style.width = pct + '%';
-      if (elapsed >= CREATURE_TIMEOUT && !tapped) {
-        clearInterval(timerInterval);
-        creatureVanish();
+  // ── Augen & Ton ──────────────────────────────────────────────────────────
+  function setEyes(mode) {
+    eyes().forEach(e => {
+      if (mode === 'dot') {
+        e.setAttribute('scale', '1.5 1.5 1.5');
+        e.setAttribute('color', '#ff2a2a');
+        e.setAttribute('opacity', '1');
+      } else if (mode === 'dash') {
+        e.setAttribute('scale', '2.3 0.45 1');
+        e.setAttribute('color', '#ff2a2a');
+        e.setAttribute('opacity', '1');
+      } else if (mode === 'start') {
+        e.setAttribute('scale', '1.8 1.8 1.8');
+        e.setAttribute('color', '#33ff77');
+        e.setAttribute('opacity', '1');
+      } else {
+        e.setAttribute('scale', '1 1 1');
+        e.setAttribute('color', '#330000');
+        e.setAttribute('opacity', '0.4');
       }
-    }, 500);
+    });
   }
 
-  function creatureVanish() {
-    const creature = document.querySelector('#creature');
-    creature.setAttribute('animation__fade', 'property: opacity; to: 0; dur: 800');
-    setTimeout(() => {
-      showHint(
-        '⚠ DIE KREATUR IST VERSCHWUNDEN<br><br>' +
-        'Du warst zu langsam.<br>' +
-        '<strong style="color:#7b00ff">Scanne das Objekt erneut.</strong>',
-        null
-      );
-      tapped = false;
-      creature.setAttribute('opacity', '1');
-      creature.removeAttribute('animation__fade');
-    }, 900);
+  function setHalo(strong) {
+    $('halo').setAttribute('opacity', strong ? '0.7' : '0.15');
+    $('halo').setAttribute('color', strong ? '#33ff77' : '#c00');
   }
 
-  // Tap auf Kreatur
-  document.querySelector('#creature').addEventListener('click', () => {
-    if (tapped) return;
-    tapped = true;
-    clearInterval(timerInterval);
-    document.getElementById('timer-bar-wrap').style.display = 'none';
+  function tone(ms) {
+    if (!soundOn || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.value = 680;
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.02);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime + ms / 1000 - 0.03);
+    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + ms / 1000);
+    osc.connect(g).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + ms / 1000 + 0.02);
+  }
 
-    const creature = document.querySelector('#creature');
-    creature.setAttribute('animation__hit', 'property: scale; to: 1.5 1.5 1.5; dur: 200; dir: alternate; loop: 3');
-
-    setTimeout(() => {
-      showHint(
-        '<span style="color:#c00">// SIGNAL ABGEFANGEN</span><br><br>' +
-        'Die Kreatur hinterlässt eine Botschaft in Morsecode:<br><br>' +
-        '<strong style="color:#7b00ff; letter-spacing:0.3em">.-- / -.-.</strong><br><br>' +
-        'Übersetze den Code mit deiner Tabelle.<br>' +
-        'Das Ergebnis zeigt dir den nächsten Ort.',
-        null
-      );
-      document.querySelector('#scan-prompt').textContent = '▸ SCHÜTTELN UM FORTZUFAHREN';
-    }, 500);
+  $('sound-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    soundOn = !soundOn;
+    if (soundOn && !audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { soundOn = false; }
+    }
+    $('sound-btn').classList.toggle('on', soundOn);
+    $('sound-btn').textContent = soundOn ? '🔊 TON' : '🔇 TON';
   });
 
-  // Schütteln → Lösung bestätigen + weiter
-  onShake(() => {
-    if (!tapped) return;
-    showHint(
-      '✓ CODE ÜBERSETZT: <strong style="color:#7b00ff">WC</strong><br><br>' +
-      'Das nächste Zeichen wartet dort,<br>' +
-      '<strong style="color:#e0e0e0">wo man sich die Hände wäscht.</strong><br><br>' +
-      'Schau genau — es ist nicht sofort sichtbar.',
-      () => {
-        markStationDone('station-2');
-        showNextStation();
+  // ── Signal-Schleife ──────────────────────────────────────────────────────
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  function setHud(text, start) {
+    hud.style.display = 'block';
+    hud.textContent = text;
+    hud.classList.toggle('start', !!start);
+  }
+
+  function startSignal() {
+    const my = ++gen;
+    runSignal(my);
+  }
+
+  function stopSignal() {
+    gen++;
+    setEyes('off');
+    setHalo(false);
+    hud.style.display = 'none';
+  }
+
+  async function runSignal(my) {
+    const alive = () => my === gen;
+    const word = KENNWORT.toUpperCase();
+    while (alive()) {
+      setHud('◉ SIGNAL BEGINNT', true);
+      setEyes('start'); setHalo(true); tone(START_FLASH);
+      await wait(START_FLASH);
+      if (!alive()) return;
+      setEyes('off'); setHalo(false);
+      await wait(AFTER_START);
+
+      for (let i = 0; i < word.length; i++) {
+        if (!alive()) return;
+        setHud('BUCHSTABE ' + (i + 1) + ' / ' + word.length);
+        const code = MORSE[word[i]];
+        for (let j = 0; j < code.length; j++) {
+          const dash = code[j] === '-';
+          setEyes(dash ? 'dash' : 'dot');
+          tone(dash ? DASH : DOT);
+          await wait(dash ? DASH : DOT);
+          if (!alive()) return;
+          setEyes('off');
+          if (j < code.length - 1) await wait(SIGN_GAP);
+        }
+        await wait(LETTER_GAP);
       }
-    );
-  });
+      if (!alive()) return;
 
-  function showNextStation() {
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    step++;
-    localStorage.setItem('schattenschule_step', step);
-    if (step >= route.length) {
-      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
-    } else {
-      const next = route[step];
-      showHint(
-        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
-        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
-        () => { window.location.href = next + '.html'; }
-      );
+      setHud('— ENDE · WIEDERHOLUNG GLEICH —');
+      if (!firstCycleDone) {
+        firstCycleDone = true;
+        enableAnswerButton('▸ [ FUNKGERÄT ]', openRadio);
+      }
+      await wait(REPEAT_PAUSE);
     }
   }
 
-  function getStationName(id) {
-    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
-             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  // ── AR-Events ────────────────────────────────────────────────────────────
+  const scene = document.querySelector('a-scene');
+  scene.addEventListener('targetFound', () => {
+    targetVisible = true;
+    if (!firstCycleDone) $('scan-prompt').style.display = 'none';
+    startSignal();
+  });
+  scene.addEventListener('targetLost', () => {
+    targetVisible = false;
+    stopSignal();
+    if (!firstCycleDone) {
+      $('scan-prompt').style.display = 'block';
+      $('scan-prompt').textContent = '▸ OBJEKT SCANNEN';
+    }
+  });
+
+  // Tipp auf den Bildschirm (große Fläche statt genau auf die wackelnde Kreatur)
+  document.addEventListener('pointerup', e => {
+    if (solved || !targetVisible || !$('radio').hidden) return;
+    if (e.target.closest('#radio, button, #hint-overlay, #scan-prompt, #station-ui')) return;
+    if (!firstCycleDone) {
+      showHint('Hört zuerst das <strong>ganze Signal</strong> ab —<br>vom grünen Aufleuchten bis zur Pause.<br><br>' +
+               'Schreibt jedes Zeichen mit: <strong>Punkt</strong> = rundes Aufblitzen, <strong>Strich</strong> = langer Schlitz.', null);
+      return;
+    }
+    openRadio();
+  });
+
+  // ── Funkgerät ────────────────────────────────────────────────────────────
+  function openRadio() {
+    if (solved) return;
+    $('radio').hidden = false;
+    $('scan-prompt').style.display = 'none';
+    updateLock();
+    setTimeout(() => $('radio-input').focus(), 50);
+  }
+
+  function closeRadio() {
+    $('radio').hidden = true;
+    if (!solved) $('scan-prompt').style.display = 'block';
+  }
+
+  $('radio-close').addEventListener('click', closeRadio);
+  $('radio-send').addEventListener('click', sendKennwort);
+  $('radio-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendKennwort(); });
+
+  function updateLock() {
+    const left = Math.ceil((getLockUntil() - Date.now()) / 1000);
+    const locked = left > 0;
+    $('radio-send').disabled = locked;
+    if (locked) {
+      $('radio-feedback').textContent = '⚠ STÖRSIGNAL — FUNKGERÄT GESPERRT: ' + left + ' s';
+      if (!lockTick) lockTick = setInterval(updateLock, 250);
+    } else {
+      if (lockTick) { clearInterval(lockTick); lockTick = null; }
+      if ($('radio-feedback').textContent.startsWith('⚠ STÖR')) $('radio-feedback').textContent = '';
+    }
+  }
+
+  function sendKennwort() {
+    if (solved || getLockUntil() > Date.now()) return;
+    const v = $('radio-input').value.trim().toUpperCase().replace(/\s+/g, '');
+    if (!v) return;
+    if (v === KENNWORT.toUpperCase()) {
+      solved = true;
+      receiveMorava();
+    } else {
+      $('radio-status').textContent = '▯▯▯▯ KEIN SIGNAL — NUR RAUSCHEN';
+      $('radio-input').value = '';
+      try { localStorage.setItem(LOCK_KEY, String(Date.now() + WRONG_ANSWER_LOCK_SECONDS * 1000)); } catch {}
+      updateLock();
+    }
+  }
+
+  async function receiveMorava() {
+    $('radio-row').style.display = 'none';
+    $('radio-feedback').textContent = '';
+    $('radio-status').textContent = '▮▯▯▯ SIGNAL WIRD STÄRKER …';
+    await wait(900);
+    $('radio-status').textContent = '▮▮▮▯ VERBINDUNG …';
+    await wait(900);
+    $('radio-status').textContent = '▮▮▮▮ SIGNAL EMPFANGEN';
+    $('radio-status').classList.add('ok');
+    $('radio-screen').classList.remove('noise');
+
+    const box = $('radio-msg');
+    box.innerHTML = '';
+    for (const line of MORAVA_MESSAGE) {
+      if (line === '{CODE}') {
+        const c = document.createElement('span');
+        c.className = 'code';
+        c.textContent = FRAGMENT.split('').join(' – ');
+        box.appendChild(c);
+        await wait(1200);
+        continue;
+      }
+      const p = document.createElement('div');
+      box.appendChild(p);
+      for (const ch of line) { p.textContent += ch; await wait(28); }
+      await wait(500);
+    }
+
+    const done = document.createElement('button');
+    done.id = 'radio-done';
+    done.type = 'button';
+    done.textContent = '[ FRAGMENT NOTIEREN ]';
+    done.onclick = () => {
+      $('radio').hidden = true;
+      stopSignal();
+      showDigit('station-2', '✓ <span style="color:#cc3300">VERBINDUNG ZU MORAVA HERGESTELLT</span>');
+    };
+    $('radio').appendChild(done);
   }
 </script>
 </body>

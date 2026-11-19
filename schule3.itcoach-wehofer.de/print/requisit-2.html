@@ -2,19 +2,21 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Requisit 2 — Polizeibericht</title>
+  <title>Requisit 2 — Funkraum: Marker & Abhörprotokoll</title>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
     @media print {
       body { background: none; padding: 0; gap: 0; }
       .no-print { display: none; }
-      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; height: 297mm; min-height: 0; }
       .page:last-child { page-break-after: auto; }
     }
-    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
-    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+    @media screen { .page { max-width: 100%; } }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; }
+    .no-print button { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; }
 
     .page {
       width: 210mm; min-height: 297mm;
@@ -26,274 +28,190 @@
       color: #1a1a2e;
       overflow: hidden;
     }
+    .page.lehrer { background: #fff; font-family: sans-serif; font-size: 9.5pt; color: #333; }
 
-    /* Seite 2: Lehrer */
-    .page.lehrer {
-      background: #fff;
-      font-family: sans-serif;
-      font-size: 9pt;
-      color: #333;
+    /* ═══ Seite 1: Marker ═══ */
+    .page.marker { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6mm; }
+    .marker-cut { border: 1.5px dashed #999; padding: 6mm; position: relative; }
+    .marker-cut::before {
+      content: '✂'; position: absolute; top: -4.2mm; left: 8mm; background: #fff; padding: 0 1.5mm;
+      font-size: 11pt; color: #777; font-family: sans-serif;
     }
+    .marker-cut img { display: block; width: 160mm; height: 160mm; }
+    .marker-hinweis { font-family: sans-serif; font-size: 8.5pt; color: #777; text-align: center; line-height: 1.5; max-width: 160mm; }
 
-    /* Header */
+    /* ═══ Seite 2: Abhörprotokoll ═══ */
     .bericht-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 3px double #1a1a2e;
-      padding-bottom: 4mm;
-      margin-bottom: 5mm;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 3px double #1a1a2e; padding-bottom: 4mm; margin-bottom: 5mm;
     }
+    .bericht-logo { font-size: 10pt; letter-spacing: 0.15em; line-height: 1.5; font-weight: bold; }
+    .kanal {
+      border: 3px solid #1a1a2e; padding: 2mm 4mm; text-align: center;
+      font-size: 7.5pt; letter-spacing: 0.15em; line-height: 1.4;
+    }
+    .kanal strong { display: block; font-size: 18pt; letter-spacing: 0.05em; }
 
-    .bericht-logo {
-      font-size: 10pt;
-      letter-spacing: 0.15em;
-      line-height: 1.5;
-      font-weight: bold;
-    }
-
-    /* MARKER: Stempel/Siegel */
-    .stempel-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .stempel {
-      width: 32mm; height: 32mm;
-      border: 3px solid #1a1a2e;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 7.5pt;
-      letter-spacing: 0.1em;
-      text-align: center;
-      line-height: 1.4;
-      position: relative;
-    }
-    .stempel::after {
-      content: '';
-      position: absolute;
-      inset: 3px;
-      border: 1px solid #1a1a2e;
-      border-radius: 50%;
-    }
-    .stempel-symbol { font-size: 20pt; margin: 1mm 0; }
-
-    /* Inhalt */
-    .feld-zeile {
-      display: flex; gap: 6mm; margin-bottom: 3mm; font-size: 9.5pt;
-    }
-    .feld-label { font-weight: bold; white-space: nowrap; min-width: 28mm; }
+    .feld-zeile { display: flex; gap: 6mm; margin-bottom: 3mm; font-size: 9.5pt; }
+    .feld-label { font-weight: bold; white-space: nowrap; min-width: 30mm; }
     .feld-wert { border-bottom: 1px solid #555; flex: 1; }
 
     .abschnitt-titel {
       font-size: 9pt; letter-spacing: 0.2em; font-weight: bold;
-      border-top: 1px solid #1a1a2e; padding-top: 3mm; margin: 4mm 0 2mm 0;
+      border-top: 1px solid #1a1a2e; padding-top: 3mm; margin: 5mm 0 2mm 0;
     }
+    .bericht-text { font-size: 9.8pt; line-height: 1.75; margin-bottom: 3mm; }
+    .geschwaerzt { background: #1a1a2e; display: inline-block; min-width: 22mm; height: 0.9em; vertical-align: middle; margin: 0 1mm; }
 
-    .bericht-text {
-      font-size: 9.5pt; line-height: 1.7; margin-bottom: 3mm;
-    }
-
-    /* Geschwärzte Passagen */
-    .geschwärzt {
-      background: #1a1a2e; color: #1a1a2e;
-      display: inline-block; min-width: 25mm; height: 0.9em;
-      vertical-align: middle; margin: 0 1mm;
-      user-select: none;
-    }
-
-    /* Roter Stempel */
     .rot-stempel {
-      position: absolute; top: 35mm; right: 12mm;
-      font-size: 22pt; font-weight: bold;
-      color: rgba(150, 0, 0, 0.55);
-      transform: rotate(-18deg);
-      letter-spacing: 0.1em;
-      border: 3px solid rgba(150,0,0,0.5);
-      padding: 1mm 3mm;
-      white-space: nowrap;
+      position: absolute; top: 38mm; right: 14mm;
+      font-size: 20pt; font-weight: bold; color: rgba(150, 0, 0, 0.55);
+      transform: rotate(-16deg); letter-spacing: 0.1em;
+      border: 3px solid rgba(150,0,0,0.5); padding: 1mm 3mm; white-space: nowrap;
     }
 
-    /* Morse-Rätsel */
-    .morse-box {
-      border: 1px solid #1a1a2e;
-      padding: 4mm;
-      margin: 4mm 0;
-      background: #e8ecf0;
-    }
-    .morse-titel { font-size: 8pt; letter-spacing: 0.2em; margin-bottom: 2mm; font-weight: bold; }
-    .morse-code { font-size: 14pt; letter-spacing: 0.4em; margin-bottom: 3mm; font-family: monospace; }
-    .morse-tabelle { width: 100%; font-size: 7.5pt; border-collapse: collapse; }
-    .morse-tabelle td { padding: 0.5mm 2mm; font-family: monospace; }
-    .morse-tabelle td:nth-child(odd) { font-weight: bold; }
+    .log { border: 1px solid #1a1a2e; background: #e8ecf0; margin: 3mm 0; }
+    .log-zeile { display: flex; gap: 4mm; padding: 1.6mm 3mm; font-size: 9pt; border-bottom: 1px dashed #1a1a2e44; }
+    .log-zeile:last-child { border-bottom: none; }
+    .log-zeit { white-space: nowrap; font-weight: bold; min-width: 16mm; }
 
-    .ergebnis-zeile {
-      margin-top: 3mm;
-      font-size: 9pt;
-    }
-    .ergebnis-zeile span {
-      display: inline-block; width: 30mm;
-      border-bottom: 1px solid #1a1a2e; margin-left: 2mm;
-    }
+    .aufgabe { border: 2px solid #1a1a2e; padding: 4mm; margin: 4mm 0; background: #fff; }
+    .aufgabe-titel { font-size: 9pt; letter-spacing: 0.2em; margin-bottom: 2mm; font-weight: bold; }
+    .schritte { font-size: 9.6pt; line-height: 1.75; padding-left: 5mm; }
+    .ergebnis-zeile { margin-top: 3mm; font-size: 9.5pt; }
+    .ergebnis-zeile span { display: inline-block; width: 40mm; border-bottom: 1px solid #1a1a2e; margin-left: 2mm; }
 
-    /* Lehrer-Seite */
-    .lehrer-titel {
-      font-size: 10pt; font-weight: bold; letter-spacing: 0.1em;
-      border-bottom: 1px solid #999; padding-bottom: 2mm; margin-bottom: 4mm;
-    }
-    .gelb-box {
-      background: #fffde0; border: 1px solid #ccaa00;
-      padding: 3mm 4mm; font-size: 9pt; line-height: 1.6; margin-bottom: 4mm;
-    }
-    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
-    .versteck-tbl th { background:#e0e8f0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
-    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
-    .versteck-tbl tr:nth-child(even) td { background:#f8f8ff; }
+    .notiz-hand { font-family: 'Caveat', cursive; font-size: 14pt; color: #8b1a1a; margin-top: 3mm; transform: rotate(-1deg); }
+
+    .fuss { position: absolute; bottom: 10mm; left: 16mm; right: 16mm; display: flex; justify-content: space-between; font-size: 8pt; opacity: 0.45; }
+
+    /* ═══ Seite 3: Lehrer ═══ */
+    .lehrer-titel { font-size: 10.5pt; font-weight: bold; letter-spacing: 0.1em; border-bottom: 1px solid #999; padding-bottom: 2mm; margin-bottom: 4mm; }
+    .gelb-box { background: #fffde0; border: 1px solid #ccaa00; padding: 3mm 4mm; line-height: 1.6; margin-bottom: 4mm; }
+    .tbl { width: 100%; border-collapse: collapse; margin-bottom: 4mm; }
+    .tbl th { background: #e0e8f0; border: 1px solid #aaa; padding: 2mm 3mm; text-align: left; width: 30%; vertical-align: top; }
+    .tbl td { border: 1px solid #ccc; padding: 2mm 3mm; line-height: 1.5; }
+    .aufbau { display: flex; gap: 4mm; align-items: flex-start; margin-bottom: 4mm; }
+    .aufbau svg { flex: none; width: 70mm; height: auto; border: 1px solid #ccc; background: #fafafa; }
+    .aufbau ol { padding-left: 5mm; line-height: 1.6; }
+    code { background: #f2f2f2; padding: 0 1mm; }
   </style>
 </head>
 <body>
 <div class="no-print">
-  <span>Requisit 2 — Polizeibericht (Station: Garderobe)</span>
+  <span>Requisit 2 — Station ● Funkraum: Marker (S. 1), Abhörprotokoll (S. 2), Lehrer-Vorlage (S. 3)</span>
   <button onclick="window.print()">🖨 Drucken</button>
 </div>
 
-<!-- ═══ SEITE 1: POLIZEIBERICHT (SCHÜLER) ═══ -->
-<div class="page">
+<!-- ═══ SEITE 1: MARKER ═══ -->
+<div class="page marker">
+  <div class="marker-cut">
+    <img src="../assets/targets/marker-funkraum.svg" alt="Funkgerät-Marker Funkraum">
+  </div>
+  <div class="marker-hinweis">
+    Entlang der gestrichelten Linie ausschneiden · auf festen Karton kleben · <strong>nicht glänzend laminieren</strong><br>
+    Flach auf den Stationstisch legen oder als Aufsteller hinstellen — nicht knicken, nicht abdecken.
+  </div>
+</div>
 
-  <div class="rot-stempel">VERTRAULICH</div>
+<!-- ═══ SEITE 2: ABHÖRPROTOKOLL (SCHÜLER) ═══ -->
+<div class="page">
+  <div class="rot-stempel">ABGEHÖRT</div>
 
   <div class="bericht-header">
     <div class="bericht-logo">
       SICHERHEITSBEHÖRDE<br>
       SONDERABTEILUNG ∅∅<br>
-      <span style="font-size:8pt;font-weight:normal">Abt. für Anomale Ereignisse</span>
+      <span style="font-size:8pt;font-weight:normal">Funküberwachung · Abt. für Anomale Ereignisse</span>
     </div>
-
-    <!-- MARKER: Behörden-Siegel -->
-    <div class="stempel-wrap">
-      <div class="stempel">
-        <span style="font-size:6.5pt">SONDER</span>
-        <span class="stempel-symbol">⊛</span>
-        <span style="font-size:6.5pt">ABTEILUNG ∅∅</span>
-      </div>
-    </div>
+    <div class="kanal">KANAL<strong>02</strong>72,5 MHz</div>
   </div>
 
-  <!-- Felder -->
-  <div class="feld-zeile">
-    <span class="feld-label">AKT NR.:</span>
-    <span class="feld-wert">2024-∅∅7 / KATEGORIE SHADOW</span>
-  </div>
-  <div class="feld-zeile">
-    <span class="feld-label">BETREFF:</span>
-    <span class="feld-wert">Verschwinden — E. MORAVA, Schüler, 14 J.</span>
-  </div>
-  <div class="feld-zeile">
-    <span class="feld-label">DATUM:</span>
-    <span class="feld-wert">██.██.████ &nbsp;&nbsp; UHRZEIT: 23:47</span>
-  </div>
-  <div class="feld-zeile">
-    <span class="feld-label">STATUS:</span>
-    <span class="feld-wert" style="font-weight:bold">UNGEKLÄRT — AKTE OFFEN</span>
-  </div>
+  <div class="feld-zeile"><span class="feld-label">AKT NR.:</span><span class="feld-wert">2024-∅∅7 / KATEGORIE SHADOW</span></div>
+  <div class="feld-zeile"><span class="feld-label">BETREFF:</span><span class="feld-wert">Unbekannte Funksignale — Funkraum der Schule</span></div>
+  <div class="feld-zeile"><span class="feld-label">BETROFFENER:</span><span class="feld-wert">E. MORAVA, Privatdetektiv — vermisst</span></div>
+  <div class="feld-zeile"><span class="feld-label">STATUS:</span><span class="feld-wert" style="font-weight:bold">SIGNAL AKTIV — NICHT ENTSCHLÜSSELT</span></div>
 
-  <div class="abschnitt-titel">// SACHVERHALTSDARSTELLUNG</div>
+  <div class="abschnitt-titel">// SACHVERHALT</div>
   <div class="bericht-text">
-    Am Abend des <span class="geschwärzt">xxxx</span> wurde E. MORAVA zuletzt in der
-    <span class="geschwärzt">xxxxxxxxxx</span> des Schulgebäudes gesehen.
-    Überwachungskameras zeigen ab <span class="geschwärzt">xxx</span> Uhr nur noch
-    Rauschen. Mitschüler berichten von <span class="geschwärzt">xxxxxxxxxxx</span>
-    aus den Wänden und Spiegeln.<br><br>
-    Im Spind des Verschwundenen fand man folgende letzte Notiz, handgeschrieben:
-    <em style="display:block;margin:2mm 0 0 4mm;">"Die Kamera sieht was wir nicht sehen. Benutzt sie."</em>
+    Seit dem Verschwinden von E. Morava empfängt die alte Funkanlage der Schule jede Nacht Signale auf
+    <strong>Kanal 02</strong>. Sie kommen aus keinem bekannten Sender. Unsere Techniker hören nur Rauschen —
+    und manchmal eine Stimme, die nach einem <strong>Kennwort</strong> fragt.<br>
+    Morava war Funker, bevor er Detektiv wurde. Wir vermuten: <em>Er sendet selbst.</em>
+    Von <span class="geschwaerzt"></span> aus, wo ihn niemand erreicht.
   </div>
 
-  <div class="abschnitt-titel">// CODIERTE BOTSCHAFT (AM TATORT GEFUNDEN)</div>
-
-  <!-- RÄTSEL: Morse-Code -->
-  <div class="morse-box">
-    <div class="morse-titel">⚠ AUFGABE — Übersetze den Morsecode:</div>
-    <div class="morse-code">.-- &nbsp; / &nbsp; -.-.</div>
-
-    <table class="morse-tabelle">
-      <tr>
-        <td>A</td><td>.-</td>
-        <td>B</td><td>-...</td>
-        <td>C</td><td>-.-.</td>
-        <td>D</td><td>-..</td>
-        <td>E</td><td>.</td>
-      </tr><tr>
-        <td>F</td><td>..-.</td>
-        <td>G</td><td>--.</td>
-        <td>H</td><td>....</td>
-        <td>I</td><td>..</td>
-        <td>J</td><td>.---</td>
-      </tr><tr>
-        <td>K</td><td>-.-</td>
-        <td>L</td><td>.-..</td>
-        <td>M</td><td>--</td>
-        <td>N</td><td>-.</td>
-        <td>O</td><td>---</td>
-      </tr><tr>
-        <td>P</td><td>.--.</td>
-        <td>Q</td><td>--.-</td>
-        <td>R</td><td>.-.</td>
-        <td>S</td><td>...</td>
-        <td>T</td><td>-</td>
-      </tr><tr>
-        <td>U</td><td>..-</td>
-        <td>V</td><td>...-</td>
-        <td>W</td><td>.--</td>
-        <td>X</td><td>-..-</td>
-        <td>Y</td><td>-.--</td>
-      </tr><tr>
-        <td>Z</td><td>--..</td>
-        <td>1</td><td>.----</td>
-        <td>2</td><td>..---</td>
-        <td>3</td><td>...--</td>
-        <td>4</td><td>....-</td>
-      </tr>
-    </table>
-
-    <div class="ergebnis-zeile">
-      Lösung: <span></span> &nbsp;&nbsp; → zeigt den nächsten Ort
-    </div>
+  <div class="abschnitt-titel">// MITSCHNITT DER LETZTEN NACHT</div>
+  <div class="log">
+    <div class="log-zeile"><span class="log-zeit">23:41</span><span>Rauschen. Lichtflackern im Funkraum.</span></div>
+    <div class="log-zeile"><span class="log-zeit">23:44</span><span>Stimme: „… nur mit Kennwort … sie hört mit …“</span></div>
+    <div class="log-zeile"><span class="log-zeit">23:46</span><span>Kamera zeigt eine Gestalt neben dem Funkgerät. Mit bloßem Auge: nichts.</span></div>
+    <div class="log-zeile"><span class="log-zeit">23:47</span><span>Die Gestalt blinkt mit den Augen. Kurz, lang, kurz … Danach Stille.</span></div>
   </div>
 
-  <div class="abschnitt-titel">// HINWEIS FÜR ERMITTLER</div>
-  <div class="bericht-text">
-    Scannt das <strong>Siegel</strong> oben rechts mit eurem Gerät.<br>
-    Die Schattenwelt zeigt mehr als dieser Bericht.
-    <span style="font-size:8.5pt;opacity:0.6">Schüttelt das Gerät wenn ihr bereit seid weiterzugehen.</span>
+  <div class="aufgabe">
+    <div class="aufgabe-titel">⚠ AUFTRAG — FANGT MORAVAS KENNWORT AB</div>
+    <ol class="schritte">
+      <li>Scannt das <strong>Funkgerät</strong> auf dem Tisch mit eurem Handy.</li>
+      <li>Eine Kreatur erscheint. Ihre Augen morsen das Kennwort. <strong>Grünes Aufleuchten</strong> = das Signal beginnt.</li>
+      <li>Schreibt jedes Zeichen mit und entschlüsselt es mit <strong>Moravas Funk-Notizen</strong> (Morse-Tabelle).</li>
+      <li>Tippt auf den Bildschirm, öffnet das <strong>Funkgerät</strong> und gebt das Kennwort ein.</li>
+    </ol>
+    <div class="ergebnis-zeile">Kennwort: <span></span> &nbsp;→ Morava antwortet mit dem Code-Teil für Feld ●</div>
   </div>
 
-  <div style="position:absolute;bottom:10mm;right:14mm;font-size:8pt;opacity:0.4">
-    Seite 1 von 1 &nbsp;|&nbsp; Nicht für die Öffentlichkeit
-  </div>
+  <div class="notiz-hand">„Die Kamera sieht, was wir nicht sehen. Benutzt sie.“ — E.M.</div>
+
+  <div class="fuss"><span>ABHÖRPROTOKOLL · FUNKRAUM</span><span>Nicht für die Öffentlichkeit</span></div>
 </div>
 
-<!-- ═══ SEITE 2: LEHRER ═══ -->
+<!-- ═══ SEITE 3: LEHRER ═══ -->
 <div class="page lehrer">
-  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 2 / Garderobe (NICHT für Schüler)</div>
+  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 2 / ● Funkraum (NICHT für Schüler)</div>
+
   <div class="gelb-box">
-    <strong>Vorbereitung:</strong> Polizeibericht ausdrucken. Das Requisit wird an oder beim
-    4. Spind von links (Nordseite) platziert — entweder hineingelegt, daran befestigt oder daneben gelegt.<br><br>
-    <strong>Marker:</strong> Das Siegel (⊛) oben rechts dient als MindAR-Image-Target.
-    Mindestgröße für zuverlässiges Tracking: <strong>10×10 cm</strong> — beim Druck auf A4 ist das gegeben.<br><br>
-    <strong>Rätsel-Lösung:</strong> Morsecode <code>.-- / -.-.</code> = <strong>W + C = "WC"</strong><br>
-    → Schüler wissen: nächste Station ist das WC.
+    <strong>Ablauf:</strong> Funkgerät-Marker scannen → Kreatur erscheint, ihre Augen morsen das Kennwort in Schleife
+    (grünes Aufleuchten = Anfang, oben Zähler „BUCHSTABE 1/4“) → mitschreiben und mit der Morse-Tabelle entschlüsseln →
+    nach einem vollständigen Durchgang Bildschirm antippen → Funkgerät öffnet sich → Kennwort eingeben →
+    Morava meldet sich und funkt den Code-Teil.<br><br>
+    <strong>Kennwort:</strong> <code>CLUE</code> (C –·–· · L ·–·· · U ··– · E ·) &nbsp;·&nbsp;
+    <strong>Code-Teil für Feld ●:</strong> <strong>725</strong> &nbsp;·&nbsp; falsches Kennwort = 30 s Sperre
   </div>
-  <table class="versteck-tbl">
-    <tr><th>Element</th><th>Details</th></tr>
-    <tr><td>Marker-Bild</td><td>Siegel ⊛ oben rechts im Polizeibericht</td></tr>
-    <tr><td>Physisches Rätsel</td><td>Morse-Code übersetzen (.-- / -.-. = WC)</td></tr>
-    <tr><td>AR-Aktion</td><td>Tap auf Kreatur → Morse erscheint → Schütteln → "WC" als nächste Station</td></tr>
-    <tr><td>Versteck-Ort</td><td>4. Spind von links, Nordseite (Aufkleber "4" für Spieltag vorbereiten)</td></tr>
-    <tr><td>Nächste Station</td><td>WC / Spiegel (Requisit 3)</td></tr>
+
+  <div style="font-weight:bold;margin-bottom:2mm">Aufbau der Station</div>
+  <div class="aufbau">
+    <svg viewBox="0 0 280 200" font-family="sans-serif" font-size="10">
+      <rect x="20" y="30" width="240" height="140" rx="6" fill="#e9dfcf" stroke="#8a7a60" stroke-width="2"/>
+      <text x="140" y="22" text-anchor="middle" fill="#555">STATIONSTISCH</text>
+      <rect x="35" y="45" width="56" height="16" fill="#111"/><text x="63" y="57" text-anchor="middle" fill="#fff" font-size="8">● FUNKRAUM</text>
+      <rect x="110" y="60" width="64" height="64" fill="#fff" stroke="#111" stroke-width="2"/>
+      <rect x="128" y="72" width="28" height="44" rx="4" fill="#222"/><rect x="146" y="64" width="5" height="10" fill="#222"/>
+      <text x="142" y="138" text-anchor="middle" fill="#333">Marker</text>
+      <rect x="190" y="55" width="54" height="72" fill="#fff" stroke="#555"/><text x="217" y="94" text-anchor="middle" fill="#333" font-size="8">Morse-</text><text x="217" y="104" text-anchor="middle" fill="#333" font-size="8">Tabelle</text>
+      <rect x="38" y="80" width="54" height="72" fill="#f0f4f8" stroke="#555"/><text x="65" y="114" text-anchor="middle" fill="#333" font-size="8">Abhör-</text><text x="65" y="124" text-anchor="middle" fill="#333" font-size="8">protokoll</text>
+      <line x1="200" y1="145" x2="240" y2="152" stroke="#c33" stroke-width="3"/><text x="220" y="165" text-anchor="middle" fill="#333" font-size="8">Stifte</text>
+      <text x="140" y="188" text-anchor="middle" fill="#777" font-size="8">optional: altes Radio als Deko</text>
+    </svg>
+    <ol>
+      <li><strong>Marker</strong> (Seite 1) ausschneiden, auf Karton kleben und in die Mitte des Tisches legen —
+          oder als Aufsteller hinstellen. Mindestens 10 × 10 cm, matt, gut beleuchtet, keine Spiegelungen.</li>
+      <li><strong>Abhörprotokoll</strong> (Seite 2) und <strong>Morse-Tabelle</strong> daneben legen, Stifte bereitlegen.</li>
+      <li>Tisch mit einem Schild <strong>„● FUNKRAUM“</strong> kennzeichnen.</li>
+      <li>Optional: altes Radio oder Walkie-Talkie als Deko, gedämpftes Licht (der Marker selbst muss aber hell genug sein).</li>
+    </ol>
+  </div>
+
+  <table class="tbl">
+    <tr><th>Marker-Datei</th><td>Der Marker muss einmalig in die Datei <code>assets/targets/station2.mind</code> kompiliert werden:
+      Bild <code>assets/targets/marker-funkraum.png</code> im MindAR-Compiler
+      (hiukim.github.io/mind-ar-js-doc/tools/compile) hochladen → „Start“ → Ergebnis als <code>station2.mind</code> speichern.
+      Danach Ausdruck und Datei <strong>nicht mehr verändern</strong> — sonst erkennt die Kamera den Marker nicht.</td></tr>
+    <tr><th>Häufige Fehler</th><td>Das <strong>E</strong> ist ein einzelner kurzer Punkt und wird leicht übersehen — auf den Zähler „BUCHSTABE 4/4“ hinweisen.
+      Wird der Marker nicht erkannt: näher heran, Licht verbessern, Spiegelungen vermeiden.</td></tr>
+    <tr><th>Tipp-Stufen (mündlich)</th><td>1. „Wartet auf das grüne Aufleuchten und schreibt erst dann mit.“<br>
+      2. „Achtet auf die Form: rund = Punkt, Schlitz = Strich.“<br>
+      3. „Das Wort ist Englisch und hat mit Detektiven zu tun.“</td></tr>
+    <tr><th>Dauer</th><td>ca. 4–6 Minuten</td></tr>
   </table>
 </div>
 </body>

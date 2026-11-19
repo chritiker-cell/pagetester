@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Aufgabenblatt — Schattenschule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; height: 297mm; min-height: 0; overflow: hidden; }
+    }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; }
+    .no-print button { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; }
+
+    .page {
+      width: 210mm; min-height: 297mm; max-width: 100%;
+      background: #f8f8f0;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 16mm 18mm;
+      position: relative;
+      font-family: 'Special Elite', monospace;
+      color: #1a1a1a;
+    }
+    .page::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(45deg, #0000 0, #0000 10px, #0001 10px, #0001 11px);
+      pointer-events: none;
+    }
+
+    .kopf { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1a1a; padding-bottom: 4mm; margin-bottom: 8mm; }
+    .kopf-titel { font-size: 22pt; letter-spacing: 0.15em; color: #8b1a1a; }
+    .kopf-sub { font-size: 8pt; letter-spacing: 0.3em; color: #555; margin-top: 1mm; }
+    .stempel {
+      border: 2px solid #8b1a1a; color: #8b1a1a;
+      font-size: 9pt; letter-spacing: 0.2em; padding: 2mm 4mm;
+      transform: rotate(-6deg); margin-top: 2mm;
+    }
+
+    .zeile { display: flex; gap: 4mm; align-items: flex-end; margin-bottom: 6mm; font-size: 11pt; }
+    .zeile .linie { flex: 1; border-bottom: 1px solid #555; height: 7mm; }
+
+    .abschnitt { font-size: 9pt; letter-spacing: 0.25em; color: #8b1a1a; margin: 8mm 0 4mm; }
+
+    .code-felder { display: flex; justify-content: space-between; gap: 4mm; }
+    .feld { flex: 1; border: 2px solid #1a1a1a; background: #fffef8; text-align: center; padding: 3mm 2mm 4mm; }
+    .feld-sym { font-size: 22pt; color: #8b1a1a; line-height: 1; }
+    .feld-nr { font-size: 7.5pt; letter-spacing: 0.2em; color: #555; margin: 1.5mm 0; }
+    .feld-ziffern { display: flex; justify-content: center; gap: 1.5mm; margin: 3mm 0; }
+    .feld-ziffern span { width: 10mm; height: 14mm; border: 1px solid #555; background: #fff; }
+    .feld-ort { font-size: 8pt; color: #333; }
+    .feld-check { font-size: 8pt; color: #555; margin-top: 2mm; }
+
+    .anleitung { font-family: 'Caveat', cursive; font-size: 14pt; line-height: 1.5; color: #333; }
+    .anleitung li { margin-left: 6mm; margin-bottom: 1mm; }
+
+    .notiz { border: 1px solid #888; height: 52mm; background: repeating-linear-gradient(#fffef8 0, #fffef8 8mm, #ccc 8mm, #ccc 8.3mm); }
+
+    .finale { display: flex; gap: 6mm; }
+    .finale > div { flex: 1; }
+    .finale .linie { border-bottom: 1px solid #555; height: 10mm; }
+    .finale-label { font-size: 8pt; letter-spacing: 0.2em; color: #555; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Aufgabenblatt — eines pro Gruppe ausdrucken</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<div class="page">
+  <div class="kopf">
+    <div>
+      <div class="kopf-titel">ERMITTLUNGSAKTE</div>
+      <div class="kopf-sub">FALL 2024-∅∅7 · VERSCHWINDEN E. MORAVA · SCHATTENSCHULE</div>
+    </div>
+    <div class="stempel">STRENG GEHEIM</div>
+  </div>
+
+  <div class="zeile"><span>GRUPPE:</span><span class="linie" style="max-width:25mm"></span>
+                     <span style="margin-left:6mm">ERMITTLER:</span><span class="linie"></span></div>
+
+  <div class="abschnitt">// AUFTRAG</div>
+  <ol class="anleitung">
+    <li>Besucht alle 4 Stationen in der Reihenfolge, die euch euer Gerät zeigt.</li>
+    <li>An jeder Station löst ihr ein Rätsel und bekommt <strong>einen Teil des Codes</strong> (3 Ziffern).</li>
+    <li>Tragt jeden Teil in das Feld mit dem <strong>passenden Symbol</strong> ein.</li>
+    <li>Habt ihr alle 4 Teile? Dann geht zu eurem Laptop und hackt das System!</li>
+  </ol>
+
+  <div class="abschnitt">// LAPTOP-ZUGANGSCODE</div>
+  <div class="code-felder">
+    <div class="feld"><div class="feld-sym">▲</div><div class="feld-nr">FELD 1</div><div class="feld-ziffern"><span></span><span></span><span></span></div><div class="feld-ort">Moravas Büro</div><div class="feld-check">☐ erledigt</div></div>
+    <div class="feld"><div class="feld-sym">●</div><div class="feld-nr">FELD 2</div><div class="feld-ziffern"><span></span><span></span><span></span></div><div class="feld-ort">Funkraum</div><div class="feld-check">☐ erledigt</div></div>
+    <div class="feld"><div class="feld-sym">■</div><div class="feld-nr">FELD 3</div><div class="feld-ziffern"><span></span><span></span><span></span></div><div class="feld-ort">Altes Labor</div><div class="feld-check">☐ erledigt</div></div>
+    <div class="feld"><div class="feld-sym">✦</div><div class="feld-nr">FELD 4</div><div class="feld-ziffern"><span></span><span></span><span></span></div><div class="feld-ort">Archiv</div><div class="feld-check">☐ erledigt</div></div>
+  </div>
+
+  <div class="abschnitt">// NOTIZEN (Morse, Spuren, Uhrzeiten …)</div>
+  <div class="notiz"></div>
+
+  <div class="abschnitt">// NACH DEM HACK</div>
+  <div class="finale">
+    <div><div class="finale-label">LÖSUNGSWORT</div><div class="linie"></div></div>
+    <div style="flex:0.6"><div class="finale-label">ZEIT</div><div class="linie"></div></div>
+  </div>
+</div>
+</body>
+</html>

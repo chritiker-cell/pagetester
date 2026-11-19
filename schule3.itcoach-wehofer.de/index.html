@@ -31,25 +31,27 @@
   </div>
 
   <div style="font-size:0.7rem;color:#555;margin-bottom:1rem;letter-spacing:0.2em">
-    — WÄHLE DEINE GRUPPE —
+    — WÄHLT EURE STARTSTATION —
   </div>
 
   <div class="group-buttons">
     <button class="group-btn" onclick="showStationInfo('A')">
-      [ GRUPPE A ] &nbsp;→ Klassenzimmer
+      [ STATION 1 ] &nbsp;→ Moravas Büro
     </button>
     <button class="group-btn" onclick="showStationInfo('B')">
-      [ GRUPPE B ] &nbsp;→ Garderobe
+      [ STATION 2 ] &nbsp;→ Funkraum
     </button>
     <button class="group-btn" onclick="showStationInfo('C')">
-      [ GRUPPE C ] &nbsp;→ WC
+      [ STATION 3 ] &nbsp;→ Altes Labor
     </button>
     <button class="group-btn" onclick="showStationInfo('D')">
-      [ GRUPPE D ] &nbsp;→ Balkon
+      [ STATION 4 ] &nbsp;→ Archiv
     </button>
-    <button class="group-btn" onclick="showStationInfo('E')">
-      [ GRUPPE E ] &nbsp;→ Aufenthaltszone
-    </button>
+  </div>
+
+  <div style="max-width:380px;width:90%;font-size:0.8rem;color:#777;line-height:1.7;margin-top:1.5rem">
+    Jede Station verrät euch <strong style="color:#c0c0c0">einen Teil des Codes</strong>.
+    Mit allen 4 Teilen knackt ihr am Ende den Laptop der Schattenschule.
   </div>
 
   <div class="warning">
@@ -71,6 +73,13 @@
     <a href="station-1.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
       [ AR TEST ]
     </a>
+    <br><br>
+    <a href="hack.html" class="group-btn" style="max-width:260px;display:inline-block;text-decoration:none">
+      [ LAPTOP-TERMINAL ]
+    </a>
+    <div style="font-size:0.6rem;color:#444;margin-top:0.5rem;letter-spacing:0.1em">
+      Auf jedem Gruppen-Laptop öffnen: schule3.itcoach-wehofer.de/hack.html
+    </div>
   </div>
 
   <!-- Lehrer-Reset (versteckt, 5x tippen auf Logo) -->
@@ -98,49 +107,49 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/interactions.js"></script>
 <script>
+  // Jede Gruppe besucht alle 4 Stationen, versetzt gestartet
   const ROUTES = {
-    A: ['station-1', 'station-2', 'station-3', 'station-4', 'station-5'],
-    B: ['station-2', 'station-3', 'station-4', 'station-5', 'station-1'],
-    C: ['station-3', 'station-4', 'station-5', 'station-1', 'station-2'],
-    D: ['station-4', 'station-5', 'station-1', 'station-2', 'station-3'],
-    E: ['station-5', 'station-1', 'station-2', 'station-3', 'station-4'],
+    A: ['station-1', 'station-2', 'station-3', 'station-4'],
+    B: ['station-2', 'station-3', 'station-4', 'station-1'],
+    C: ['station-3', 'station-4', 'station-1', 'station-2'],
+    D: ['station-4', 'station-1', 'station-2', 'station-3'],
   };
+
+  const AUFGABENBLATT = { label: '[ AUFGABENBLATT (JEDE GRUPPE) ]', url: 'print/aufgabenblatt.html' };
 
   const STATION_INFO = {
     1: {
-      name: 'KLASSENZIMMER',
-      desc: 'Haltet das Morava-Foto vor die Kamera — eine Schattenfigur erscheint. Tippt die Figur an, um den versteckten Hinweis zu erhalten. Richtet die Kamera anschließend auf die Visitenkarte für weitere AR-Inhalte.',
+      name: 'MORAVAS BÜRO',
+      desc: 'Haltet das Morava-Foto vor die Kamera — eine Schattenfigur erscheint. Tippt sie an, sucht die 4 versteckten Zeichen im Raum und schüttelt dann das Gerät. Ihr erhaltet das Code-Fragment für Feld ▲.',
       prints: [
+        AUFGABENBLATT,
         { label: '[ REQUISIT 1 — NOTIZBUCH ]', url: 'print/requisit-1.html' },
         { label: '[ ZETTEL STATION 1 — SYMBOLE ]', url: 'print/zettel-station1.html' }
       ]
     },
     2: {
-      name: 'GARDEROBE',
-      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      name: 'FUNKRAUM',
+      desc: 'Scannt das AR-Ziel. Eine Kreatur hat Moravas Funksignal abgefangen — ihre Augen morsen sein Kennwort. Schreibt mit und entschlüsselt es mit der Morse-Tabelle. Tippt dann auf den Bildschirm: Im Funkgerät meldet sich Morava und gibt euch das Code-Fragment für Feld ●.',
       prints: [
-        { label: '[ REQUISIT 2 DRUCKEN ]', url: 'print/requisit-2.html' }
+        AUFGABENBLATT,
+        { label: '[ MORSE-TABELLE ]', url: 'print/morse-tabelle.html' },
+        { label: '[ REQUISIT 2 — FUNKGERÄT-MARKER & ABHÖRPROTOKOLL ]', url: 'print/requisit-2.html' }
       ]
     },
     3: {
-      name: 'WC',
-      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      name: 'ALTES LABOR',
+      desc: 'Scannt das AR-Ziel und tippt das Auge an. Sucht das Beweismittel-Etikett im Raum — die Frage darauf ist gespiegelt. Lest und beantwortet sie. Ihr erhaltet das Code-Fragment für Feld ■.',
       prints: [
-        { label: '[ REQUISIT 3 DRUCKEN ]', url: 'print/requisit-3.html' }
+        AUFGABENBLATT,
+        { label: '[ REQUISIT 3 — BEWEISMITTEL-ETIKETT ]', url: 'print/requisit-3.html' }
       ]
     },
     4: {
-      name: 'BALKON',
-      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
+      name: 'ARCHIV',
+      desc: 'Scannt das AR-Ziel und tippt den Totenkopf an. Moravas Brief verrät die Reihenfolge der Gegenstände. Danach entschlüsselt ihr eine Caesar-Nachricht. Ihr erhaltet das Code-Fragment für Feld ✦.',
       prints: [
-        { label: '[ REQUISIT 4 DRUCKEN ]', url: 'print/requisit-4.html' }
-      ]
-    },
-    5: {
-      name: 'AUFENTHALTSZONE',
-      desc: 'Scannt das AR-Ziel an dieser Station. Folgt den Hinweisen und löst das Rätsel.',
-      prints: [
-        { label: '[ REQUISIT 5 DRUCKEN ]', url: 'print/requisit-5.html' }
+        AUFGABENBLATT,
+        { label: '[ REQUISIT 4 — MORAVAS BRIEF ]', url: 'print/requisit-4.html' }
       ]
     }
   };
@@ -148,7 +157,7 @@
   function showStationInfo(group) {
     const stationNum = parseInt(ROUTES[group][0].replace('station-', ''));
     const info = STATION_INFO[stationNum];
-    document.getElementById('modal-label').textContent = '// STATION ' + String(stationNum).padStart(2, '0') + ' — GRUPPE ' + group;
+    document.getElementById('modal-label').textContent = '// STARTSTATION ' + String(stationNum).padStart(2, '0');
     document.getElementById('modal-name').textContent = info.name;
     document.getElementById('modal-desc').textContent = info.desc;
     const printsEl = document.getElementById('modal-prints');

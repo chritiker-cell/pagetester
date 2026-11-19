@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Schattenschule — Story</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --acc: #cc3300; --txt: #e0e0e0; --body: #b0b0b0; --dim: #666; --line: #2a2a2a; --card: #0a0a0a; }
+    body { overflow-y: auto; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+    .kicker { font-size: 0.7rem; letter-spacing: 0.35em; color: var(--acc); margin-bottom: 0.6rem; }
+    h1 { font-size: clamp(1.6rem, 6vw, 2.4rem); letter-spacing: 0.25em; color: var(--txt); font-weight: normal; animation: glitch 4s infinite; }
+    .sub { color: var(--dim); font-size: 0.85rem; letter-spacing: 0.15em; margin-top: 0.6rem; }
+    .spoiler {
+      margin: 1.5rem auto 0; max-width: 560px;
+      border: 1px solid #c00; color: #e66; font-size: 0.8rem; letter-spacing: 0.08em;
+      padding: 0.7rem 1rem; line-height: 1.6;
+    }
+
+    nav.toc { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; }
+    nav.toc a {
+      color: var(--body); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.15em;
+      border: 1px solid var(--line); padding: 0.4rem 0.7rem;
+    }
+    nav.toc a:hover { border-color: var(--acc); color: var(--txt); }
+
+    section { margin-bottom: 3rem; }
+    h2 {
+      font-size: 0.8rem; letter-spacing: 0.3em; color: var(--acc); font-weight: normal;
+      border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; margin-bottom: 1.25rem;
+    }
+    p, li { color: var(--body); line-height: 1.8; font-size: 0.98rem; }
+    p + p { margin-top: 0.9rem; }
+    strong { color: var(--txt); font-weight: bold; }
+    em { color: var(--acc); font-style: normal; }
+    ul { padding-left: 1.2rem; }
+    li + li { margin-top: 0.4rem; }
+
+    .quote {
+      border-left: 2px solid var(--acc); padding: 0.4rem 0 0.4rem 1rem; margin: 1.25rem 0;
+      color: var(--txt); font-style: italic; line-height: 1.7;
+    }
+
+    /* Ablauf */
+    .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem; }
+    .flow-step {
+      flex: 1 1 140px; border: 1px solid var(--line); background: var(--card);
+      padding: 0.9rem 0.8rem; text-align: center;
+    }
+    .flow-step .n { font-size: 0.65rem; letter-spacing: 0.25em; color: var(--acc); }
+    .flow-step .t { color: var(--txt); margin: 0.35rem 0 0.25rem; letter-spacing: 0.08em; }
+    .flow-step .d { color: var(--dim); font-size: 0.78rem; line-height: 1.5; }
+    .flow-arrow { align-self: center; color: var(--acc); }
+
+    /* Stationen */
+    .stations { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 1rem; }
+    .station { border: 1px solid var(--line); background: var(--card); padding: 1.25rem; position: relative; }
+    .station::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--acc); }
+    .st-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.9rem; }
+    .st-sym {
+      width: 2.6rem; height: 2.6rem; flex: none; border: 1px solid var(--acc);
+      display: flex; align-items: center; justify-content: center; color: var(--acc); font-size: 1.3rem;
+    }
+    .st-name { color: var(--txt); letter-spacing: 0.15em; font-size: 1.05rem; }
+    .st-tag { color: var(--dim); font-size: 0.7rem; letter-spacing: 0.2em; }
+    .st-row { margin-top: 0.7rem; }
+    .st-row .lbl { font-size: 0.65rem; letter-spacing: 0.25em; color: var(--acc); display: block; margin-bottom: 0.15rem; }
+    .st-row p { font-size: 0.9rem; line-height: 1.65; }
+
+    /* Querverbindungen */
+    .links { display: grid; gap: 0.75rem; }
+    .link-card { border: 1px dashed #cc330066; padding: 0.9rem 1rem; }
+    .link-card p { font-size: 0.92rem; }
+
+    /* Tabelle Organisation */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--acc); font-weight: normal; letter-spacing: 0.15em; font-size: 0.7rem; width: 32%; }
+    td { color: var(--body); line-height: 1.6; }
+    .table-scroll { overflow-x: auto; }
+
+    .status {
+      border: 1px solid #d9a44166; background: #d9a4410d; padding: 1rem 1.1rem;
+    }
+    .status p, .status li { color: #d6c08a; font-size: 0.88rem; }
+    .status .lbl { color: #d9a441; font-size: 0.7rem; letter-spacing: 0.25em; margin-bottom: 0.4rem; display: block; }
+
+    footer { text-align: center; color: #444; font-size: 0.7rem; letter-spacing: 0.2em; margin-top: 3rem; }
+    footer a { color: var(--dim); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">// AKTE 2024-∅∅7 — STORY &amp; STATIONEN</div>
+    <h1>SCHATTENSCHULE</h1>
+    <div class="sub">Ein AR-Escape-Room für Schulklassen</div>
+    <div class="spoiler">
+      ⚠ Für Lehrkräfte und Spielleitung. Diese Seite verrät die Geschichte und den Aufbau der Rätsel —
+      bitte nicht an Schülerinnen und Schüler weitergeben.
+    </div>
+  </header>
+
+  <nav class="toc">
+    <a href="#vorgeschichte">VORGESCHICHTE</a>
+    <a href="#auftrag">AUFTRAG</a>
+    <a href="#ablauf">ABLAUF</a>
+    <a href="#orte">DIE 4 ORTE</a>
+    <a href="#verbindungen">VERBINDUNGEN</a>
+    <a href="#finale">FINALE</a>
+    <a href="#organisation">ORGANISATION</a>
+  </nav>
+
+  <section id="vorgeschichte">
+    <h2>// VORGESCHICHTE</h2>
+    <p>
+      Vor vielen Jahren lief in dieser Schule ein geheimes Forschungsprojekt: <strong>Projekt SCHATTEN</strong>.
+      Im alten Labor wurde dabei etwas geöffnet, das nie hätte geöffnet werden dürfen —
+      ein <em>Riss</em> in eine Schattenwelt, die genau über unserer liegt.
+    </p>
+    <p>
+      <strong>E. Morava</strong>, Privatdetektiv für übernatürliche Phänomene, hat den Fall untersucht.
+      Er fand heraus, wer den Riss geöffnet hat — und dass er noch immer offen ist.
+      Kurz bevor ihn die Schattenwelt verschluckte, sicherte er sein Wissen:
+    </p>
+    <ul>
+      <li>Den <strong>Sicherheitsschlüssel zum Laborcomputer</strong> teilte er in <strong>4 Fragmente</strong>
+          und versteckte sie an 4 Orten — so kann ihn der Täter niemals allein zusammensetzen.</li>
+      <li>Er versteckte die Fragmente <strong>in der Schattenwelt</strong>. Nur durch eine Kamera werden sie sichtbar.</li>
+    </ul>
+    <div class="quote">„Die Kamera sieht, was wir nicht sehen.“ — aus Moravas Notizbuch</div>
+    <p>
+      Seitdem ist Morava verschwunden. Die Überwachungskameras zeigen nur Rauschen.
+      Aus den Wänden kommen seltsame Geräusche. Und auf der letzten Seite seines Notizbuchs steht nur ein Satz:
+    </p>
+    <div class="quote">„Die Schattenschule ist immer noch offen.“</div>
+  </section>
+
+  <section id="auftrag">
+    <h2>// DER AUFTRAG</h2>
+    <p>
+      Die Schülerinnen und Schüler sind <strong>Moravas Nachfolger</strong>. In Gruppen folgen sie seinen
+      4 Spuren, finden mit ihren Smartphones die versteckten Fragmente, setzen den Sicherheitsschlüssel
+      zusammen und hacken den Laborcomputer. Nur so lässt sich der Riss schließen — und Morava zurückholen.
+    </p>
+    <p>
+      Jede Spur ist ein Kapitel aus Moravas Notizbuch und trägt sein <strong>Geheimzeichen</strong>:
+      <em>▲ ● ■ ✦</em>. Jedes Fragment gehört zu einem Zeichen. Deshalb ist die Reihenfolge des Schlüssels
+      immer klar, egal in welcher Reihenfolge eine Gruppe die Orte besucht.
+    </p>
+  </section>
+
+  <section id="ablauf">
+    <h2>// ABLAUF</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="n">01</div><div class="t">BRIEFING</div><div class="d">Polizeibericht lesen, Startstation wählen</div></div>
+      <div class="flow-arrow">▸</div>
+      <div class="flow-step"><div class="n">02</div><div class="t">4 ORTE</div><div class="d">Je ein AR-Rätsel, je ein Fragment</div></div>
+      <div class="flow-arrow">▸</div>
+      <div class="flow-step"><div class="n">03</div><div class="t">SCHLÜSSEL</div><div class="d">Fragmente nach Zeichen zusammensetzen</div></div>
+      <div class="flow-arrow">▸</div>
+      <div class="flow-step"><div class="n">04</div><div class="t">HACK</div><div class="d">Laborcomputer: Firewalls knacken</div></div>
+      <div class="flow-arrow">▸</div>
+      <div class="flow-step"><div class="n">05</div><div class="t">DER WÄCHTER</div><div class="d">Dämon besiegen, Riss schließen</div></div>
+    </div>
+  </section>
+
+  <section id="orte">
+    <h2>// DIE 4 ORTE — MORAVAS SPUREN</h2>
+    <p style="margin-bottom:1.25rem">
+      Die Orte sind Schauplätze der Geschichte, keine bestimmten Räume im Schulhaus.
+      Jeder Ort ist physisch ein Tisch oder eine Ecke mit Requisiten und einem AR-Marker —
+      aufbaubar in einem oder mehreren Räumen.
+    </p>
+
+    <div class="stations">
+
+      <article class="station">
+        <div class="st-head">
+          <div class="st-sym">▲</div>
+          <div><div class="st-name">MORAVAS BÜRO</div><div class="st-tag">HIER BEGANN DIE ERMITTLUNG</div></div>
+        </div>
+        <div class="st-row"><span class="lbl">STORY</span>
+          <p>Moravas Schreibtisch, sein Notizbuch, seine Visitenkarte. Er hat hier Zeichen hinterlassen, die nur seine Nachfolger deuten können.</p></div>
+        <div class="st-row"><span class="lbl">AR</span>
+          <p>Moravas Foto lässt seine Schattengestalt erscheinen; die Visitenkarte zeigt, was im Büro aus der Schattenwelt durchbricht.</p></div>
+        <div class="st-row"><span class="lbl">RÄTSEL</span>
+          <p>Versteckte Zeichen im Raum finden und in die Reihenfolge aus dem Notizbuch bringen.</p></div>
+        <div class="st-row"><span class="lbl">FRAGMENT</span>
+          <p>Moravas <strong>Fallnummer</strong>.</p></div>
+      </article>
+
+      <article class="station">
+        <div class="st-head">
+          <div class="st-sym">●</div>
+          <div><div class="st-name">DER FUNKRAUM</div><div class="st-tag">MORAVA SENDET NOCH</div></div>
+        </div>
+        <div class="st-row"><span class="lbl">STORY</span>
+          <p>Aus der Schattenwelt versucht Morava Kontakt aufzunehmen. Er antwortet aber nur dem, der sein Kennwort kennt — damit die Schattenwelt nicht mithört. Eine Kreatur hat das Kennwort abgefangen.</p></div>
+        <div class="st-row"><span class="lbl">AR</span>
+          <p>Die Kreatur erscheint; ihre Augen morsen das Kennwort in Schleife. Punkt = kurzes rundes Aufblitzen, Strich = langes Leuchten als Schlitz. Grünes Aufleuchten markiert den Anfang, ein Zähler zeigt den aktuellen Buchstaben.</p></div>
+        <div class="st-row"><span class="lbl">RÄTSEL</span>
+          <p>Das Blinken mitschreiben und mit der Morse-Tabelle (Moravas Funk-Notizen) entschlüsseln. Danach öffnet ein Tipp das Funkgerät — fest am Bildschirm, nicht in AR. Mit dem richtigen Kennwort wird aus dem Rauschen Moravas Stimme.</p></div>
+        <div class="st-row"><span class="lbl">FRAGMENT</span>
+          <p>Morava funkt selbst seinen Teil des Schlüssels — <strong>drei Ziffern</strong>.</p></div>
+      </article>
+
+      <article class="station">
+        <div class="st-head">
+          <div class="st-sym">■</div>
+          <div><div class="st-name">DAS ALTE LABOR</div><div class="st-tag">DER TATORT</div></div>
+        </div>
+        <div class="st-row"><span class="lbl">STORY</span>
+          <p>Hier wurde der Riss geöffnet. Morava hatte einen Helfer — jemanden, der noch hier ist. Wer war es?</p></div>
+        <div class="st-row"><span class="lbl">AR</span>
+          <p>Die Kamera wird zur „UV-Lampe“ und macht unsichtbare Spuren am Tatort sichtbar.</p></div>
+        <div class="st-row"><span class="lbl">RÄTSEL</span>
+          <p>Forensik in drei Stufen: Fingerabdruck mit den Verdächtigen vergleichen, Schuhgröße aus einem Fußabdruck berechnen, Alibis mit einer Zeitleiste abgleichen. Kein Hinweis reicht allein.</p></div>
+        <div class="st-row"><span class="lbl">FRAGMENT</span>
+          <p>Die <strong>Ausweisnummer des Täters</strong>.</p></div>
+      </article>
+
+      <article class="station">
+        <div class="st-head">
+          <div class="st-sym">✦</div>
+          <div><div class="st-name">DAS ARCHIV</div><div class="st-tag">DIE PROJEKTAKTEN</div></div>
+        </div>
+        <div class="st-row"><span class="lbl">STORY</span>
+          <p>In der Sekunde, in der der Riss aufging, blieben alle Uhren im Gebäude stehen. Morava hat Fotos davon in den Akten von Projekt SCHATTEN gesammelt — dazu einen Brief, in dem er gesteht, dass er einen Helfer hatte.</p></div>
+        <div class="st-row"><span class="lbl">AR</span>
+          <p>Beim Scannen des Aktensiegels erscheint Moravas Bürouhr — sie wurde in die Schattenwelt gezogen und ist nur durch die Kamera zu sehen. Ihre Zeiger rasen rückwärts und erstarren. Am Ende stellen die Ermittler genau diese Uhr auf die richtige Zeit: Dann läuft sie wieder an und gibt das Fragment frei.</p></div>
+        <div class="st-row"><span class="lbl">RÄTSEL</span>
+          <p>Drei Fotos stehengebliebener Uhren (Labor, Gang, Turnsaal) und die Bürouhr in AR zeigen vier verschiedene Zeiten — jede Uhr ging anders falsch. Mit der lückenhaften Wartungsliste des Hausmeisters und Moravas Brief wird jede Uhr korrigiert. Nur zwei Hinweise sind direkt; einer verlangt Wissen über die Zeitumstellung (mit Eselsbrücke), einer das Kombinieren zweier Hinweise. Stimmen alle vier überein, ist die Lösung sicher.</p></div>
+        <div class="st-row"><span class="lbl">SCHWIERIGKEIT</span>
+          <p>Für 12–14 Jahre geeignet. Leichtere Version für jüngere Gruppen: Wartungsliste mit direkten Hinweisen statt Zeitumstellung und Kombination.</p></div>
+        <div class="st-row"><span class="lbl">FRAGMENT</span>
+          <p>Die <strong>Uhrzeit</strong>, zu der der Riss geöffnet wurde.</p></div>
+      </article>
+
+    </div>
+  </section>
+
+  <section id="verbindungen">
+    <h2>// WAS ZUSAMMENHÄNGT</h2>
+    <p style="margin-bottom:1rem">
+      Jeder Ort ist für sich lösbar — die Gruppen besuchen sie in unterschiedlicher Reihenfolge.
+      Wer aufmerksam ist, entdeckt trotzdem, wie alles zusammengehört:
+    </p>
+    <div class="links">
+      <div class="link-card"><p><strong>Die Uhrzeit taucht zweimal auf.</strong> Im Archiv ist sie der Moment, in dem der Riss geöffnet wurde — im Labor ist sie die Zeit, für die die Verdächtigen ein Alibi brauchen.</p></div>
+      <div class="link-card"><p><strong>Der Helfer.</strong> Im Archiv gesteht Morava, dass er Hilfe hatte. Im Labor findet man heraus, wer es war.</p></div>
+      <div class="link-card"><p><strong>Morava lebt.</strong> Die Signale im Funkraum zeigen: Er sendet noch aus der Schattenwelt. Das Finale kann ihn zurückholen.</p></div>
+    </div>
+  </section>
+
+  <section id="finale">
+    <h2>// DAS FINALE — DER LABORCOMPUTER</h2>
+    <p>Jede Gruppe hat ein eigenes Gerät (Laptop oder Tablet) mit dem Terminal der Schattenschule.</p>
+    <ul>
+      <li><strong>Login:</strong> Die Gruppe gibt den 12-stelligen Sicherheitsschlüssel ein — vier Fragmente, sortiert nach Moravas Zeichen ▲ ● ■ ✦. Ab jetzt läuft die Zeit.</li>
+      <li><strong>Firewalls:</strong> Die Schattenwelt hat den Computer übernommen. Vier Sperren müssen fallen — ein Geometrie-Schloss, ein Ausweichspiel an Virenscannern vorbei, ein Zahlen-Code und ein Stromkreis. Wer feststeckt, bekommt nach einiger Zeit einen Tipp.</li>
+      <li><strong>Die letzte Frage:</strong> „Wer hat den Riss geöffnet?“ — hier zahlt sich die Ermittlung im Labor aus.</li>
+      <li><strong>Der Wächter:</strong> Ein Dämon bewacht den Riss. Erst wenn er besiegt ist, schließt sich die Verbindung.</li>
+      <li><strong>Auflösung:</strong> Der Riss schließt sich, Morava kehrt zurück, das Protokoll nennt den Täter. Die Gruppe erhält ein Lösungswort und ihre Zeit.</li>
+    </ul>
+  </section>
+
+  <section id="organisation">
+    <h2>// ORGANISATION</h2>
+    <div class="table-scroll">
+      <table>
+        <tr><th>GRUPPEN</th><td>4 Gruppen. Auf der Startseite wählt jede Gruppe eine andere Startstation (1–4) und besucht danach alle 4 Orte der Reihe nach — so steht nie mehr als eine Gruppe an einem Ort.</td></tr>
+        <tr><th>GERÄTE</th><td>Ein Smartphone pro Gruppe für die AR-Orte (Kamera nötig, über HTTPS). Ein Laptop oder Tablet pro Gruppe für das Finale.</td></tr>
+        <tr><th>DAUER</th><td>Pro Ort etwa 5–10 Minuten, Finale etwa 10–15 Minuten. Insgesamt 40–55 Minuten — eine Doppelstunde ist empfehlenswert.</td></tr>
+        <tr><th>MATERIAL</th><td>Aufgabenblatt pro Gruppe, Requisiten und Marker pro Ort (Druckvorlagen über die Startseite bei der Stationsauswahl). Für den Funkraum: Morse-Tabelle. Für das Labor: Verdächtigen-Karten und Fußabdruck mit Lineal; für das Archiv: Aktenordner mit Siegel, drei Uhren-Bilder, Wartungsliste des Hausmeisters und Moravas Brief.</td></tr>
+        <tr><th>GEGEN RATEN</th><td>Falsche Eingaben lösen einen „Alarm“ aus und sperren die Eingabe kurz. Durchprobieren lohnt sich nicht.</td></tr>
+        <tr><th>HILFEN</th><td>Gestufte Hinweise erscheinen erst nach einiger Zeit oder nach Fehlversuchen — schnelle Gruppen kommen ohne Hilfe durch, langsamere bleiben nicht stecken.</td></tr>
+        <tr><th>RESET</th><td>Auf der Startseite 5× auf das ∅-Zeichen tippen setzt den Fortschritt eines Geräts zurück.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="status">
+      <span class="lbl">// STAND DER UMSETZUNG (19.11.2026)</span>
+      <p>Diese Seite beschreibt das Story-Konzept. Im Spiel ist aktuell noch eine Vorversion aktiv:</p>
+      <ul>
+        <li><strong>Funkraum: umgesetzt</strong> (Kennwort per Morse-Augen, Funkgerät, 3-stelliges Fragment). Es fehlt noch der AR-Marker.</li>
+        <li><strong>Laptop-Terminal: umgesetzt</strong> (12-stelliger Schlüssel, 4 Firewalls, Wächter).</li>
+        <li>Büro, Labor und Archiv geben bereits ihr 3-stelliges Fragment, nutzen aber noch die alten Rätsel.</li>
+        <li>Das Labor nutzt noch ein Spiegelschrift-Rätsel statt der Forensik.</li>
+        <li>Das Archiv nutzt noch Gegenstands-Reihenfolge und Caesar-Code statt der stehengebliebenen Uhren.</li>
+        <li>AR-Marker für die Orte ● ■ ✦ und deren 3D-Figuren sind noch in Arbeit.</li>
+        <li>Story-Text: Startseite und Polizeibericht nennen Morava noch „Schüler“ statt Privatdetektiv.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    SCHATTENSCHULE · <a href="index.html">ZUR STARTSEITE</a>
+  </footer>
+
+</div>
+</body>
+</html>

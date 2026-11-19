@@ -3,19 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Station 4 — Balkon</title>
+  <title>Station 4 — Archiv</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    #sequence-ui {
+      position: fixed;
+      bottom: 5rem; left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .seq-btn {
+      background: #0a0a0a;
+      border: 1px solid #cc330044;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      padding: 0.6rem 0.9rem;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+    }
+    .seq-btn.active { border-color: #cc3300; background: #cc330033; }
+    .seq-btn.wrong  { border-color: #c00; color: #c00; animation: shake-btn 0.3s; }
+    @keyframes shake-btn {
+      0%,100%{ transform:translateX(0); }
+      25%    { transform:translateX(-4px); }
+      75%    { transform:translateX(4px); }
+    }
+  </style>
 </head>
 <body>
 
 <div id="station-ui">
   <span class="station-label">STATION 04</span>
-  <span class="station-title">BALKON</span>
+  <span class="station-title">ARCHIV</span>
   <span class="station-label" id="step-counter"></span>
 </div>
 
 <div id="scan-prompt">▸ OBJEKT SCANNEN</div>
+
+<!-- Sequenz-Buttons (erscheinen nach erstem Tap) -->
+<div id="sequence-ui">
+  <button class="seq-btn" id="seq-a" onclick="tapSequence('A')">[ BECHER ]</button>
+  <button class="seq-btn" id="seq-b" onclick="tapSequence('B')">[ BUCH ]</button>
+  <button class="seq-btn" id="seq-c" onclick="tapSequence('C')">[ MÜNZE ]</button>
+</div>
 
 <a-scene
   mindar-image="imageTargetSrc: assets/targets/station4.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
@@ -25,113 +60,124 @@
   <a-camera position="0 0 0" look-controls="enabled: false">
     <a-cursor fuse="false" rayOrigin="mouse"
               raycaster="objects: .clickable"
-              material="color: #7b00ff; opacity: 0.8"
+              material="color: #cc3300; opacity: 0.8"
               geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015">
     </a-cursor>
   </a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0" id="ar-anchor">
 
-    <!-- PLATZHALTER: Geist-Figur (sehr transparent, flackernd) -->
-    <a-entity id="ghost-figure" class="clickable" position="0 0.08 0">
-
-      <!-- Geist-Körper: blass, leicht durchsichtig -->
-      <a-sphere color="#c8aaff" radius="0.04" position="0 0.08 0" opacity="0.35"
-                animation__float="property: position; to: 0 0.11 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine"
-                animation__fade="property: opacity; to: 0.15; dir: alternate; loop: true; dur: 1800">
+    <!-- PLATZHALTER: Totenkopf-Figur -->
+    <a-entity id="skull-figure" class="clickable" position="0 0.04 0">
+      <a-sphere color="#1a0033" radius="0.055" position="0 0.02 0" opacity="0.95"
+                animation__bob="property: position; to: 0 0.035 0; dir: alternate; loop: true; dur: 2500; easing: easeInOutSine">
       </a-sphere>
-      <a-cylinder color="#c8aaff" radius="0.035" height="0.1" position="0 0.03 0" opacity="0.3"
-                  animation="property: opacity; to: 0.1; dir: alternate; loop: true; dur: 2200">
-      </a-cylinder>
-      <!-- Glüh-Halo: lila/blau -->
-      <a-sphere color="#7b00ff" radius="0.06" position="0 0.08 0" opacity="0.08"
-                animation="property: scale; to: 1.5 1.5 1.5; dir: alternate; loop: true; dur: 2500">
+      <a-box color="#0d0020" width="0.06" height="0.02" depth="0.04" position="0 -0.015 0.01" opacity="0.9"></a-box>
+      <a-sphere color="#000" radius="0.012" position="-0.02 0.025 0.045"></a-sphere>
+      <a-sphere color="#000" radius="0.012" position="0.02 0.025 0.045"></a-sphere>
+      <a-sphere color="#cc3300" radius="0.06" position="0 0.02 0" opacity="0.1"
+                animation="property: scale; to: 1.4 1.4 1.4; dir: alternate; loop: true; dur: 1800">
       </a-sphere>
-      <!-- Augen: schwach leuchtend -->
-      <a-sphere color="#e0d0ff" radius="0.008" position="-0.015 0.1 0.035" opacity="0.6"></a-sphere>
-      <a-sphere color="#e0d0ff" radius="0.008" position="0.015 0.1 0.035" opacity="0.6"></a-sphere>
-
     </a-entity>
 
   </a-entity>
 </a-scene>
 
+<!--
+  HINWEIS FÜR LEHRER:
+  Auf dem Tisch liegen Becher, Buch und Münze + Requisit 4 (Brief).
+  1. Rätsel im Brief: "Zuerst wird gelesen, dann wird bezahlt, zuletzt wird getrunken."
+     → Reihenfolge BUCH → MÜNZE → BECHER (= B, C, A)
+  2. Danach erscheint der Caesar-Code GUHL (Verschiebung -3) → DREI → Ziffer 3
+  Antwort 3 → danach gibt es das Code-Fragment STATIONS['station-4'].code (js/interactions.js).
+-->
+
 <script src="js/interactions.js"></script>
 <script>
+  const CORRECT_SEQUENCE = ['B', 'C', 'A']; // BUCH → MÜNZE → BECHER
+  const CIPHER = 'GUHL';                    // DREI, um +3 verschoben
+  let currentSequence = [];
+  let sequenceActive = false;
   let tapped = false;
-  let shaken = false;
 
   document.addEventListener('DOMContentLoaded', async () => {
     await enableMotion();
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    const step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    document.getElementById('step-counter').textContent = (step + 1) + '/' + route.length;
+    initStepCounter();
   });
 
-  // Tap → Geist "spricht"
-  document.querySelector('#ghost-figure').addEventListener('click', () => {
+  // Erster Tap → erklärt das Rätsel
+  document.querySelector('#skull-figure').addEventListener('click', () => {
     if (tapped) return;
     tapped = true;
 
-    // Geist wird kurz heller
-    const ghost = document.querySelector('#ghost-figure a-sphere');
-    ghost.setAttribute('animation__bright', 'property: opacity; to: 0.9; dur: 300; dir: alternate; loop: 3');
+    const skull = document.querySelector('#skull-figure');
+    skull.setAttribute('animation__pulse', 'property: scale; to: 1.3 1.3 1.3; dur: 200; dir: alternate; loop: 4');
 
     setTimeout(() => {
       showHint(
-        '<span style="color:#c8aaff">// E. MORAVA FLÜSTERT</span><br><br>' +
-        '<em>"Ich habe etwas versteckt. In der Box.<br>' +
-        'Das Schloss... die Zahlen kommen von euch.<br>' +
-        'Aus dem was ihr bereits wisst."</em><br><br>' +
-        'Das <strong style="color:#7b00ff">3-stellige Zahlenschloss</strong> öffnet sich mit:<br>' +
-        'Zahl aus Station 2 + Symbol-Reihenfolge aus Station 3<br><br>' +
-        '<span style="color:#555;font-size:0.85rem">Kombination: _ _ _</span>',
+        '<span style="color:#cc3300">// DAS LETZTE SIGNAL</span><br><br>' +
+        'Auf dem Tisch liegen drei Gegenstände:<br>' +
+        '<strong>Becher, Buch, Münze</strong><br><br>' +
+        'Tippt sie in der <strong style="color:#cc3300">richtigen Reihenfolge</strong> an.<br>' +
+        'Die Reihenfolge verrät euch <strong>Moravas Brief</strong>.<br><br>' +
+        '<span style="color:#c00;font-size:0.85rem">⚠ Falsche Reihenfolge = Fehlschlag</span>',
         () => {
-          document.querySelector('#scan-prompt').textContent = '▸ BOX GEÖFFNET? SCHÜTTELN';
+          sequenceActive = true;
+          document.getElementById('sequence-ui').style.display = 'flex';
+          document.querySelector('#scan-prompt').textContent = '▸ REIHENFOLGE EINGEBEN';
         }
       );
-    }, 500);
+    }, 600);
   });
 
-  // Schütteln → UV-Licht Hinweis + zweite Code-Hälfte
-  onShake(() => {
-    if (!tapped || shaken) return;
-    shaken = true;
+  function tapSequence(item) {
+    if (!sequenceActive) return;
 
-    showHint(
-      '<span style="color:#c8aaff">// SIGNAL VERSTÄRKT SICH</span><br><br>' +
-      'In der Box liegt ein <strong style="color:#7b00ff">UV-Licht</strong>.<br><br>' +
-      'Leuchte damit auf die <strong style="color:#e0e0e0">Rückseite des Polizeiberichts</strong> ' +
-      'den du von Anfang an dabei hast.<br><br>' +
-      'Was du siehst: die <strong style="color:#7b00ff">zweite Hälfte des Codes</strong>.<br><br>' +
-      '<span style="color:#555;font-size:0.85rem">Zugangscode bisher: _ _ 4 7 → wird zu: _ _ _ _</span>',
-      () => {
-        markStationDone('station-4');
-        showNextStation();
-      }
-    );
-  });
+    currentSequence.push(item);
+    const btn = document.getElementById('seq-' + item.toLowerCase());
+    btn.classList.add('active');
+    const pos = currentSequence.length - 1;
 
-  function showNextStation() {
-    const route = JSON.parse(localStorage.getItem('schattenschule_route') || '[]');
-    let step = parseInt(localStorage.getItem('schattenschule_step') || '0');
-    step++;
-    localStorage.setItem('schattenschule_step', step);
-    if (step >= route.length) {
-      setTimeout(() => { window.location.href = 'boss.html'; }, 800);
-    } else {
-      const next = route[step];
+    if (currentSequence[pos] !== CORRECT_SEQUENCE[pos]) {
+      btn.classList.remove('active');
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 400);
+      currentSequence = [];
+      document.querySelectorAll('.seq-btn').forEach(b => b.classList.remove('active'));
       showHint(
-        '✓ STATION ABGESCHLOSSEN<br><br>Nächste Station:<br>' +
-        '<strong style="color:#7b00ff">' + getStationName(next) + '</strong>',
-        () => { window.location.href = next + '.html'; }
+        '<span style="color:#c00">⚠ FALSCHE REIHENFOLGE</span><br><br>' +
+        'Die Schattenwelt reagiert nicht.<br>' +
+        'Lest Moravas Brief noch einmal genau.',
+        null
       );
+      return;
+    }
+
+    if (currentSequence.length === CORRECT_SEQUENCE.length) {
+      sequenceActive = false;
+      document.getElementById('sequence-ui').style.display = 'none';
+      setTimeout(showCipher, 600);
     }
   }
 
-  function getStationName(id) {
-    return { 'station-1':'KLASSENZIMMER','station-2':'GARDEROBE','station-3':'WC / SPIEGEL',
-             'station-4':'BALKON','station-5':'AUFENTHALTSZONE' }[id] || id.toUpperCase();
+  function showCipher() {
+    showHint(
+      '✓ <span style="color:#cc3300">SEQUENZ KORREKT</span><br><br>' +
+      'Der Totenkopf leuchtet auf. Eine verschlüsselte Nachricht erscheint:<br><br>' +
+      '<strong style="font-size:1.6rem;letter-spacing:0.3em">' + CIPHER + '</strong><br><br>' +
+      '<span style="color:#888;font-size:0.85rem">' +
+      'Caesar-Verschlüsselung: Geht im Alphabet bei jedem Buchstaben <strong>3 zurück</strong>.<br>' +
+      'Beispiel: D → A, F → C</span>',
+      () => { enableAnswerButton('▸ [ ANTWORT EINGEBEN ]', askAnswer); askAnswer(); }
+    );
+  }
+
+  function askAnswer() {
+    askDigit(
+      'Entschlüsselt <strong style="letter-spacing:0.2em">' + CIPHER + '</strong> — welche Zahl ist gemeint?',
+      '3', // GUHL → DREI
+      () => showDigit('station-4', '✓ <span style="color:#cc3300">NACHRICHT ENTSCHLÜSSELT</span>')
+    );
   }
 </script>
 </body>
