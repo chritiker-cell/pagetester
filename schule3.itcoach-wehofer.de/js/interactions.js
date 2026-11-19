@@ -146,7 +146,35 @@ function showDigit(stationId, introHtml, onDone) {
   );
 }
 
+// ── Scanner-Modus (scan.html: eine Seite für alle Marker) ─────────────────
+// Gelöst = Rätsel geschafft (Belohnung sichtbar); erledigt = Code-Teil notiert.
+function isSolved(id) { return !!getProgress()['solved:' + id]; }
+function markSolved(id) {
+  const p = getProgress();
+  p['solved:' + id] = true;
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
+}
+function countDone() { return Object.keys(STATIONS).filter(isStationDone).length; }
+// Nächste empfohlene Station: erste noch nicht erledigte in der Gruppen-Route
+function nextRecommended() {
+  const route = getRoute();
+  const order = route.length ? route : Object.keys(STATIONS);
+  return order.find(id => STATIONS[id] && !isStationDone(id)) || null;
+}
+function stationLabel(id) { return STATIONS[id] ? STATIONS[id].symbol + ' ' + STATIONS[id].name : id; }
+
 function showNextStation() {
+  if (window.SCANNER_MODE) {
+    const next = nextRecommended();
+    if (!next) { showFinish(); return; }
+    showHint(
+      '✓ STATION ABGESCHLOSSEN<br><br>Empfohlen als Nächstes:<br>' +
+      '<strong style="color:#cc3300;font-size:1.2em">' + stationLabel(next) + '</strong><br><br>' +
+      '<span style="color:#888;font-size:0.85em">Geht zu diesem Tisch und richtet die Kamera auf das Motiv.</span>',
+      () => { if (window.onScannerProgress) window.onScannerProgress(); }
+    );
+    return;
+  }
   const route = getRoute();
   const step = getStep() + 1;
   localStorage.setItem('schattenschule_step', step);

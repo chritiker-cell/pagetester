@@ -41,18 +41,26 @@ jobs:
         rm -rf schule4.itcoach-wehofer.de/clefbuddy/dist
 
     - name: Deploy schule3
+      # Eigener FTP-Zugang für schule3 (GitHub-Secrets FTP_SCHULE3_*).
+      # Kein continue-on-error: scheitert der Upload, zeigt GitHub ein rotes X.
+      env:
+        FTP_SERVER: ${{ secrets.FTP_SCHULE3_SERVER }}
+        FTP_USER: ${{ secrets.FTP_SCHULE3_USER }}
+        LFTP_PASSWORD: ${{ secrets.FTP_SCHULE3_PASSWORD }}
       run: |
         sudo apt-get install -y lftp -q
+        # Server-Adresse darf mit oder ohne "ftp://" bzw. abschließendem "/" im Secret stehen
+        SERVER="${FTP_SERVER#ftp://}"; SERVER="${SERVER%/}"
         lftp -c "
           set ftp:ssl-allow no;
           set net:timeout 30;
-          open -u schulprojekt,${{ secrets.ftp_password }} ftp://195.242.102.132;
+          open --env-password -u \"$FTP_USER\" \"ftp://$SERVER\";
           mirror --reverse --delete --verbose \
             --exclude='^\.git' \
             --exclude='^\.claude' \
+            --exclude='(^|/)\.ht' \
             schule3.itcoach-wehofer.de/ schule3.itcoach-wehofer.de/
         "
-      continue-on-error: true
 
     - name: Deploy schule4
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6

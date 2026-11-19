@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Ablauf für Lehrkräfte — Schattenschule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; height: 297mm; min-height: 0; overflow: hidden; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; }
+    .no-print button, .no-print a { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; text-decoration: none; font-size: 0.85rem; }
+
+    .page {
+      width: 210mm; min-height: 297mm; max-width: 100%;
+      background-color: #f8f8f0;
+      background-image: repeating-linear-gradient(45deg, transparent 0, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 11px);
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+      padding: 14mm 17mm 16mm;
+      position: relative;
+      font-family: 'Special Elite', 'Courier New', monospace;
+      color: #1a1a1a;
+    }
+
+    .kopf { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1a1a; padding-bottom: 3.5mm; margin-bottom: 5mm; }
+    .kopf-titel { font-size: 20pt; letter-spacing: 0.12em; color: #8b1a1a; }
+    .kopf-sub { font-size: 7.5pt; letter-spacing: 0.28em; color: #555; margin-top: 1mm; }
+    .stempel { border: 2px solid #8b1a1a; color: #8b1a1a; font-size: 8.5pt; letter-spacing: 0.18em; padding: 1.5mm 3.5mm; transform: rotate(-5deg); margin-top: 2mm; white-space: nowrap; }
+
+    .abschnitt { font-size: 8.5pt; letter-spacing: 0.25em; color: #8b1a1a; margin: 5mm 0 2.5mm; }
+    p, li { font-size: 9.6pt; line-height: 1.6; }
+    strong { color: #000; }
+    ol { padding-left: 6mm; }
+    li { margin-bottom: 1.6mm; }
+
+    .eckdaten { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin-top: 3mm; }
+    .eck { border: 1.5px solid #1a1a1a; background: #fffef8; padding: 2.5mm; text-align: center; }
+    .eck .lbl { font-size: 6.8pt; letter-spacing: 0.2em; color: #8b1a1a; margin-bottom: 1mm; }
+    .eck .val { font-size: 9.5pt; line-height: 1.35; }
+
+    .zeitleiste { display: flex; margin: 3mm 0 1mm; border: 1.5px solid #1a1a1a; }
+    .zl { padding: 2mm; text-align: center; border-right: 1px solid #1a1a1a; background: #fffef8; }
+    .zl:last-child { border-right: none; }
+    .zl .t { font-size: 7pt; color: #8b1a1a; letter-spacing: 0.1em; }
+    .zl .n { font-size: 8.5pt; line-height: 1.3; }
+
+    .station { border: 1.5px solid #1a1a1a; background: #fffef8; padding: 3mm 4mm; margin-bottom: 3.5mm; }
+    .station.soon { border-style: dashed; border-color: #888; background: transparent; color: #666; }
+    .st-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 1.5mm; }
+    .st-sym { width: 9mm; height: 9mm; border: 1.5px solid #8b1a1a; color: #8b1a1a; display: flex; align-items: center; justify-content: center; font-size: 13pt; flex: none; }
+    .station.soon .st-sym { border-color: #999; color: #999; }
+    .st-name { font-size: 11pt; letter-spacing: 0.12em; }
+    .st-tag { font-size: 7pt; letter-spacing: 0.2em; color: #777; }
+    .st-mat { font-size: 8.3pt; color: #555; margin-top: 1.5mm; border-top: 1px dashed #bbb; padding-top: 1.5mm; }
+    .folgt { font-family: 'Caveat', cursive; font-size: 14pt; color: #8b1a1a; }
+
+    .check { columns: 2; column-gap: 8mm; list-style: none; padding: 0; }
+    .check li { break-inside: avoid; font-size: 9pt; padding-left: 6mm; position: relative; margin-bottom: 1.8mm; }
+    .check li::before { content: '☐'; position: absolute; left: 0; top: -0.3mm; font-size: 11pt; }
+
+    .hinweis { border-left: 3px solid #8b1a1a; padding: 1.5mm 0 1.5mm 3mm; margin-top: 3mm; font-size: 9pt; background: #fffef8; }
+    .fuss { position: absolute; bottom: 8mm; left: 17mm; right: 17mm; display: flex; justify-content: space-between; font-size: 7pt; color: #888; letter-spacing: 0.15em; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  <span>Ablauf für Lehrkräfte (2 Seiten)</span>
+  <button onclick="window.print()">🖨 Drucken</button>
+  <a href="ablauf-lehrkraefte.pdf" download>⬇ PDF</a>
+</div>
+
+<!-- ═══ SEITE 1 ═══ -->
+<div class="page">
+  <div class="kopf">
+    <div>
+      <div class="kopf-titel">ABLAUF FÜR LEHRKRÄFTE</div>
+      <div class="kopf-sub">SCHATTENSCHULE · AR-ESCAPE-ROOM · AKTE 2024-∅∅7</div>
+    </div>
+    <div class="stempel">NUR FÜR LEHRKRÄFTE</div>
+  </div>
+
+  <div class="abschnitt">// DAS PROJEKT</div>
+  <p>
+    <strong>Schattenschule</strong> ist ein Augmented-Reality-Escape-Room für Schülerinnen und Schüler von 12–14 Jahren.
+    Der Privatdetektiv <strong>E. Morava</strong> ist in eine Schattenwelt verschwunden. Die Klasse folgt in Gruppen
+    seinen Spuren an <strong>4 Stationen</strong>, sammelt mit einem Handy-Scanner vier Code-Teile und hackt am Ende
+    den Laborcomputer, um den Riss zu schließen und Morava zurückzuholen.
+  </p>
+  <div class="eckdaten">
+    <div class="eck"><div class="lbl">DAUER</div><div class="val">40–55 Min.<br>Doppelstunde empfohlen</div></div>
+    <div class="eck"><div class="lbl">GRUPPEN</div><div class="val">4 Gruppen<br>à 3–5 Personen</div></div>
+    <div class="eck"><div class="lbl">GERÄTE</div><div class="val">je Gruppe 1 Handy<br>+ 1 Laptop/Tablet</div></div>
+    <div class="eck"><div class="lbl">ALTER</div><div class="val">12–14 Jahre<br>6.–8. Schulstufe</div></div>
+  </div>
+
+  <div class="abschnitt">// VORBEREITUNG</div>
+  <ol>
+    <li>Für jede Station die <strong>Druckvorlagen</strong> ausdrucken (Startseite → Stations-Button → „Materialien zum Drucken“).
+        Die Lösungen stehen jeweils auf der letzten Seite (Lehrer-Vorlage).</li>
+    <li>Pro Station einen <strong>Tisch</strong> aufbauen und mit Symbol und Namen beschriften, z. B. „● FUNKRAUM“.
+        Die Stationen sind Story-Orte — sie können in einem oder mehreren Räumen stehen.</li>
+    <li>Pro Gruppe ein <strong>Aufgabenblatt</strong> ausdrucken.</li>
+    <li>Auf jedem Gruppen-Laptop das <strong>Laptop-Terminal</strong> öffnen (Startseite → „Laptop-Terminal“).</li>
+    <li><strong>Vorher testen:</strong> QR-Code scannen → „Scanner testen“ → jedes Motiv einmal anvisieren.
+        Zurücksetzen eines Handys: auf der Startseite ganz unten <strong>5× auf ∅</strong> tippen.</li>
+  </ol>
+
+  <div class="abschnitt">// ABLAUF IM UNTERRICHT</div>
+  <div class="zeitleiste">
+    <div class="zl" style="flex:1"><div class="t">5 MIN.</div><div class="n">Einstieg</div></div>
+    <div class="zl" style="flex:6"><div class="t">25–35 MIN.</div><div class="n">4 Stationen</div></div>
+    <div class="zl" style="flex:2.5"><div class="t">10–15 MIN.</div><div class="n">Finale am Laptop</div></div>
+    <div class="zl" style="flex:1.2"><div class="t">5 MIN.</div><div class="n">Abschluss</div></div>
+  </div>
+  <ol>
+    <li><strong>Einstieg:</strong> Den Polizeibericht auf der Startseite gemeinsam lesen, Aufgabenblätter austeilen.</li>
+    <li><strong>Start:</strong> Jede Gruppe scannt den QR-Code, tippt auf „Scanner testen“ und erlaubt die Kamera.
+        Die Gruppen an <strong>verschiedene Tische</strong> schicken: Die zuerst gescannte Station legt fest, welche Station
+        der Scanner danach jeweils empfiehlt — so verteilen sich die Gruppen ohne Stau.</li>
+    <li><strong>Stationen:</strong> Motiv scannen, Rätsel lösen. Ist es geschafft, erscheint Morava mit einer leuchtenden
+        Tafel: <strong>Symbol + 3 Ziffern</strong>. Die Gruppe trägt sie ins passende Feld des Aufgabenblatts ein.</li>
+    <li><strong>Finale:</strong> Mit allen 4 Code-Teilen (12 Ziffern) zum Laptop: Code eingeben → 4 Firewalls knacken →
+        den Wächter besiegen → Lösungswort und Zeit notieren.</li>
+    <li><strong>Abschluss:</strong> Lösungswörter und Zeiten vergleichen, kurze Nachbesprechung.</li>
+  </ol>
+
+  <div class="hinweis">
+    <strong>Gegen Raten:</strong> Falsche Eingaben lösen einen „Alarm“ aus und sperren die Eingabe 30 Sekunden.
+    <strong>Hilfen:</strong> Gestufte Tipps erscheinen erst nach einiger Zeit oder nach Fehlversuchen.
+  </div>
+
+  <div class="fuss"><span>SCHATTENSCHULE · ABLAUF FÜR LEHRKRÄFTE</span><span>SEITE 1 / 2</span></div>
+</div>
+
+<!-- ═══ SEITE 2 ═══ -->
+<div class="page">
+  <div class="kopf">
+    <div>
+      <div class="kopf-titel">DIE 4 STATIONEN</div>
+      <div class="kopf-sub">MORAVAS SPUREN · JEDE STATION LIEFERT EINEN CODE-TEIL</div>
+    </div>
+    <div class="stempel">NUR FÜR LEHRKRÄFTE</div>
+  </div>
+
+  <div class="station">
+    <div class="st-head"><div class="st-sym">▲</div><div><div class="st-name">STATION 1 · MORAVAS BÜRO</div><div class="st-tag">HIER BEGANN DIE ERMITTLUNG · CA. 5–8 MIN.</div></div></div>
+    <p>Die Gruppe scannt <strong>Moravas Foto</strong> — seine Schattengestalt erscheint. Nach dem Antippen verrät Morava,
+       dass er 4 Zeichen im Raum versteckt hat. Die Gruppe sucht die Zeichen-Karten, bringt sie mit Hilfe des Notizbuchs
+       in die richtige Reihenfolge und <strong>schüttelt das Handy</strong>. Dann zeigt Morava seine Code-Tafel.
+       Zusätzlich lässt die <strong>Visitenkarte</strong> einen Tisch und ein Monster erscheinen (Atmosphäre).</p>
+    <div class="st-mat">Material: Moravas Notizbuch (Requisit 1), Zeichen-Karten (im Raum verstecken), Visitenkarte, Aufgabenblatt</div>
+  </div>
+
+  <div class="station">
+    <div class="st-head"><div class="st-sym">●</div><div><div class="st-name">STATION 2 · FUNKRAUM</div><div class="st-tag">MORAVA SENDET NOCH · CA. 4–6 MIN.</div></div></div>
+    <p>Die Gruppe scannt das <strong>Funkgerät</strong> — eine Kreatur erscheint. Ihre Augen morsen Moravas Kennwort
+       (grünes Aufleuchten = Anfang, rund = Punkt, Schlitz = Strich). Die Gruppe schreibt mit, entschlüsselt mit der
+       Morse-Tabelle und gibt das Kennwort im <strong>Funkgerät</strong> auf dem Handy ein. Morava meldet sich und
+       erscheint beim nächsten Scan mit seiner Code-Tafel.</p>
+    <div class="st-mat">Material: Funkgerät-Marker, Abhörprotokoll (Requisit 2), Morse-Tabelle, Stifte</div>
+  </div>
+
+  <div class="station soon">
+    <div class="st-head"><div class="st-sym">■</div><div><div class="st-name">STATION 3 · ALTES LABOR</div><div class="st-tag">DER TATORT</div></div></div>
+    <p>Forensik am Tatort: Fingerabdruck, Fußabdruck und Alibi — wer war Moravas Helfer?</p>
+    <div class="folgt">Fortsetzung folgt …</div>
+  </div>
+
+  <div class="station soon">
+    <div class="st-head"><div class="st-sym">✦</div><div><div class="st-name">STATION 4 · ARCHIV</div><div class="st-tag">DIE PROJEKTAKTEN</div></div></div>
+    <p>Die stehengebliebenen Uhren: Wann wurde der Riss geöffnet?</p>
+    <div class="folgt">Fortsetzung folgt …</div>
+  </div>
+
+  <div class="abschnitt">// CHECKLISTE VOR DEM START</div>
+  <ul class="check">
+    <li>Druckvorlagen aller Stationen ausgedruckt</li>
+    <li>Marker matt, flach und gut beleuchtet</li>
+    <li>Tische mit Symbol + Namen beschriftet</li>
+    <li>Zeichen-Karten im Büro-Bereich versteckt</li>
+    <li>Aufgabenblätter und Stifte pro Gruppe</li>
+    <li>Handys geladen, Internet verfügbar</li>
+    <li>Scanner einmal mit jedem Motiv getestet</li>
+    <li>Handys zurückgesetzt (5× auf ∅)</li>
+    <li>Laptop-Terminal auf jedem Laptop geöffnet</li>
+    <li>Gruppen auf verschiedene Tische eingeteilt</li>
+  </ul>
+
+  <div class="fuss"><span>SCHATTENSCHULE · ABLAUF FÜR LEHRKRÄFTE</span><span>SEITE 2 / 2</span></div>
+</div>
+</body>
+</html>

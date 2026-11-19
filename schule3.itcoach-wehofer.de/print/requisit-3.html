@@ -145,6 +145,9 @@
     .versteck-tbl th { background:#e8f0e0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
     .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
     .versteck-tbl tr:nth-child(even) td { background:#f8fff8; }
+  /* Papier-Struktur hinter den Inhalt legen (sonst drucken manche Browser nur leere Seiten) */
+    .page { z-index: 0; }
+    .page::before { z-index: -1; }
   </style>
 </head>
 <body>

@@ -37,8 +37,8 @@
       content: '✂'; position: absolute; top: -4.2mm; left: 8mm; background: #fff; padding: 0 1.5mm;
       font-size: 11pt; color: #777; font-family: sans-serif;
     }
-    .marker-cut img { display: block; width: 160mm; height: 160mm; }
-    .marker-hinweis { font-family: sans-serif; font-size: 8.5pt; color: #777; text-align: center; line-height: 1.5; max-width: 160mm; }
+    .marker-cut img { display: block; width: 120mm; height: 120mm; }
+    .marker-hinweis { font-family: sans-serif; font-size: 8.5pt; color: #777; text-align: center; line-height: 1.5; max-width: 140mm; }
 
     /* ═══ Seite 2: Abhörprotokoll ═══ */
     .bericht-header {
@@ -194,7 +194,7 @@
     </svg>
     <ol>
       <li><strong>Marker</strong> (Seite 1) ausschneiden, auf Karton kleben und in die Mitte des Tisches legen —
-          oder als Aufsteller hinstellen. Mindestens 10 × 10 cm, matt, gut beleuchtet, keine Spiegelungen.</li>
+          oder als Aufsteller hinstellen. Gedruckt 12 × 12 cm (nicht kleiner als 8 × 8 cm), matt, gut beleuchtet, keine Spiegelungen.</li>
       <li><strong>Abhörprotokoll</strong> (Seite 2) und <strong>Morse-Tabelle</strong> daneben legen, Stifte bereitlegen.</li>
       <li>Tisch mit einem Schild <strong>„● FUNKRAUM“</strong> kennzeichnen.</li>
       <li>Optional: altes Radio oder Walkie-Talkie als Deko, gedämpftes Licht (der Marker selbst muss aber hell genug sein).</li>
@@ -202,10 +202,11 @@
   </div>
 
   <table class="tbl">
-    <tr><th>Marker-Datei</th><td>Der Marker muss einmalig in die Datei <code>assets/targets/station2.mind</code> kompiliert werden:
-      Bild <code>assets/targets/marker-funkraum.png</code> im MindAR-Compiler
-      (hiukim.github.io/mind-ar-js-doc/tools/compile) hochladen → „Start“ → Ergebnis als <code>station2.mind</code> speichern.
-      Danach Ausdruck und Datei <strong>nicht mehr verändern</strong> — sonst erkennt die Kamera den Marker nicht.</td></tr>
+    <tr><th>Marker-Datei</th><td>Der Scanner erkennt alle Motive über <strong>eine</strong> Datei: <code>assets/targets/scanner.mind</code>.
+      Sie wird im MindAR-Compiler (hiukim.github.io/mind-ar-js-doc/tools/compile) aus allen Bildern in
+      <code>assets/targets/scanner-bilder/</code> erstellt — <strong>alle auf einmal, in der Reihenfolge der Nummern</strong>
+      (das Funkgerät ist <code>3-funkgeraet.png</code>). Die Druckgröße des Markers spielt dafür keine Rolle;
+      das Motiv selbst aber <strong>nicht mehr verändern</strong> — sonst erkennt die Kamera es nicht.</td></tr>
     <tr><th>Häufige Fehler</th><td>Das <strong>E</strong> ist ein einzelner kurzer Punkt und wird leicht übersehen — auf den Zähler „BUCHSTABE 4/4“ hinweisen.
       Wird der Marker nicht erkannt: näher heran, Licht verbessern, Spiegelungen vermeiden.</td></tr>
     <tr><th>Tipp-Stufen (mündlich)</th><td>1. „Wartet auf das grüne Aufleuchten und schreibt erst dann mit.“<br>

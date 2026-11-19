@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Schattenwelt-Scanner</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android/Chrome -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    #signal-hud {
+      position: fixed; top: 3.2rem; left: 50%; transform: translateX(-50%);
+      z-index: 120; display: none;
+      font-size: 0.8rem; letter-spacing: 0.25em; color: #e0e0e0;
+      background: #000c; border: 1px solid #cc330088; padding: 0.4rem 0.9rem; white-space: nowrap;
+    }
+    #signal-hud.start { color: #33ff77; border-color: #33ff77; }
+    #sound-btn {
+      position: fixed; top: 3.2rem; right: 0.75rem; z-index: 120; display: none;
+      background: #000c; border: 1px solid #444; color: #999;
+      font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem; cursor: pointer;
+    }
+    #sound-btn.on { border-color: #cc3300; color: #e0e0e0; }
+
+    #scan-prompt { line-height: 1.6; }
+    #scan-prompt .rec { display: block; color: #e0e0e0; letter-spacing: 0.15em; font-size: 0.8rem; }
+
+    #action-btn {
+      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 150;
+      background: #0a0a0acc; border: 1px solid #cc3300; color: #e0e0e0;
+      font: 0.9rem 'Courier New', monospace; letter-spacing: 0.12em; padding: 0.8rem 1.2rem; cursor: pointer;
+      white-space: nowrap;
+    }
+    #action-btn[hidden] { display: none; }
+
+    /* Funkgerät: fest am unteren Rand, NICHT in AR */
+    #radio {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: #0a0a0a; border-top: 2px solid #cc3300; box-shadow: 0 -10px 40px #000;
+      padding: 1rem 1rem 1.25rem; max-height: 60vh; overflow-y: auto;
+    }
+    #radio[hidden] { display: none; }
+    .radio-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; letter-spacing: 0.25em; color: #cc3300; margin-bottom: 0.75rem; }
+    #radio-close { background: none; border: 1px solid #444; color: #999; font: 1rem 'Courier New', monospace; width: 2rem; height: 2rem; cursor: pointer; }
+    .radio-screen { position: relative; overflow: hidden; border: 1px solid #333; background: #050505; min-height: 5.5rem; padding: 0.75rem; margin-bottom: 0.9rem; font-size: 0.9rem; line-height: 1.6; color: #c0c0c0; }
+    .radio-screen.noise::before {
+      content: ''; position: absolute; inset: -50%;
+      background: repeating-linear-gradient(0deg, #ffffff08 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #ffffff05 0 2px, transparent 2px 5px);
+      animation: noise 0.25s steps(3) infinite; pointer-events: none;
+    }
+    @keyframes noise { 0% { transform: translate(0,0); } 50% { transform: translate(-3%,2%); } 100% { transform: translate(2%,-3%); } }
+    #radio-status { font-size: 0.75rem; letter-spacing: 0.25em; color: #777; margin-bottom: 0.4rem; position: relative; }
+    #radio-status.ok { color: #cc3300; }
+    #radio-msg { position: relative; min-height: 1.5em; }
+    .radio-row { display: flex; gap: 0.5rem; align-items: stretch; }
+    #radio-input {
+      flex: 1; min-width: 0; background: #000; border: 1px solid #cc330066; border-bottom: 2px solid #cc3300;
+      color: #e0e0e0; font: bold 1.3rem 'Courier New', monospace; letter-spacing: 0.3em;
+      text-transform: uppercase; text-align: center; padding: 0.5rem; outline: none;
+    }
+    #radio-input::placeholder { color: #444; letter-spacing: 0.15em; font-size: 0.85rem; }
+    #radio-send, #radio-done { background: none; border: 1px solid #cc3300; color: #e0e0e0; font: 0.9rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0 1rem; cursor: pointer; }
+    #radio-send:disabled { opacity: 0.35; }
+    #radio-done { width: 100%; padding: 0.8rem; margin-top: 0.75rem; }
+    #radio-feedback { color: #c00; font-size: 0.8rem; min-height: 1.3em; margin-top: 0.5rem; text-align: center; }
+
+    .tablet-canvas { display: none; }
+    /* A-Frame-Buttons für VR/AR-Brillenmodus ausblenden (nicht nötig, würde die Kamera-AR stören) */
+    .a-enter-vr, .a-enter-ar, .a-enter-vr-button, .a-enter-ar-button { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="station-ui">
+  <span class="station-label">◉ SCANNER</span>
+  <span class="station-title" id="station-title">MOTIV SUCHEN</span>
+  <span class="station-label" id="progress-counter"></span>
+</div>
+
+<div id="signal-hud"></div>
+<button id="sound-btn" type="button">🔇 TON</button>
+<div id="scan-prompt"></div>
+<button id="action-btn" type="button" hidden></button>
+
+<!-- Funkgerät (2D, fest am Bildschirmrand) -->
+<div id="radio" hidden>
+  <div class="radio-head">
+    <span>◉ MORAVAS FUNKGERÄT</span>
+    <button id="radio-close" type="button" aria-label="Funkgerät schließen">✕</button>
+  </div>
+  <div class="radio-screen noise" id="radio-screen">
+    <div id="radio-status">▯▯▯▯ KEIN SIGNAL</div>
+    <div id="radio-msg">Morava antwortet nur auf sein Kennwort.</div>
+  </div>
+  <div class="radio-row" id="radio-row">
+    <input id="radio-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KENNWORT" aria-label="Kennwort">
+    <button id="radio-send" type="button">[ SENDEN ]</button>
+  </div>
+  <div id="radio-feedback"></div>
+</div>
+
+<!--
+  HINWEIS FÜR LEHRER:
+  Eine Marker-Datei für alle Motive: assets/targets/scanner.mind
+  Im MindAR-Compiler (hiukim.github.io/mind-ar-js-doc/tools/compile) ALLE Bilder aus
+  assets/targets/scanner-bilder/ in genau dieser Reihenfolge hochladen:
+    1-morava-foto.jpg   → targetIndex 0  (▲ Moravas Büro: Detektiv)
+    2-visitenkarte.png  → targetIndex 1  (▲ Moravas Büro: Tisch + Monster)
+    3-funkgeraet.png    → targetIndex 2  (● Funkraum: Kreatur)
+  Neue Motive (Labor, Archiv) hinten anhängen und die Datei neu erstellen.
+-->
+<a-scene
+  mindar-image="imageTargetSrc: assets/targets/scanner.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 30; warmupTolerance: 1;"
+  color-space="sRGB" renderer="colorManagement: true"
+  vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+  <a-assets>
+    <a-asset-item id="detektiv-model" src="assets/models/private_detectiv.glb"></a-asset-item>
+    <a-asset-item id="monster-model" src="assets/models/monster.glb"></a-asset-item>
+    <a-asset-item id="kreatur-model" src="assets/models/kreatur-funkraum.glb"></a-asset-item>
+  </a-assets>
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <!-- ▲ TARGET 0: Moravas Foto → Schattengestalt des Detektivs -->
+  <a-entity mindar-image-target="targetIndex: 0" id="t0">
+   <a-entity class="lage">
+    <a-gltf-model id="shadow-figure" src="#detektiv-model" position="0 0.15 0" scale="0.3 0.3 0.3"
+                  animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    </a-gltf-model>
+    <a-entity id="hint-3d" visible="false" position="0 0.32 0">
+      <a-plane width="0.42" height="0.12" color="#0a0a0a" opacity="0.92"></a-plane>
+      <a-text value="4 ZEICHEN —\nIN MEINEN WORTEN" align="center" color="#c0c0c0" width="0.38" position="0 0 0.001"
+              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+    </a-entity>
+   </a-entity>
+  </a-entity>
+
+  <!-- ▲ TARGET 1: Visitenkarte → Tisch-Animation + Monster -->
+  <a-entity mindar-image-target="targetIndex: 1" id="t1">
+   <a-entity class="lage">
+    <a-entity id="vk-tisch" position="0 0.1 0" scale="0.01 0.01 0.01"
+              animation__zoom="property: scale; to: 1 1 1; dur: 1800; easing: easeOutQuad; startEvents: tisch-start"
+              animation__fly="property: position; to: 0 0.45 0; dur: 500; easing: easeOutQuad; startEvents: tisch-fly">
+      <a-box color="#6b4226" width="0.45" height="0.04" depth="0.28" roughness="0.9" metalness="0.05"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position="-0.19 -0.13 -0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position=" 0.19 -0.13 -0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position="-0.19 -0.13  0.11"></a-box>
+      <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position=" 0.19 -0.13  0.11"></a-box>
+    </a-entity>
+    <a-gltf-model id="vk-monster" src="#monster-model" position="0 -0.15 0" scale="0.3 0.3 0.3" visible="false"
+                  animation-mixer="clip: *; loop: repeat; crossFadeDuration: 0"
+                  animation__rise="property: position; from: 0 -0.15 0; to: 0 0 0; dur: 800; easing: easeOutQuad; startEvents: monster-start">
+    </a-gltf-model>
+   </a-entity>
+  </a-entity>
+
+  <!-- ● TARGET 2: Funkgerät → Kreatur (vor dem Lösen) bzw. Morava mit Code-Tafel (danach) -->
+  <a-entity mindar-image-target="targetIndex: 2" id="t2">
+   <a-entity class="lage">
+    <!-- Kreatur: Meshy-Modell (verkleinert auf ~25k Dreiecke / 1 MB), Höhe ~0,65 Markerbreiten.
+         Modell-Ursprung liegt in der Mitte → um 0,949 × Skalierung anheben, damit die Füße auf dem Blatt stehen.
+         Augen-Koordinaten sind Modell-Koordinaten (Mitte der Augenhöhlen). -->
+    <a-entity id="creature">
+      <a-entity id="kreatur" position="0 0.323 0" scale="0.34 0.34 0.34"
+                animation__breathe="property: position; to: 0 0.333 0; dir: alternate; loop: true; dur: 1800; easing: easeInOutSine">
+        <a-gltf-model src="#kreatur-model"></a-gltf-model>
+        <a-circle id="halo" radius="0.3" position="0 0.45 -0.08" color="#c00" opacity="0.12"
+                  material="shader: flat; transparent: true; side: double"></a-circle>
+        <a-sphere id="eye-l" radius="0.05" position="-0.085 0.43 0.38" color="#330000" opacity="0.4" material="shader: flat">
+          <a-sphere class="glow" radius="0.064" color="#ff2a2a" opacity="0" material="shader: flat; transparent: true"></a-sphere>
+        </a-sphere>
+        <a-sphere id="eye-r" radius="0.05" position="0.085 0.43 0.38" color="#330000" opacity="0.4" material="shader: flat">
+          <a-sphere class="glow" radius="0.064" color="#ff2a2a" opacity="0" material="shader: flat; transparent: true"></a-sphere>
+        </a-sphere>
+      </a-entity>
+    </a-entity>
+    <a-gltf-model id="funk-morava" src="#detektiv-model" position="0 0.12 0" scale="0.26 0.26 0.26" visible="false"
+                  animation__idle="property: position; to: 0 0.15 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    </a-gltf-model>
+   </a-entity>
+  </a-entity>
+</a-scene>
+
+<script src="js/interactions.js"></script>
+<script>
+  window.SCANNER_MODE = true;
+  const $ = id => document.getElementById(id);
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  HINWEIS FÜR LEHRER: Wie liegen die Marker auf den Stationstischen?
+  //  true  = Marker liegen FLACH auf dem Tisch → Figuren stehen aufrecht auf dem Blatt
+  //          und schauen zur unteren Kante des Ausdrucks (dort stehen die Schüler)
+  //  false = Marker stehen AUFRECHT (Aufsteller) → Figuren erscheinen vor dem Blatt
+  // ════════════════════════════════════════════════════════════════════════
+  const MARKER_LIEGT_FLACH = true;
+  // Neigung nach hinten in Grad (nur bei liegendem Marker): größer = Figuren schauen mehr nach oben
+  const NEIGUNG = 20;
+
+  document.querySelectorAll('.lage').forEach(e =>
+    e.setAttribute('rotation', MARKER_LIEGT_FLACH ? (90 - NEIGUNG) + ' 0 0' : '0 0 0'));
+  // Tisch der Visitenkarte: bei liegendem Marker höher setzen, damit die Beine auf dem Blatt stehen
+  const TISCH_Y = MARKER_LIEGT_FLACH ? 0.25 : 0.1;
+  $('vk-tisch').setAttribute('animation__fly',
+    'property: position; to: 0 ' + (TISCH_Y + 0.35) + ' 0; dur: 500; easing: easeOutQuad; startEvents: tisch-fly');
+  const lageOf = t => $('t' + t).querySelector('.lage');
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  Gemeinsam: Code-Tafel (Symbol + Code-Teil) als leuchtendes Hologramm
+  // ════════════════════════════════════════════════════════════════════════
+  function makeTablet(stationId, position) {
+    const s = STATIONS[stationId];
+    const c = document.createElement('canvas');
+    c.id = 'tablet-' + stationId;
+    c.className = 'tablet-canvas';
+    c.width = 512; c.height = 300;
+    const g = c.getContext('2d');
+    g.fillStyle = 'rgba(4, 22, 10, 0.9)';
+    g.fillRect(0, 0, 512, 300);
+    g.strokeStyle = '#33ff66'; g.lineWidth = 10;
+    g.strokeRect(8, 8, 496, 284);
+    g.fillStyle = '#33ff66'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = 'bold 84px sans-serif';
+    g.fillText(s.symbol, 256, 88);
+    g.font = 'bold 120px "Courier New", monospace';
+    g.fillText(s.code.split('').join(' '), 256, 210);
+    document.body.appendChild(c);
+
+    const el = document.createElement('a-plane');
+    el.setAttribute('width', 0.42);
+    el.setAttribute('height', 0.246);
+    el.setAttribute('position', position);
+    // depthTest aus + hohe renderOrder: Tafel wird immer VOR der Figur gezeichnet
+    el.setAttribute('material', 'shader: flat; transparent: true; depthTest: false; src: #' + c.id);
+    el.addEventListener('loaded', () => { el.object3D.renderOrder = 999; });
+    el.setAttribute('visible', 'false');
+    el.setAttribute('animation__glow', 'property: material.opacity; from: 0.75; to: 1; dir: alternate; loop: true; dur: 900');
+    return el;
+  }
+
+  // Code-Teil bestätigen (bzw. erneut anzeigen, falls schon notiert)
+  function confirmFragment(stationId, intro) {
+    if (isStationDone(stationId)) {
+      const s = STATIONS[stationId];
+      showHint('Euer Code-Teil für Feld <strong style="color:#cc3300">' + s.symbol + '</strong>:<br>' +
+               '<span style="font-size:2.2em;color:#cc3300;letter-spacing:0.2em"><strong>' + s.code + '</strong></span><br>' +
+               '<span style="color:#888;font-size:0.85em">(bereits notiert)</span>', null);
+      return;
+    }
+    showDigit(stationId, intro);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  ▲ STATION 1 — MORAVAS BÜRO  (Targets 0 + 1)
+  // ════════════════════════════════════════════════════════════════════════
+  const Buero = {
+    id: 'station-1', targets: [0, 1],
+    tapped: false, tischBereit: false, tischTapped: false, visible: {},
+    init() {
+      this.tablet = makeTablet('station-1', '0 0.58 0.06');
+      lageOf(0).appendChild(this.tablet);
+      if (isSolved('station-1')) this.showReward();
+      onShake(() => this.onShake());
+    },
+    showReward() {
+      this.tapped = true;
+      $('hint-3d').setAttribute('visible', false);
+      this.tablet.setAttribute('visible', true);
+    },
+    onFound(t) {
+      this.visible[t] = true;
+      if (t === 1) {   // Visitenkarte: Tisch wächst aus der Karte
+        const tisch = $('vk-tisch'), monster = $('vk-monster');
+        this.tischTapped = false; this.tischBereit = false;
+        tisch.setAttribute('position', '0 ' + TISCH_Y + ' 0');
+        tisch.setAttribute('scale', '0.01 0.01 0.01');
+        monster.setAttribute('visible', false);
+        monster.setAttribute('position', '0 -0.15 0');
+        tisch.emit('tisch-start');
+        setTimeout(() => { this.tischBereit = true; }, 2000);
+      }
+      this.updateAction();
+    },
+    onLost(t) { this.visible[t] = false; },
+    activate() { this.updateAction(); },
+    updateAction() {
+      if (isSolved('station-1')) setAction('▸ [ CODE-TEIL ANZEIGEN ]', () => this.confirm());
+      else if (this.tapped) setAction(null);
+      else setPrompt(this.visible[1] && !this.visible[0] ? '▸ TIPPT AUF DEN BILDSCHIRM' : '▸ TIPPT AUF MORAVA');
+    },
+    onTap() {
+      if (this.visible[1] && this.tischBereit && !this.tischTapped) {   // Visitenkarte
+        this.tischTapped = true;
+        $('vk-monster').setAttribute('visible', true);
+        $('vk-monster').emit('monster-start');
+        $('vk-tisch').emit('tisch-fly');
+        return;
+      }
+      if (!this.visible[0]) return;
+      if (isSolved('station-1')) { this.confirm(); return; }
+      if (this.tapped) return;
+      this.tapped = true;
+      $('shadow-figure').setAttribute('animation__flicker', 'property: opacity; to: 0.1; dir: alternate; loop: 4; dur: 150');
+      setTimeout(() => {
+        showHint('E. Morava flüstert:<br><br>' +
+                 '<em>"Ich habe 4 Zeichen im Raum verborgen.<br>Die Reihenfolge liegt in meinen Worten — lies Seite 1."</em><br><br>' +
+                 'Sucht alle 4 Zeichen. Wenn ihr fertig seid — schüttelt das Gerät.', null);
+        $('hint-3d').setAttribute('visible', true);
+        setPrompt('▸ ZEICHEN SUCHEN — DANN SCHÜTTELN');
+      }, 600);
+    },
+    onShake() {
+      if (!this.tapped || isSolved('station-1')) return;
+      markSolved('station-1');
+      this.showReward();
+      showHint('<span style="color:#cc3300">// SIGNAL AUS DER SCHATTENWELT</span><br><br>' +
+               'Die Rückseiten sprechen die Wahrheit.<br><br>' +
+               'Richtet die Kamera auf <strong>Moravas Foto</strong> — er zeigt euch seinen Code-Teil. ' +
+               'Tippt dann auf den Bildschirm.', () => this.updateAction());
+    },
+    confirm() { confirmFragment('station-1', '✓ <span style="color:#cc3300">MORAVAS FALLNUMMER</span>'); }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  ● STATION 2 — FUNKRAUM  (Target 2)
+  // ════════════════════════════════════════════════════════════════════════
+  const Funk = {
+    id: 'station-2', targets: [2],
+    KENNWORT: 'CLUE',              // 4–5 Buchstaben, nur A–Z
+    DOT: 400, DASH: 1200, SIGN_GAP: 500, LETTER_GAP: 1500, START_FLASH: 700, AFTER_START: 1500, REPEAT_PAUSE: 4000,
+    MORSE: { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
+             N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..' },
+    gen: 0, visible: false, firstCycleDone: false, soundOn: false, audioCtx: null, lockTick: null,
+
+    init() {
+      this.tablet = makeTablet('station-2', '0 0.54 0.06');
+      lageOf(2).appendChild(this.tablet);
+      if (isSolved('station-2')) this.showReward();
+      $('sound-btn').addEventListener('click', e => { e.stopPropagation(); this.toggleSound(); });
+      $('radio-close').addEventListener('click', () => this.closeRadio());
+      $('radio-send').addEventListener('click', () => this.send());
+      $('radio-input').addEventListener('keydown', e => { if (e.key === 'Enter') this.send(); });
+    },
+    showReward() {
+      this.stopSignal();
+      $('creature').setAttribute('visible', false);
+      $('funk-morava').setAttribute('visible', true);
+      this.tablet.setAttribute('visible', true);
+    },
+    activate() { $('sound-btn').style.display = isSolved('station-2') ? 'none' : 'block'; this.updateAction(); },
+    deactivate() { this.stopSignal(); $('sound-btn').style.display = 'none'; $('radio').hidden = true; },
+    updateAction() {
+      if (isSolved('station-2')) setAction('▸ [ CODE-TEIL ANZEIGEN ]', () => this.confirm());
+      else if (this.firstCycleDone) setAction('▸ [ FUNKGERÄT ]', () => this.openRadio());
+      else setAction(null);
+    },
+    onFound() {
+      this.visible = true;
+      if (!isSolved('station-2')) this.startSignal();
+      this.updateAction();
+    },
+    onLost() { this.visible = false; this.stopSignal(); },
+    onTap() {
+      if (!this.visible || !$('radio').hidden) return;
+      if (isSolved('station-2')) { this.confirm(); return; }
+      if (!this.firstCycleDone) {
+        showHint('Hört zuerst das <strong>ganze Signal</strong> ab —<br>vom grünen Aufleuchten bis zur Pause.<br><br>' +
+                 'Schreibt jedes Zeichen mit: <strong>Punkt</strong> = rundes Aufblitzen, <strong>Strich</strong> = langer Schlitz.', null);
+        return;
+      }
+      this.openRadio();
+    },
+    confirm() { confirmFragment('station-2', '✓ <span style="color:#cc3300">MORAVAS FUNKFREQUENZ</span>'); },
+
+    // ── Augen & Ton ──
+    setEyes(mode) {
+      [$('eye-l'), $('eye-r')].forEach(e => {
+        const on = mode !== 'off';
+        const color = mode === 'start' ? '#33ff77' : on ? '#ff2a2a' : '#330000';
+        // Punkt = rund (leicht größer als die Augenhöhle), Strich = waagrechter Schlitz
+        e.setAttribute('scale', mode === 'dot' ? '1.15 1.15 1.15' : mode === 'dash' ? '1.55 0.42 1' : mode === 'start' ? '1.3 1.3 1.3' : '1 1 1');
+        e.setAttribute('color', color);
+        e.setAttribute('opacity', on ? '1' : '0.4');
+        // Leuchtschein um das Auge (strahlt über den Rand der Augenhöhle hinaus)
+        const glow = e.querySelector('.glow');
+        if (glow) {
+          glow.setAttribute('color', color);
+          glow.setAttribute('opacity', on ? (mode === 'start' ? '0.35' : '0.22') : '0');
+        }
+      });
+    },
+    setHalo(strong) {
+      $('halo').setAttribute('opacity', strong ? '0.55' : '0.12');
+      $('halo').setAttribute('color', strong ? '#33ff77' : '#c00');
+    },
+    tone(ms) {
+      if (!this.soundOn || !this.audioCtx) return;
+      const a = this.audioCtx, osc = a.createOscillator(), g = a.createGain();
+      osc.frequency.value = 680;
+      g.gain.setValueAtTime(0, a.currentTime);
+      g.gain.linearRampToValueAtTime(0.15, a.currentTime + 0.02);
+      g.gain.setValueAtTime(0.15, a.currentTime + ms / 1000 - 0.03);
+      g.gain.linearRampToValueAtTime(0, a.currentTime + ms / 1000);
+      osc.connect(g).connect(a.destination);
+      osc.start(); osc.stop(a.currentTime + ms / 1000 + 0.02);
+    },
+    toggleSound() {
+      this.soundOn = !this.soundOn;
+      if (this.soundOn && !this.audioCtx) {
+        try { this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { this.soundOn = false; }
+      }
+      $('sound-btn').classList.toggle('on', this.soundOn);
+      $('sound-btn').textContent = this.soundOn ? '🔊 TON' : '🔇 TON';
+    },
+    setHud(text, start) {
+      const h = $('signal-hud');
+      h.style.display = 'block'; h.textContent = text; h.classList.toggle('start', !!start);
+    },
+
+    // ── Signal-Schleife ──
+    startSignal() { const my = ++this.gen; this.runSignal(my); },
+    stopSignal() { this.gen++; this.setEyes('off'); this.setHalo(false); $('signal-hud').style.display = 'none'; },
+    async runSignal(my) {
+      const alive = () => my === this.gen;
+      const word = this.KENNWORT.toUpperCase();
+      while (alive()) {
+        this.setHud('◉ SIGNAL BEGINNT', true);
+        this.setEyes('start'); this.setHalo(true); this.tone(this.START_FLASH);
+        await wait(this.START_FLASH);
+        if (!alive()) return;
+        this.setEyes('off'); this.setHalo(false);
+        await wait(this.AFTER_START);
+        for (let i = 0; i < word.length; i++) {
+          if (!alive()) return;
+          this.setHud('BUCHSTABE ' + (i + 1) + ' / ' + word.length);
+          const code = this.MORSE[word[i]];
+          for (let j = 0; j < code.length; j++) {
+            const dash = code[j] === '-';
+            this.setEyes(dash ? 'dash' : 'dot');
+            this.tone(dash ? this.DASH : this.DOT);
+            await wait(dash ? this.DASH : this.DOT);
+            if (!alive()) return;
+            this.setEyes('off');
+            if (j < code.length - 1) await wait(this.SIGN_GAP);
+          }
+          await wait(this.LETTER_GAP);
+        }
+        if (!alive()) return;
+        this.setHud('— ENDE · WIEDERHOLUNG GLEICH —');
+        if (!this.firstCycleDone) { this.firstCycleDone = true; if (activeId === this.id) this.updateAction(); }
+        await wait(this.REPEAT_PAUSE);
+      }
+    },
+
+    // ── Funkgerät ──
+    openRadio() {
+      if (isSolved('station-2')) return;
+      $('radio').hidden = false;
+      $('action-btn').hidden = true;
+      this.updateLock();
+      setTimeout(() => $('radio-input').focus(), 50);
+    },
+    closeRadio() { $('radio').hidden = true; this.updateAction(); },
+    updateLock() {
+      const left = Math.ceil((getLockUntil() - Date.now()) / 1000);
+      const locked = left > 0;
+      $('radio-send').disabled = locked;
+      if (locked) {
+        $('radio-feedback').textContent = '⚠ STÖRSIGNAL — FUNKGERÄT GESPERRT: ' + left + ' s';
+        if (!this.lockTick) this.lockTick = setInterval(() => this.updateLock(), 250);
+      } else {
+        if (this.lockTick) { clearInterval(this.lockTick); this.lockTick = null; }
+        if ($('radio-feedback').textContent.startsWith('⚠ STÖR')) $('radio-feedback').textContent = '';
+      }
+    },
+    send() {
+      if (isSolved('station-2') || getLockUntil() > Date.now()) return;
+      const v = $('radio-input').value.trim().toUpperCase().replace(/\s+/g, '');
+      if (!v) return;
+      if (v === this.KENNWORT.toUpperCase()) { this.receiveMorava(); return; }
+      $('radio-status').textContent = '▯▯▯▯ KEIN SIGNAL — NUR RAUSCHEN';
+      $('radio-input').value = '';
+      try { localStorage.setItem(LOCK_KEY, String(Date.now() + WRONG_ANSWER_LOCK_SECONDS * 1000)); } catch {}
+      this.updateLock();
+    },
+    async receiveMorava() {
+      $('radio-row').style.display = 'none';
+      $('radio-feedback').textContent = '';
+      $('radio-status').textContent = '▮▯▯▯ SIGNAL WIRD STÄRKER …';
+      await wait(900);
+      $('radio-status').textContent = '▮▮▮▯ VERBINDUNG …';
+      await wait(900);
+      $('radio-status').textContent = '▮▮▮▮ SIGNAL EMPFANGEN';
+      $('radio-status').classList.add('ok');
+      $('radio-screen').classList.remove('noise');
+      const lines = [
+        '… krrrz … hier Morava … hört ihr mich?',
+        'Ich lebe. Ich bin auf der anderen Seite des Risses.',
+        this.KENNWORT + ' … das heißt Hinweis. Und ich habe einen für euch.',
+        'Richtet die Kamera auf das Funkgerät — ich zeige euch meinen Teil des Schlüssels.'
+      ];
+      const box = $('radio-msg');
+      box.innerHTML = '';
+      for (const line of lines) {
+        const p = document.createElement('div');
+        box.appendChild(p);
+        for (const ch of line) { p.textContent += ch; await wait(28); }
+        await wait(500);
+      }
+      markSolved('station-2');
+      this.showReward();
+      const done = document.createElement('button');
+      done.id = 'radio-done'; done.type = 'button';
+      done.textContent = '[ ZUM FUNKGERÄT ]';
+      done.onclick = () => { $('radio').hidden = true; $('sound-btn').style.display = 'none'; this.updateAction(); };
+      $('radio').appendChild(done);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  Scanner-Kern: welcher Marker gehört zu welcher Station?
+  // ════════════════════════════════════════════════════════════════════════
+  const MODULES = [Buero, Funk];
+  const BY_TARGET = {};
+  MODULES.forEach(m => m.targets.forEach(t => { BY_TARGET[t] = m; }));
+  let activeId = null;
+  const visibleTargets = new Set();
+
+  function setAction(label, fn) {
+    const b = $('action-btn');
+    if (!label) { b.hidden = true; b.onclick = null; return; }
+    b.textContent = label; b.onclick = fn; b.hidden = false;
+    $('scan-prompt').style.display = 'none';
+  }
+
+  function setPrompt(text) {
+    $('action-btn').hidden = true;
+    const p = $('scan-prompt');
+    p.style.display = 'block';
+    p.innerHTML = text;
+  }
+
+  function defaultPrompt() {
+    // Empfehlung erst, wenn die Gruppe ihre erste Station gescannt hat
+    const next = getRoute().length ? nextRecommended() : null;
+    setPrompt('▸ RICHTET DIE KAMERA AUF EIN MOTIV' +
+              (next ? '<span class="rec">EMPFOHLEN: ' + stationLabel(next) + '</span>' : ''));
+  }
+
+  // Die zuerst gescannte Station legt die Reihenfolge fest (Rotation ab dort),
+  // so verteilen sich Gruppen, die an verschiedenen Tischen starten, automatisch.
+  function ensureRoute(startId) {
+    if (getRoute().length) return;
+    const ids = Object.keys(STATIONS);
+    const i = Math.max(0, ids.indexOf(startId));
+    localStorage.setItem('schattenschule_route', JSON.stringify(ids.slice(i).concat(ids.slice(0, i))));
+    localStorage.setItem('schattenschule_step', '0');
+  }
+
+  function updateHeader() {
+    $('station-title').textContent = activeId ? stationLabel(activeId) : 'MOTIV SUCHEN';
+    $('progress-counter').textContent = countDone() + '/' + Object.keys(STATIONS).length + ' ✓';
+  }
+
+  function activate(mod) {
+    if (activeId === mod.id) return;
+    const prev = MODULES.find(m => m.id === activeId);
+    if (prev && prev.deactivate) prev.deactivate();
+    activeId = mod.id;
+    updateHeader();
+    if (mod.activate) mod.activate();
+  }
+
+  Object.keys(BY_TARGET).forEach(t => {
+    const anchor = $('t' + t), mod = BY_TARGET[t], idx = Number(t);
+    anchor.addEventListener('targetFound', () => {
+      visibleTargets.add(idx);
+      ensureRoute(mod.id);
+      activate(mod);
+      $('scan-prompt').style.display = 'none';
+      mod.onFound(idx);
+    });
+    anchor.addEventListener('targetLost', () => {
+      visibleTargets.delete(idx);
+      mod.onLost(idx);
+      // Kein Motiv mehr im Bild: bei erledigter Station (oder ohne offene Aktion) zurück zur Suche
+      if (!visibleTargets.size && $('radio').hidden && (isStationDone(mod.id) || $('action-btn').hidden)) {
+        setAction(null);
+        defaultPrompt();
+      }
+    });
+  });
+
+  // Tipp auf den Bildschirm → an die aktive Station (große Fläche statt genau auf die wackelnde Figur)
+  document.addEventListener('pointerup', e => {
+    if (e.target.closest('#radio, button, #hint-overlay, #station-ui, input')) return;
+    const mod = MODULES.find(m => m.id === activeId);
+    if (mod && mod.onTap) mod.onTap();
+  });
+
+  // Nach jeder abgeschlossenen Station: Kopfzeile + Hinweise aktualisieren
+  window.onScannerProgress = () => {
+    updateHeader();
+    const mod = MODULES.find(m => m.id === activeId);
+    if (!visibleTargets.size) { setAction(null); defaultPrompt(); }
+    else if (mod && mod.updateAction) mod.updateAction();
+  };
+
+  MODULES.forEach(m => m.init());
+  updateHeader();
+  defaultPrompt();
+  document.addEventListener('DOMContentLoaded', async () => { await enableMotion(); });
+</script>
+</body>
+</html>

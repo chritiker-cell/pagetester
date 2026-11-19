@@ -18,17 +18,15 @@
 
     .page {
       width: 210mm; min-height: 297mm; max-width: 100%;
-      background: #f8f8f0;
+      /* Papier-Struktur direkt im Hintergrund (keine Ebene über dem Inhalt → druckt in allen Browsern) */
+      background-color: #f8f8f0;
+      background-image: repeating-linear-gradient(45deg, transparent 0, transparent 10px, rgba(0,0,0,0.06) 10px, rgba(0,0,0,0.06) 11px);
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
       box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
       padding: 16mm 18mm;
       position: relative;
-      font-family: 'Special Elite', monospace;
+      font-family: 'Special Elite', 'Courier New', monospace;
       color: #1a1a1a;
-    }
-    .page::before {
-      content: ''; position: absolute; inset: 0;
-      background-image: repeating-linear-gradient(45deg, #0000 0, #0000 10px, #0001 10px, #0001 11px);
-      pointer-events: none;
     }
 
     .kopf { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1a1a; padding-bottom: 4mm; margin-bottom: 8mm; }

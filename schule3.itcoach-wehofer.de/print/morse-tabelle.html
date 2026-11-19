@@ -99,6 +99,9 @@
     .tbl th { background: #f6e6e0; border: 1px solid #aaa; padding: 2mm 3mm; text-align: left; width: 32%; }
     .tbl td { border: 1px solid #ccc; padding: 2mm 3mm; line-height: 1.5; }
     code { background: #f2f2f2; padding: 0 1mm; }
+  /* Papier-Struktur hinter den Inhalt legen (sonst drucken manche Browser nur leere Seiten) */
+    .page { z-index: 0; }
+    .page::before { z-index: -1; }
   </style>
 </head>
 <body>

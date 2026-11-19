@@ -15,7 +15,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 4rem 1rem 2rem;
+      padding: calc(4rem + 60px) 1rem 2rem;
       text-align: center;
     }
     .screen.active { display: flex; }
@@ -53,9 +53,17 @@
     }
     .digit:focus { border-color: var(--acc); box-shadow: 0 0 14px #33ff6666; }
 
+    /* Banner: 0/1 fliegen zum Laptop */
+    #banner {
+      position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 11;
+      background: #000; border-bottom: 1px solid #33ff6633; overflow: hidden;
+    }
+    #bin-canvas { display: block; width: 100%; height: 60px; }
+    #banner-laptop { position: absolute; right: 14px; top: 6px; width: 62px; height: 48px; }
+
     /* HUD */
     #hud {
-      position: fixed; top: 0; left: 0; right: 0;
+      position: fixed; top: 60px; left: 0; right: 0;
       display: none; justify-content: space-between; align-items: center;
       padding: 0.7rem 1rem;
       font-size: 0.75rem; letter-spacing: 0.2em; color: var(--acc);
@@ -151,6 +159,18 @@
   </style>
 </head>
 <body>
+
+<!-- Banner: Datenstrom aus 0 und 1 fliegt zum Laptop -->
+<div id="banner" aria-hidden="true">
+  <canvas id="bin-canvas"></canvas>
+  <svg id="banner-laptop" viewBox="0 0 62 48" fill="none">
+    <rect x="9" y="3" width="44" height="30" rx="3" stroke="#33ff66" stroke-width="2"/>
+    <rect id="laptop-screen" x="13" y="7" width="36" height="22" rx="1" fill="#33ff66" opacity="0.12"/>
+    <path d="M17 13h12M17 18h20M17 23h9" stroke="#33ff66" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
+    <path d="M3 37h56l-5 7H8z" stroke="#33ff66" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M26 40h10" stroke="#33ff66" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>
+</div>
 
 <div id="hud">
   <span>// SCHATTENSCHULE-TERMINAL</span>
@@ -845,6 +865,81 @@ if (testLevel >= 1 && testLevel <= LEVELS.length + 1) {
   startTimer();
   startLevel(testLevel - 1);
 }
+</script>
+<script>
+// ── Banner: Ketten aus 0 und 1 fliegen von links zum Laptop ────────────────
+(function () {
+  const cv = document.getElementById('bin-canvas');
+  const g = cv.getContext('2d');
+  const screen = document.getElementById('laptop-screen');
+  const H = 60, LANES = 5, FONT = 12, STEP = 10;           // Zeichenabstand in px
+  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W = 0, dpr = 1, packets = [], glow = 0, last = performance.now();
+
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = cv.clientWidth;
+    cv.width = W * dpr; cv.height = H * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  const target = () => W - 62;                               // linker Rand des Laptop-Bildschirms
+  const laneY = i => 12 + i * 10.5;
+
+  function spawn(lane, startX) {
+    const len = 5 + Math.floor(Math.random() * 10);
+    packets.push({
+      lane, x: startX, len,
+      speed: (calm ? 25 : 55) + Math.random() * (calm ? 20 : 95),
+      bits: Array.from({ length: len }, () => (Math.random() < 0.5 ? '0' : '1'))
+    });
+  }
+  function seed() {
+    packets = [];
+    for (let i = 0; i < LANES; i++) {
+      let x = -Math.random() * W * 0.6;
+      while (x < target()) { spawn(i, x); x += 120 + Math.random() * 260; }
+    }
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    g.clearRect(0, 0, W, H);
+    g.font = 'bold ' + FONT + 'px "Courier New", monospace';
+    g.textBaseline = 'middle';
+    const end = target();
+
+    for (let k = packets.length - 1; k >= 0; k--) {
+      const p = packets[k];
+      p.x += p.speed * dt;
+      if (Math.random() < 0.08) p.bits[Math.floor(Math.random() * p.len)] = Math.random() < 0.5 ? '0' : '1';
+      // Kopf ist p.x, Schweif liegt links davon
+      for (let j = 0; j < p.len; j++) {
+        const cx = p.x - j * STEP;
+        if (cx > end || cx < -STEP) continue;
+        const fade = 1 - j / p.len;
+        const near = Math.max(0, Math.min(1, (end - cx) / 40));  // kurz vor dem Laptop ausblenden
+        g.globalAlpha = (j === 0 ? 1 : 0.15 + 0.6 * fade) * near;
+        g.fillStyle = j === 0 ? '#d8ffe2' : '#33ff66';
+        g.fillText(p.bits[j], cx, laneY(p.lane));
+      }
+      // Kopf erreicht den Laptop → Bildschirm blitzt auf
+      if (p.x >= end && !p.hit) { p.hit = true; glow = Math.min(1, glow + 0.35); }
+      if (p.x - p.len * STEP > end) {
+        packets.splice(k, 1);
+        spawn(p.lane, -40 - Math.random() * 200);
+      }
+    }
+    g.globalAlpha = 1;
+    glow = Math.max(0, glow - dt * 1.6);
+    screen.setAttribute('opacity', (0.12 + glow * 0.6).toFixed(3));
+    requestAnimationFrame(frame);
+  }
+
+  resize(); seed();
+  window.addEventListener('resize', () => { resize(); seed(); });
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>

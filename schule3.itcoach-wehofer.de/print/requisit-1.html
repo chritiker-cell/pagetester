@@ -413,6 +413,9 @@
       border-bottom: 2px solid #3a2010;
       margin-left: 2mm;
     }
+  /* Papier-Struktur hinter den Inhalt legen (sonst drucken manche Browser nur leere Seiten) */
+    .page { z-index: 0; }
+    .page::before { z-index: -1; }
   </style>
 </head>
 <body>
