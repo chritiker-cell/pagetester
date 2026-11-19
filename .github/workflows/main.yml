@@ -43,6 +43,7 @@ jobs:
     - name: Deploy schule3
       # Eigener FTP-Zugang für schule3 (GitHub-Secrets FTP_SCHULE3_*).
       # Kein continue-on-error: scheitert der Upload, zeigt GitHub ein rotes X.
+      timeout-minutes: 10
       env:
         FTP_SERVER: ${{ secrets.FTP_SCHULE3_SERVER }}
         FTP_USER: ${{ secrets.FTP_SCHULE3_USER }}
@@ -54,6 +55,8 @@ jobs:
         lftp -c "
           set ftp:ssl-allow no;
           set net:timeout 30;
+          set net:max-retries 2;
+          set net:reconnect-interval-base 5;
           open --env-password -u \"$FTP_USER\" \"ftp://$SERVER\";
           mirror --reverse --delete --verbose \
             --exclude='^\.git' \
