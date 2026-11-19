@@ -50,8 +50,15 @@ jobs:
         LFTP_PASSWORD: ${{ secrets.FTP_SCHULE3_PASSWORD }}
       run: |
         sudo apt-get install -y lftp -q
+        # Eingaben bereinigen: Leerzeichen/Zeilenumbrüche beim Einfügen ins Secret entfernen,
         # Server-Adresse darf mit oder ohne "ftp://" bzw. abschließendem "/" im Secret stehen
-        SERVER="${FTP_SERVER#ftp://}"; SERVER="${SERVER%/}"
+        SERVER="$(printf '%s' "$FTP_SERVER" | tr -d '[:space:]')"; SERVER="${SERVER#ftp://}"; SERVER="${SERVER%/}"
+        FTP_USER="$(printf '%s' "$FTP_USER" | tr -d '[:space:]')"
+        LFTP_PASSWORD="$(printf '%s' "$LFTP_PASSWORD" | tr -d '\r\n')"; export LFTP_PASSWORD
+        # Prüfung ohne Geheimnisse: nur Längen, kein Inhalt
+        echo "Prüfung: Server-Länge=${#SERVER} | Benutzer-Länge=${#FTP_USER} | Passwort-Länge=${#LFTP_PASSWORD}"
+        if [ "$SERVER" = "195.242.102.132" ]; then echo "Server: öffentliche Adresse OK"; else echo "WARNUNG: Server ist nicht 195.242.102.132"; fi
+        if [ "$FTP_USER" = "schulprojekt" ]; then echo "Benutzer: schulprojekt OK"; else echo "Hinweis: Benutzer ist nicht schulprojekt"; fi
         lftp -c "
           set ftp:ssl-allow no;
           set net:timeout 30;

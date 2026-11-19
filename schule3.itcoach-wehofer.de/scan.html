@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Schattenwelt-Scanner</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Marker-Datei sofort mitladen, während die Bibliotheken noch laden -->
+  <link rel="preload" href="assets/targets/scanner.mind" as="fetch" crossorigin="anonymous">
   <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android/Chrome -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
@@ -112,25 +114,22 @@
   Neue Motive (Labor, Archiv) hinten anhängen und die Datei neu erstellen.
 -->
 <a-scene
-  mindar-image="imageTargetSrc: assets/targets/scanner.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 30; warmupTolerance: 1;"
+  mindar-image="imageTargetSrc: assets/targets/scanner.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.01; missTolerance: 30; warmupTolerance: 1;"
   color-space="sRGB" renderer="colorManagement: true"
   vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-  <a-assets>
-    <a-asset-item id="detektiv-model" src="assets/models/private_detectiv.glb"></a-asset-item>
-    <a-asset-item id="monster-model" src="assets/models/monster.glb"></a-asset-item>
-    <a-asset-item id="kreatur-model" src="assets/models/kreatur-funkraum.glb"></a-asset-item>
-  </a-assets>
+  <!-- 3D-Modelle werden NICHT vorab geladen (das würde den Kamerastart verzögern),
+       sondern nach dem Start im Hintergrund über data-src (siehe ladeModelle()). -->
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
   <!-- ▲ TARGET 0: Moravas Foto → Schattengestalt des Detektivs -->
   <a-entity mindar-image-target="targetIndex: 0" id="t0">
    <a-entity class="lage">
-    <a-gltf-model id="shadow-figure" src="#detektiv-model" position="0 0.15 0" scale="0.3 0.3 0.3"
-                  animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    <a-gltf-model id="shadow-figure" data-src="assets/models/private_detectiv.glb" data-prio="2" position="0 0.19 0" scale="0.38 0.38 0.38"
+                  animation__idle="property: position; to: 0 0.22 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
     </a-gltf-model>
-    <a-entity id="hint-3d" visible="false" position="0 0.32 0">
+    <a-entity id="hint-3d" visible="false" position="0 0.42 0">
       <a-plane width="0.42" height="0.12" color="#0a0a0a" opacity="0.92"></a-plane>
       <a-text value="4 ZEICHEN —\nIN MEINEN WORTEN" align="center" color="#c0c0c0" width="0.38" position="0 0 0.001"
               font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
@@ -150,7 +149,7 @@
       <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position="-0.19 -0.13  0.11"></a-box>
       <a-box color="#4a2c14" width="0.035" height="0.22" depth="0.035" position=" 0.19 -0.13  0.11"></a-box>
     </a-entity>
-    <a-gltf-model id="vk-monster" src="#monster-model" position="0 -0.15 0" scale="0.3 0.3 0.3" visible="false"
+    <a-gltf-model id="vk-monster" data-src="assets/models/monster.glb" data-prio="4" position="0 -0.15 0" scale="0.3 0.3 0.3" visible="false"
                   animation-mixer="clip: *; loop: repeat; crossFadeDuration: 0"
                   animation__rise="property: position; from: 0 -0.15 0; to: 0 0 0; dur: 800; easing: easeOutQuad; startEvents: monster-start">
     </a-gltf-model>
@@ -164,11 +163,8 @@
          Modell-Ursprung liegt in der Mitte → um 0,949 × Skalierung anheben, damit die Füße auf dem Blatt stehen.
          Augen-Koordinaten sind Modell-Koordinaten (Mitte der Augenhöhlen). -->
     <a-entity id="creature">
-      <a-entity id="kreatur" position="0 0.323 0" scale="0.34 0.34 0.34"
-                animation__breathe="property: position; to: 0 0.333 0; dir: alternate; loop: true; dur: 1800; easing: easeInOutSine">
-        <a-gltf-model src="#kreatur-model"></a-gltf-model>
-        <a-circle id="halo" radius="0.3" position="0 0.45 -0.08" color="#c00" opacity="0.12"
-                  material="shader: flat; transparent: true; side: double"></a-circle>
+      <a-entity id="kreatur" position="0 0.404 0" scale="0.425 0.425 0.425" visible="false">
+        <a-gltf-model id="kreatur-modell" data-src="assets/models/kreatur-funkraum.glb" data-prio="1"></a-gltf-model>
         <a-sphere id="eye-l" radius="0.05" position="-0.085 0.43 0.38" color="#330000" opacity="0.4" material="shader: flat">
           <a-sphere class="glow" radius="0.064" color="#ff2a2a" opacity="0" material="shader: flat; transparent: true"></a-sphere>
         </a-sphere>
@@ -177,14 +173,14 @@
         </a-sphere>
       </a-entity>
     </a-entity>
-    <a-gltf-model id="funk-morava" src="#detektiv-model" position="0 0.12 0" scale="0.26 0.26 0.26" visible="false"
-                  animation__idle="property: position; to: 0 0.15 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+    <a-gltf-model id="funk-morava" data-src="assets/models/private_detectiv.glb" data-prio="3" position="0 0.15 0" scale="0.33 0.33 0.33" visible="false"
+                  animation__idle="property: position; to: 0 0.18 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
     </a-gltf-model>
    </a-entity>
   </a-entity>
 </a-scene>
 
-<script src="js/interactions.js"></script>
+<script src="js/interactions.js?v=20261119b"></script>
 <script>
   window.SCANNER_MODE = true;
   const $ = id => document.getElementById(id);
@@ -198,7 +194,7 @@
   // ════════════════════════════════════════════════════════════════════════
   const MARKER_LIEGT_FLACH = true;
   // Neigung nach hinten in Grad (nur bei liegendem Marker): größer = Figuren schauen mehr nach oben
-  const NEIGUNG = 20;
+  const NEIGUNG = 30;
 
   document.querySelectorAll('.lage').forEach(e =>
     e.setAttribute('rotation', MARKER_LIEGT_FLACH ? (90 - NEIGUNG) + ' 0 0' : '0 0 0'));
@@ -260,7 +256,7 @@
     id: 'station-1', targets: [0, 1],
     tapped: false, tischBereit: false, tischTapped: false, visible: {},
     init() {
-      this.tablet = makeTablet('station-1', '0 0.58 0.06');
+      this.tablet = makeTablet('station-1', '0 0.70 0.06');
       lageOf(0).appendChild(this.tablet);
       if (isSolved('station-1')) this.showReward();
       onShake(() => this.onShake());
@@ -336,7 +332,7 @@
     gen: 0, visible: false, firstCycleDone: false, soundOn: false, audioCtx: null, lockTick: null,
 
     init() {
-      this.tablet = makeTablet('station-2', '0 0.54 0.06');
+      this.tablet = makeTablet('station-2', '0 0.66 0.06');
       lageOf(2).appendChild(this.tablet);
       if (isSolved('station-2')) this.showReward();
       $('sound-btn').addEventListener('click', e => { e.stopPropagation(); this.toggleSound(); });
@@ -392,10 +388,7 @@
         }
       });
     },
-    setHalo(strong) {
-      $('halo').setAttribute('opacity', strong ? '0.55' : '0.12');
-      $('halo').setAttribute('color', strong ? '#33ff77' : '#c00');
-    },
+    setHalo() { /* Aura entfernt – das Startsignal zeigen nur noch die Augen */ },
     tone(ms) {
       if (!this.soundOn || !this.audioCtx) return;
       const a = this.audioCtx, osc = a.createOscillator(), g = a.createGain();
@@ -608,6 +601,28 @@
     if (!visibleTargets.size) { setAction(null); defaultPrompt(); }
     else if (mod && mod.updateAction) mod.updateAction();
   };
+
+  // ── 3D-Modelle erst nach dem Kamerastart im Hintergrund laden (nach Priorität, eines nach dem anderen) ──
+  let modelleGestartet = false;
+  function ladeModelle() {
+    if (modelleGestartet) return;
+    modelleGestartet = true;
+    const liste = [...document.querySelectorAll('[data-src]')]
+      .sort((a, b) => Number(a.dataset.prio || 9) - Number(b.dataset.prio || 9));
+    const naechstes = () => {
+      const el = liste.shift();
+      if (!el) return;
+      const weiter = () => { el.removeEventListener('model-loaded', weiter); el.removeEventListener('model-error', weiter); naechstes(); };
+      el.addEventListener('model-loaded', weiter);
+      el.addEventListener('model-error', weiter);
+      el.setAttribute('src', el.dataset.src);   // bei <a-gltf-model> über src setzen (gltf-model + url() lädt nicht)
+    };
+    naechstes();
+  }
+  // Monster samt Augen erst zeigen, wenn das Modell da ist (sonst „schweben“ die Augen allein)
+  $('kreatur-modell').addEventListener('model-loaded', () => $('kreatur').setAttribute('visible', true));
+  document.querySelector('a-scene').addEventListener('arReady', ladeModelle);
+  setTimeout(ladeModelle, 8000);   // Sicherheitsnetz, falls arReady ausbleibt
 
   MODULES.forEach(m => m.init());
   updateHeader();
