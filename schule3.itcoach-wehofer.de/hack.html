@@ -316,7 +316,7 @@
 
 <!-- 4. Sieg -->
 <div class="screen" id="screen-victory">
-  <div class="victory-title">RISS GESCHLOSSEN</div>
+  <div class="victory-title">VIRUS GELÖSCHT</div>
   <div style="font-size:0.75rem;letter-spacing:0.2em;color:#777">SCHATTENSCHULE VERSIEGELT</div>
   <div id="v-morava"></div>
   <div style="font-size:0.95rem;color:#aaa;margin:0.75rem 0 0.25rem;line-height:1.6">
@@ -348,7 +348,7 @@
     <div class="c-text">Hiermit wird bestätigt, dass die Ermittlungsgruppe</div>
     <div class="c-group" id="c-group"></div>
     <div class="c-text">alle vier Stationen gelöst, die Firewalls durchbrochen, den Wächter besiegt
-      und Privatdetektiv E. Morava aus der Schattenwelt befreit hat.<br>Der Riss ist geschlossen.</div>
+      und Privatdetektiv E. Morava aus der Schattenwelt befreit hat.<br>Das Virus ist gelöscht.</div>
     <div class="c-meta"><span>Zeit: <strong id="c-time"></strong></span><span>Datum: <strong id="c-date"></strong></span></div>
     <div class="c-sign"><span>Lehrkraft</span><span>E. Morava, Privatdetektiv</span></div>
   </div>
@@ -362,13 +362,13 @@
 // Der Zugangscode kommt aus js/interactions.js → STATIONS (Fragmente in Feld-Reihenfolge ▲ ● ■ ✦)
 const CODE_GROUPS  = getStationsByField();
 const CORRECT_CODE = CODE_GROUPS.map(s => s.code).join('');
-const SOLUTION_WORD = 'RISS GESCHLOSSEN';
+const SOLUTION_WORD = 'VIRUS GELÖSCHT';
 // Finale „Hacker-Duell“: pro Phase Befehle zum Abtippen (ohne Umlaute), zeit = Sekunden pro Befehl,
 // spruch = was der Wächter zu Beginn der Phase sagt. Jeder richtig getippte Befehl = 1 Treffer.
 const DUELL = [
   { zeit: 14, befehle: ['SCAN', 'PING', 'LOCK', 'TRACE'],
     spruch: 'Ihr glaubt, ihr könnt mich aufspüren?' },
-  { zeit: 11, befehle: ['FIREWALL AN', 'RISS SCHLIESSEN', 'ZUGANG SPERREN', 'MORAVA FREI'],
+  { zeit: 11, befehle: ['FIREWALL AN', 'VIRUS ISOLIEREN', 'ZUGANG SPERREN', 'MORAVA FREI'],
     spruch: 'Ihr seid hartnäckig … jetzt werde ich ernst!' },
   { zeit: 9,  befehle: ['sudo bann --waechter', 'protokoll.loeschen()', 'schatten.exit()', 'SYSTEM RESET'],
     spruch: 'Ich lasse mich nicht löschen!' },
@@ -986,7 +986,7 @@ function startDuell() {
   }
   setTimeout(zeigeRueckfall, 10000);   // kein WebGL / offline → glühende Augen in der Dunkelheit
 
-  tippe('IHR HABT MEINE FIREWALLS GEBROCHEN …\nABER AN MIR KOMMT IHR NICHT VORBEI.', () => {
+  tippe('ICH BIN DAS VIRUS SCHATTEN.\nIHR HABT MEINE FIREWALLS GEBROCHEN … ABER MICH LÖSCHT IHR NICHT.', () => {
     $('w-start').hidden = false;
     $('w-start').focus();
   });
@@ -1107,7 +1107,7 @@ function sieg() {
   D.active = false;
   clearInterval(D.shake);
   $('w-cmd-wrap').style.display = 'none';
-  tippe('NEIN … DAS LICHT …!\nDIE SCHATTENWELT … ZERFÄLLT …');
+  tippe('NEIN … MEIN CODE …!\nIHR … LÖSCHT … MICH …');
   emitW('w-dist', 'die');
   const m = $('w-model');
   let k = 0;
