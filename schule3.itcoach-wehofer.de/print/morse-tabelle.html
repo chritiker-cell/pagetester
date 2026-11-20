@@ -49,12 +49,15 @@
     .leg .vis { flex: none; display: flex; align-items: center; justify-content: center; width: 16mm; height: 9mm; background: #1a0505; }
     .leg strong { font-size: 10pt; }
 
-    /* Zeichen (wie die Augen der Kreatur) */
-    .dot  { display: inline-block; width: 3.4mm; height: 3.4mm; border-radius: 50%; background: #8b1a1a; }
-    .dash { display: inline-block; width: 8.5mm; height: 2.4mm; border-radius: 1.2mm; background: #8b1a1a; }
-    .vis .dot  { background: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
-    .vis .dash { background: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
-    .vis .flash { width: 6mm; height: 6mm; border-radius: 50%; background: #33ff77; box-shadow: 0 0 10px 3px #33ff77; }
+    /* Zeichen (wie die Augen der Kreatur).
+       Als RAHMEN statt Hintergrund gebaut: Browser drucken Hintergründe standardmäßig nicht,
+       Rahmen aber immer — so sind Punkte und Striche auch ohne „Hintergrundgrafiken“ auf dem Papier. */
+    .dot  { display: inline-block; box-sizing: content-box; width: 0;     height: 0; border: 1.8mm solid #8b1a1a; border-radius: 50%; }
+    .dash { display: inline-block; box-sizing: content-box; width: 6mm;   height: 0; border: 1.3mm solid #8b1a1a; border-radius: 1.3mm; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .vis .dot  { border-color: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
+    .vis .dash { border-color: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
+    .vis .flash { box-sizing: content-box; width: 0; height: 0; border-radius: 50%; border: 3mm solid #33ff77; box-shadow: 0 0 10px 3px #33ff77; }
 
     /* Alphabet */
     .alphabet { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.2mm; position: relative; }
@@ -65,7 +68,7 @@
     }
     .zeichen .bst { font-size: 17pt; width: 7mm; text-align: center; flex: none; }
     .zeichen .code { display: flex; align-items: center; gap: 1.6mm; flex-wrap: nowrap; }
-    .zeichen .txt { margin-left: auto; font-size: 7pt; color: #777; letter-spacing: 0.1em; }
+    .zeichen .txt { margin-left: auto; font-size: 7pt; color: #777; letter-spacing: 0.1em; white-space: nowrap; }
 
     /* Notizfelder */
     .abschnitt { font-size: 8.5pt; letter-spacing: 0.25em; color: #8b1a1a; margin: 6mm 0 3mm; position: relative; }
@@ -170,7 +173,7 @@
     <tr><th>Häufige Fehler</th><td>Das <strong>E</strong> ist nur ein einzelner kurzer Punkt und wird leicht übersehen — auf den Zähler „BUCHSTABE 4/4“ hinweisen.</td></tr>
     <tr><th>Tipp-Stufen (mündlich)</th><td>1. „Wartet auf das grüne Aufleuchten und schreibt erst dann mit.“<br>2. „Achtet auf die Form: rund = Punkt, Schlitz = Strich.“<br>3. „Das Wort ist Englisch und hat mit Detektiven zu tun.“</td></tr>
     <tr><th>Ton</th><td>Oben rechts lässt sich ein Piepton passend zum Blinken einschalten (hilft beim Mitschreiben, wenn es ruhig genug ist).</td></tr>
-    <tr><th>Anpassen</th><td>Kennwort und Tempo in <code>station-2.html</code> (oben im Script), Fragment in <code>js/interactions.js</code> → <code>STATIONS</code>.</td></tr>
+    <tr><th>Anpassen</th><td>Kennwort und Tempo in <code>scan.html</code> (Funk-Modul), Fragment in <code>js/interactions.js</code> → <code>STATIONS</code>.</td></tr>
   </table>
 </div>
 
