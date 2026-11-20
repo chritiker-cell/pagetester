@@ -193,22 +193,11 @@
     }
     .final-time { font-size: 1.1rem; color: var(--txt); letter-spacing: 0.15em; margin-bottom: 1rem; }
     .final-time strong { color: var(--acc); font-size: 1.6rem; }
-    #v-group { color: var(--acc); font-size: 1rem; letter-spacing: 0.25em; margin-top: 0.75rem; min-height: 1.2em; }
     #v-morava {
       min-height: 3.2em; max-width: 560px; margin: 1.25rem 0 0.25rem; color: #7dffa0; font-size: 1rem;
       line-height: 1.6; text-shadow: 0 0 8px #33ff6655;
     }
     .v-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
-
-    /* Login: Gruppenname */
-    .group-row { margin-bottom: 1.6rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-    .group-row label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--acc); }
-    #group-name {
-      width: min(340px, 86vw); background: #000; border: 1px solid #33ff6666; border-bottom: 2px solid var(--acc);
-      color: var(--txt); font: bold 1.15rem 'Courier New', monospace; text-align: center; padding: 0.5rem; outline: none;
-      letter-spacing: 0.08em;
-    }
-    #group-name:focus { border-color: var(--acc); box-shadow: 0 0 14px #33ff6666; }
 
     /* Zwischen-Einblendung „Firewall durchbrochen“ */
     #breach {
@@ -277,10 +266,6 @@
 <div class="screen active" id="screen-login">
   <div class="term-head">// SYSTEM: SCHATTENSCHULE-ARCHIV</div>
   <div class="term-title">FORSCHUNGSPROTOKOLL<br>ZUGRIFF GESPERRT</div>
-  <div class="group-row">
-    <label for="group-name">GRUPPENNAME</label>
-    <input id="group-name" maxlength="24" autocomplete="off" spellcheck="false" placeholder="z. B. Die Füchse">
-  </div>
   <div style="color:#999;margin-bottom:1.25rem;font-size:0.95rem">Gebt den Zugangscode aus euren 4 Stationen ein — sortiert nach Moravas Zeichen:</div>
   <div class="digits" id="digits"></div>
   <div class="err" id="login-err"></div>
@@ -333,7 +318,6 @@
 <div class="screen" id="screen-victory">
   <div class="victory-title">RISS GESCHLOSSEN</div>
   <div style="font-size:0.75rem;letter-spacing:0.2em;color:#777">SCHATTENSCHULE VERSIEGELT</div>
-  <div id="v-group"></div>
   <div id="v-morava"></div>
   <div style="font-size:0.95rem;color:#aaa;margin:0.75rem 0 0.25rem;line-height:1.6">
     Gebt eurer Lehrkraft das Lösungswort und eure Zeit:
@@ -496,13 +480,7 @@ CODE_GROUPS.forEach((g, gi) => {
 });
 const digitInputs = [...document.querySelectorAll('.digit')];
 const CODE_LEN = digitInputs.length;
-$('group-name').focus();
-$('group-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); digitInputs[0].focus(); } });
-let groupName = '';
-function setGroupName() {
-  groupName = $('group-name').value.trim().replace(/\s+/g, ' ');
-  if (groupName) $('hud-name').textContent = '// GRUPPE: ' + groupName.toUpperCase();
-}
+digitInputs[0].focus();
 
 digitInputs.forEach((inp, i) => {
   inp.addEventListener('input', () => {
@@ -530,7 +508,6 @@ function checkCode() {
   const code = digitInputs.map(d => d.value).join('');
   if (code === CORRECT_CODE) {
     loggedIn = true;
-    setGroupName();
     $('login-err').style.color = '#33ff66';
     $('login-err').textContent = '✓ ZUGRIFF GEWÄHRT — FIREWALL WIRD GEHACKT …';
     setTimeout(() => { startTimer(); startLevel(0); }, 900);
@@ -1196,9 +1173,8 @@ function showVictory() {
   $('hud').classList.remove('on');
   $('solution-display').textContent = SOLUTION_WORD;
   $('final-time').textContent = fmtTime(elapsed);
-  $('v-group').textContent = groupName ? 'GRUPPE: ' + groupName.toUpperCase() : '';
-  // Urkunde vorbereiten
-  $('c-group').textContent = groupName || '____________________';
+  // Urkunde vorbereiten (Gruppenname wird von Hand eingetragen)
+  $('c-group').textContent = ' ';
   $('c-time').textContent = fmtTime(elapsed);
   $('c-date').textContent = new Date().toLocaleDateString('de-AT');
   showScreen('victory');
