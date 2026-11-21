@@ -234,6 +234,20 @@
       background: radial-gradient(ellipse at center, #2a0000ee 0%, #000000f5 70%); text-align: center; padding: 1rem;
     }
     #gameover.on { display: flex; animation: brIn 0.3s ease-out; }
+    /* Einblendung vor dem Duell */
+    #bossintro {
+      position: fixed; inset: 0; z-index: 55; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 0.9rem;
+      background: radial-gradient(ellipse at center, #220000ee 0%, #000000f5 70%); text-align: center; padding: 1rem;
+    }
+    #bossintro.on { display: flex; animation: brIn 0.3s ease-out; }
+    #bossintro .bi-small { font-size: 0.8rem; letter-spacing: 0.4em; color: #ff5a5aaa; }
+    #bossintro .bi-big { font-size: clamp(2.2rem, 8vw, 4.2rem); color: #ff2a2a; letter-spacing: 0.25em; font-weight: bold; text-shadow: 0 0 22px #ff2a2a; animation: glitch 2s infinite; }
+    #bossintro .bi-text { color: #ddd; max-width: 34rem; line-height: 1.75; font-size: 0.98rem; }
+    #bossintro .bi-text strong { color: #ff6b6b; }
+    #bossintro .bi-bar { width: min(340px, 70vw); height: 4px; background: #330000; overflow: hidden; }
+    #bossintro .bi-bar i { display: block; height: 100%; width: 0; background: #ff2a2a; box-shadow: 0 0 10px #ff2a2a; }
+    #bossintro.on .bi-bar i { animation: brFill 8s linear forwards; }
+    #bossintro .btn { border-color: #ff3b3b; color: #fff; }
     #gameover .go-big { font-size: clamp(1.8rem, 6vw, 3.2rem); color: #ff3b3b; letter-spacing: 0.22em; font-weight: bold; text-shadow: 0 0 18px #ff3b3b; }
     #gameover .go-text { color: #ccc; max-width: 30rem; line-height: 1.6; }
     #gameover .btn { border-color: #ff3b3b; color: #fff; }
@@ -362,6 +376,20 @@
   <div class="br-small" id="br-small"></div>
   <div class="br-big" id="br-big">DURCHBROCHEN</div>
   <div class="br-bar"><i id="br-fill"></i></div>
+</div>
+
+<!-- Einblendung vor dem Duell -->
+<div id="bossintro" aria-live="polite">
+  <div class="bi-small">// ALLE FIREWALLS GEKNACKT · LETZTE SPERRE</div>
+  <div class="bi-big">BOSS FIGHT</div>
+  <div class="bi-text">
+    Der Wächter des Virus stellt sich euch in den Weg.<br>
+    Tippt jeden Befehl <strong>fehlerfrei</strong> ab, <strong>bevor</strong> sein Angriffsbalken voll ist!<br>
+    Tippfehler → Befehl von vorne. Zu langsam → ihr verliert ein Leben.<br>
+    Ihr habt <strong>3 Leben ♥♥♥</strong> — sind alle weg, müsst ihr euch neu einloggen.
+  </div>
+  <div class="bi-bar"><i></i></div>
+  <button class="btn" id="bi-btn">[ BEREIT ]</button>
 </div>
 
 <!-- Alle Leben verloren -->
@@ -974,7 +1002,23 @@ const wInput = $('w-input');
 let D = null;                      // Zustand des Duells
 const fxParts = [];
 
-function startBossFight() { startDuell(); }
+// Vor dem Duell: „BOSS FIGHT“-Einblendung mit Regeln (8 s oder Klick auf BEREIT); 3D lädt währenddessen weiter
+function startBossFight() {
+  vorladen();
+  const b = $('bossintro');
+  b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  $('bi-btn').focus();
+  let weiter = false;
+  const los = () => {
+    if (weiter) return;
+    weiter = true;
+    clearTimeout(t);
+    b.classList.remove('on');
+    startDuell();
+  };
+  const t = setTimeout(los, 8000);
+  $('bi-btn').onclick = los;
+}
 
 function ladeSkript(src) {
   return new Promise((res, rej) => {
@@ -1005,7 +1049,13 @@ function spiele(clip, opts = {}) {
   if (opts.once && opts.danachIdle) {
     const fertig = () => {
       el.removeEventListener('animation-finished', fertig);
-      if ((el.getAttribute('animation-mixer') || {}).clip === clip) spiele(CLIP.idle);
+      if ((el.getAttribute('animation-mixer') || {}).clip !== clip) return;
+      spiele(CLIP.idle);
+      // Sicherheitsnetz: eingefrorene Reste der einmaligen Animation nach dem Überblenden ganz stoppen
+      setTimeout(() => {
+        const mx = el.components['animation-mixer'] && el.components['animation-mixer'].mixer;
+        if (mx && mx._actions) mx._actions.forEach(a => { if (a.getClip().name !== CLIP.idle) a.stop(); });
+      }, 450);
     };
     el.addEventListener('animation-finished', fertig);
   }
@@ -1049,13 +1099,14 @@ function baueSzene() {
       '<a-entity light="type: point; color: #ff2200; intensity: 2.5; distance: 6" position="0 -1.3 1.2"></a-entity>' +
       '<a-entity id="w-dist" position="0 -2.6 0"' +
         ' animation__rise="property: position; to: 0 0 0; dur: 2600; easing: easeOutCubic; startEvents: rise"' +
-        ' animation__near="property: position; to: 0 0 0.4; dur: 1200; easing: easeInOutQuad; startEvents: near"' +
+        ' animation__near="property: position; from: 0 0 0; to: 0 0 0.4; dur: 650; dir: alternate; loop: 2; easing: easeInOutQuad; startEvents: near"' +
         ' animation__die="property: scale; to: 0.01 0.01 0.01; dur: 1800; easing: easeInBack; startEvents: die">' +
         '<a-entity id="w-jolt"' +
           ' animation__hit="property: position; from: 0 0 -0.25; to: 0 0 0; dur: 380; easing: easeOutQuad; startEvents: hit"' +
           ' animation__atk="property: position; from: 0 0.05 0.75; to: 0 0 0; dur: 650; easing: easeOutQuad; startEvents: atk">' +
-          '<a-entity id="w-sway" rotation="0 -8 0" animation__sway="property: rotation; to: 0 8 0; dir: alternate; loop: true; dur: 3200; easing: easeInOutSine">' +
-            '<a-gltf-model id="w-model" src="' + W_MODEL + '" position="0 -0.95 0"' +
+          '<a-entity id="w-sway" rotation="0 -3 0" animation__sway="property: rotation; to: 0 3 0; dir: alternate; loop: true; dur: 3200; easing: easeInOutSine">' +
+            // rotation 25°: Idle_10 ist eine Kampfhaltung mit ~45° seitlich gedrehtem Körper → zurückdrehen (Kompromiss Körper/Kopf)
+            '<a-gltf-model id="w-model" src="' + W_MODEL + '" position="0 -0.95 0" rotation="0 25 0"' +
               ' animation-mixer="clip: ' + CLIP.idle + '; crossFadeDuration: 0.3"></a-gltf-model>' +
           '</a-entity>' +
         '</a-entity>' +
@@ -1235,7 +1286,7 @@ function phasenWechsel() {
   setWEyes(baseEyeColor());
   const d = $('w-dist');
   if (d && d.setAttribute) {
-    d.setAttribute('animation__near', 'to', D.phase >= 2 ? '0 0 0.8' : '0 0 0.4');
+    d.setAttribute('animation__near', 'to', D.phase >= 2 ? '0 0 0.6' : '0 0 0.4');   // kurz vortreten, dann zurück
     d.emit('near');
   }
   spiele(CLIP.phase, { once: true, danachIdle: true });
