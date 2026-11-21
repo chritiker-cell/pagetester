@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisit 4 — Archiv: Der Aktenvernichter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .no-print { display: none; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; line-height: 1.6; }
+    .no-print button { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; }
+
+    .page { width: 210mm; height: 297mm; background: #fff; box-shadow: 3px 3px 15px rgba(0,0,0,0.4); position: relative; overflow: hidden; }
+
+    /* Schnittmarken: 8 Streifen à 26,25 mm — nur kurze Striche oben und unten, nicht durch den Text */
+    .schnitt { position: absolute; left: 0; right: 0; height: 4mm; pointer-events: none; }
+    .schnitt.oben { top: 0; } .schnitt.unten { bottom: 0; }
+    .schnitt i { position: absolute; top: 0; width: 0; height: 4mm; border-left: 0.3mm solid #999; }
+    .code { position: absolute; bottom: 4.6mm; width: 26.25mm; text-align: center; font: 5.5pt sans-serif; color: #aaa; letter-spacing: 0.1em; }
+
+    /* ═══ Dokument A: Moravas Bericht ═══ */
+    .bericht { font-family: 'Special Elite', 'Courier New', monospace; color: #1a1a2e; }
+    .wasserzeichen { position: absolute; left: -20mm; top: 120mm; width: 260mm; text-align: center; transform: rotate(-35deg); font: 900 30mm Arial Black, Arial, sans-serif; color: #1a1a2e10; letter-spacing: 0.08em; white-space: nowrap; pointer-events: none; }
+    .welle { position: absolute; top: 6mm; left: 0; width: 210mm; height: 9mm; }
+    .bk { position: absolute; top: 18mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.5px double #1a1a2e; padding-bottom: 3mm; }
+    .bk-logo { display: flex; align-items: center; gap: 4mm; }
+    .bk-logo .lupe { width: 15mm; height: 15mm; }
+    .bk-name { font-size: 15pt; letter-spacing: 0.12em; line-height: 1.25; }
+    .bk-name small { display: block; font-size: 8.5pt; letter-spacing: 0.2em; }
+    .bk-rechts { text-align: right; font-size: 9pt; line-height: 1.5; }
+    .titel { position: absolute; top: 48mm; left: 12mm; right: 12mm; font-size: 17pt; letter-spacing: 0.18em; text-align: center; }
+    .titel small { display: block; font-size: 9pt; letter-spacing: 0.25em; margin-top: 1.5mm; }
+    .text { position: absolute; left: 12mm; right: 12mm; font-size: 12.5pt; line-height: 1.62; text-align: justify; hyphens: none; }
+    .balken-zeile { position: absolute; left: 12mm; right: 12mm; font-size: 12.5pt; display: flex; align-items: center; gap: 3mm; }
+    .balken { flex: 1; height: 9mm; background: #111; border: 0.1px solid #111; box-shadow: inset 0 0 0 4.5mm #111; }
+    .stempel-rot { position: absolute; width: 46mm; height: 46mm; }
+    .foto { position: absolute; border: 2.5mm solid #fff; outline: 0.4mm solid #1a1a2e; box-shadow: 1.5mm 1.5mm 0 #1a1a2e33; }
+    .unterschrift { position: absolute; font-family: 'Caveat', cursive; font-size: 30pt; color: #1b2a6b; transform: rotate(-6deg); }
+    .fusszeile { position: absolute; bottom: 9mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; font-size: 8pt; border-top: 1px solid #1a1a2e; padding-top: 1.5mm; }
+
+    /* ═══ Dokument B: Ablenkung (Wartungsprotokoll) ═══ */
+    .wartung { font-family: 'Courier New', monospace; color: #1a1a2e; }
+    .wartung .bk { border-bottom: 1.5px solid #1a1a2e; }
+    .wartung .titel { font-weight: bold; font-size: 16pt; letter-spacing: 0.08em; }
+    .wartung .text { font-size: 12pt; line-height: 1.6; text-align: left; }
+    .tbl { position: absolute; left: 12mm; right: 12mm; border-collapse: collapse; font-size: 11pt; }
+    .tbl td, .tbl th { border: 0.35mm solid #1a1a2e; padding: 1.6mm 2mm; text-align: left; }
+
+    /* ═══ Lehrer ═══ */
+    .lehrer { font-family: sans-serif; font-size: 9.6pt; color: #333; padding: 14mm 15mm; }
+    .lehrer h2 { font-size: 11pt; letter-spacing: 0.08em; border-bottom: 1px solid #999; padding-bottom: 2mm; margin: 0 0 3mm; }
+    .lehrer h2 + * { margin-bottom: 4mm; }
+    .lehrer ol, .lehrer ul { padding-left: 5mm; line-height: 1.6; }
+    .gelb { border: 1.5px solid #ccaa00; background: #fffde0; padding: 3mm 4mm; line-height: 1.55; }
+    .reihe { display: flex; gap: 2mm; margin: 2mm 0 1mm; }
+    .reihe span { flex: 1; border: 1.5px solid #333; text-align: center; padding: 1.5mm 0; font-weight: bold; letter-spacing: 0.1em; }
+    .reihe.b span { border-style: dashed; color: #777; }
+    .hilfen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+    .hilfe { border: 1.5px dashed #777; padding: 3mm; line-height: 1.45; }
+    .hilfe b { display: block; letter-spacing: 0.1em; margin-bottom: 1mm; }
+  </style>
+</head>
+<body>
+<div class="no-print">
+  Requisit 4 — Station ✦ Archiv: <strong>Moravas Bericht (S. 1)</strong>, Ablenkungs-Dokument (S. 2), Lehrkräfte (S. 3)<br>
+  Auf <strong>mattes, dickeres Papier</strong> drucken (nicht laminieren) · S. 1 + 2 an den Strichen oben/unten in 8 senkrechte Streifen schneiden
+  <button onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ═══ SEITE 1: MORAVAS BERICHT (wird geschreddert) ═══ -->
+<div class="page bericht" id="bericht">
+  <div class="schnitt oben"></div><div class="schnitt unten"></div>
+  <!-- durchgehende Welle am oberen Rand (Hilfe beim Zusammensetzen) -->
+  <div class="wasserzeichen">PROJEKT SCHATTEN</div>
+  <svg class="welle" viewBox="0 0 210 9" preserveAspectRatio="none"><path id="welle-a" fill="none" stroke="#8b1a1a" stroke-width="1.1"/></svg>
+
+  <div class="bk">
+    <div class="bk-logo">
+      <svg class="lupe" viewBox="0 0 40 40"><circle cx="16" cy="16" r="11" fill="none" stroke="#1a1a2e" stroke-width="3.5"/><path d="M24 24 L37 37" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/><path d="M10 14 Q13 9 18 9" fill="none" stroke="#1a1a2e" stroke-width="1.6"/></svg>
+      <div class="bk-name">E. MORAVA<small>PRIVATDETEKTEI · ERMITTLUNGEN</small></div>
+    </div>
+    <div class="bk-rechts">Akte 2024-007<br>Blatt 1 von 1<br><strong>NUR FÜR DIE POLIZEI</strong></div>
+  </div>
+
+  <div class="titel">ABSCHLUSSBERICHT<small>PROJEKT SCHATTEN · SCHULE · ALTES LABOR</small></div>
+
+  <div class="text" style="top:66mm">
+    An die Polizei — falls mir etwas zustößt.<br>
+    Seit Wochen untersuche ich <strong>Projekt SCHATTEN</strong>. Im alten Labor der Schule sollte ein Programm entstehen,
+    das sich selbst kopiert und vor jedem Virenscanner versteckt. Offiziell wurde das Projekt gestoppt.
+    Doch jemand aus dem Labor hat heimlich weitergearbeitet. Die Beweise dafür liegen noch dort.
+  </div>
+
+  <svg class="stempel-rot" style="top:118mm;left:16mm;transform:rotate(-14deg)" viewBox="0 0 100 100">
+    <g fill="none" stroke="#b01e1e" stroke-width="3.2" opacity="0.88"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="34" stroke-width="1.8"/></g>
+    <path id="sbogen" d="M 13 50 A 37 37 0 1 1 87 50" fill="none"/>
+    <text font-family="Arial" font-weight="bold" font-size="8" fill="#b01e1e" letter-spacing="0.6"><textPath href="#sbogen" startOffset="50%" text-anchor="middle">VERTRAULICH · MORAVA</textPath></text>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial Black, Arial" font-size="14" fill="#b01e1e">GEHEIM</text>
+  </svg>
+
+  <div class="text" style="top:122mm;left:66mm;right:84mm;text-align:left">
+    Das Virus ist eine <strong>Zeitbombe</strong>. Es wartet im Schulnetz und springt von Rechner zu Rechner.
+    Löschen kann man es nur am Hauptserver.
+  </div>
+
+  <svg class="foto" style="top:118mm;left:130mm;width:62mm;height:58mm" viewBox="0 0 62 58">
+    <rect width="62" height="58" fill="#2a2f45"/>
+    <rect x="16" y="5" width="30" height="50" fill="#14182a" stroke="#8a90aa" stroke-width="0.8"/>
+    <g fill="#3d4466" stroke="#8a90aa" stroke-width="0.4"><rect x="19" y="9" width="24" height="6"/><rect x="19" y="17" width="24" height="6"/><rect x="19" y="25" width="24" height="6"/><rect x="19" y="33" width="24" height="6"/><rect x="19" y="41" width="24" height="6"/></g>
+    <g fill="#7dff9a"><circle cx="22" cy="12" r="0.9"/><circle cx="25" cy="20" r="0.9"/><circle cx="22" cy="28" r="0.9"/><circle cx="28" cy="36" r="0.9"/><circle cx="22" cy="44" r="0.9"/></g>
+    <g fill="#ff4a4a"><circle cx="40" cy="12" r="0.9"/><circle cx="40" cy="28" r="0.9"/><circle cx="40" cy="44" r="0.9"/></g>
+    <path d="M2 56 Q 10 40 6 22 M58 56 Q 54 38 60 20" fill="none" stroke="#555b78" stroke-width="1.4"/>
+    <text x="31" y="54.5" font-size="3" fill="#c9cdd6" text-anchor="middle" font-family="Courier New">HAUPTSERVER</text>
+  </svg>
+
+  <div class="text" style="top:182mm">
+    Der Hauptserver steht im <strong>Serverraum</strong> im Keller. Den Zugangscode habe ich unten notiert —
+    und geschwärzt, damit ihn kein Unbefugter lesen kann. Wer mir helfen will, braucht meine Kamera:
+  </div>
+
+  <div class="balken-zeile" style="top:216mm"><span>Zugang Serverraum:</span><span class="balken"></span></div>
+
+  <div class="text" style="top:232mm;right:70mm">
+    Wenn ihr diesen Bericht wieder zusammengesetzt habt: Scannt ihn. Dann zeige ich euch die geschwärzte Zeile.
+  </div>
+  <div class="unterschrift" style="top:240mm;left:150mm">E. Morava</div>
+
+  <div class="fusszeile"><span>Privatdetektei E. Morava · Akte 2024-007</span><span>VERTRAULICH — nicht kopieren</span></div>
+</div>
+
+<!-- ═══ SEITE 2: ABLENKUNGS-DOKUMENT (wird ebenfalls geschreddert und daruntergemischt) ═══ -->
+<div class="page wartung" id="wartung">
+  <div class="schnitt oben"></div><div class="schnitt unten"></div>
+  <!-- Zickzack statt Welle -->
+  <svg class="welle" viewBox="0 0 210 9" preserveAspectRatio="none"><path id="welle-b" fill="none" stroke="#1a1a2e" stroke-width="0.9"/></svg>
+
+  <div class="bk">
+    <div class="bk-logo">
+      <svg class="lupe" viewBox="0 0 40 40"><rect x="4" y="8" width="32" height="24" fill="none" stroke="#1a1a2e" stroke-width="3"/><path d="M4 16 H36 M12 8 V32" stroke="#1a1a2e" stroke-width="2"/></svg>
+      <div class="bk-name">SCHULVERWALTUNG<small>HAUSTECHNIK · WARTUNG</small></div>
+    </div>
+    <div class="bk-rechts">Protokoll Nr. 88/24<br>Blatt 1 von 1<br><strong>INTERN</strong></div>
+  </div>
+
+  <div class="titel">WARTUNGSPROTOKOLL SERVERRAUM<small>KELLER · RAUM K-04</small></div>
+
+  <div class="text" style="top:66mm">
+    Bei der monatlichen Kontrolle wurde der Serverraum im Keller geprüft. Die Lüftung war stark verstaubt
+    und wurde gereinigt. An der Tür hing ein Zettel mit dem Zugangscode. Der Zettel wurde entfernt,
+    der Code muss dringend geändert werden. Der Raum war beim Eintreffen nicht abgeschlossen.
+  </div>
+
+  <table class="tbl" style="top:118mm">
+    <tr><th>Gerät</th><th>Zustand</th><th>Maßnahme</th></tr>
+    <tr><td>Lüftung</td><td>verstaubt</td><td>gereinigt</td></tr>
+    <tr><td>Hauptserver</td><td>läuft, Lüfter laut</td><td>beobachten</td></tr>
+    <tr><td>Notstrom</td><td>Batterie schwach</td><td>bestellt</td></tr>
+    <tr><td>Türschloss</td><td>klemmt</td><td>Hausmeister informiert</td></tr>
+  </table>
+
+  <svg class="stempel-rot" style="top:170mm;left:22mm;transform:rotate(9deg)" viewBox="0 0 100 100">
+    <rect x="6" y="28" width="88" height="44" fill="none" stroke="#1a3a8b" stroke-width="3.5" opacity="0.85"/>
+    <text x="50" y="58" text-anchor="middle" font-family="Arial Black, Arial" font-size="15" fill="#1a3a8b" opacity="0.85">ERLEDIGT</text>
+  </svg>
+
+  <div class="text" style="top:182mm;left:80mm">
+    Bitte beachten: Der Serverraum darf nur mit Begleitung der Haustechnik betreten werden.
+    Schlüssel im Sekretariat.
+  </div>
+
+  <div class="balken-zeile" style="top:216mm"><span>Alter Code (ungültig):</span><span class="balken"></span></div>
+
+  <div class="text" style="top:232mm;right:70mm">
+    Nächste Kontrolle in vier Wochen. Fragen bitte an die Haustechnik.
+  </div>
+  <div class="unterschrift" style="top:242mm;left:150mm;color:#333;font-size:24pt">K. Brandner</div>
+
+  <div class="fusszeile"><span>Schulverwaltung · Haustechnik</span><span>Protokoll 88/24</span></div>
+</div>
+
+<!-- ═══ SEITE 3: LEHRKRÄFTE ═══ -->
+<div class="page lehrer">
+  <h2>STATION ✦ ARCHIV — „DER AKTENVERNICHTER“ · HINWEISE FÜR LEHRKRÄFTE (nicht auslegen)</h2>
+  <div class="gelb">
+    <strong>Ziel:</strong> Moravas geschredderten Bericht aus 16 gemischten Streifen heraussuchen und richtig zusammensetzen.
+    Der fertige Bericht wird gescannt: Dann wird die geschwärzte Zeile in AR lesbar und gibt das Code-Fragment <strong>✦ 184</strong> frei.
+    Dauer ca. 6–10 Minuten. Raten ist nicht möglich: Der Scanner erkennt den Bericht nur, wenn die Streifen richtig liegen.<br><br>
+    <strong>Übergangslösung, solange der Scanner-Teil noch fehlt:</strong> Die Gruppe zeigt der Lehrkraft den richtig gelegten Bericht und
+    erhält das Fragment mündlich.
+  </div>
+
+  <h2>VORBEREITUNG</h2>
+  <ol>
+    <li>Seite 1 und 2 auf <strong>mattes, dickeres Papier</strong> drucken (≥ 120 g, nicht laminieren — Spiegelungen stören die Kamera).</li>
+    <li>Beide Seiten an den kurzen Strichen am oberen und unteren Rand in <strong>8 senkrechte Streifen</strong> (je 26 mm) schneiden.
+      Am besten mit dem Schneidegerät, gerade Kanten helfen beim Zusammensetzen und Scannen.</li>
+    <li>Alle 16 Streifen mischen und in eine Schachtel oder einen Umschlag „AKTENVERNICHTER — ARCHIV“ legen.</li>
+    <li>Am Tisch eine dunkle, freie Fläche lassen, auf der die Gruppe den Bericht auslegen kann.</li>
+    <li>Nach jeder Gruppe: Streifen wieder mischen. Ein Reset am Handy ist nicht nötig.</li>
+  </ol>
+
+  <h2>LÖSUNG (Kennbuchstaben ganz klein am unteren Rand jedes Streifens)</h2>
+  <div>Moravas Bericht, von links nach rechts:</div>
+  <div class="reihe" id="loesung-a"></div>
+  <div style="margin-top:2mm">Ablenkungs-Dokument (Wartungsprotokoll, gehört nicht dazu):</div>
+  <div class="reihe b" id="loesung-b"></div>
+
+  <h2 style="margin-top:4mm">WORAN MAN DIE STREIFEN ERKENNT</h2>
+  <ul>
+    <li><strong>Sortieren:</strong> Bericht = Schreibmaschinenschrift, rote <em>Welle</em> oben, roter Rundstempel. Wartungsprotokoll = schlichte Schrift, schwarzes <em>Zickzack</em> oben, blauer Stempel „ERLEDIGT“, Tabelle.</li>
+    <li><strong>Reihenfolge:</strong> Sätze laufen über die Streifen weiter, die Welle muss durchgehend sein, Stempel und Serverfoto gehen über mehrere Streifen. Links steht der Briefkopf mit der Lupe, rechts unten die Unterschrift.</li>
+    <li><strong>Querverbindungen:</strong> Der Bericht erwähnt „jemand aus dem Labor“ (→ Station ■), ohne einen Namen zu verraten.</li>
+  </ul>
+
+  <h2 style="margin-top:4mm">GESTUFTE HILFEN (ausschneiden, nach Bedarf ausgeben)</h2>
+  <div class="hilfen">
+    <div class="hilfe"><b>HILFE 1 — SORTIEREN</b>Es sind zwei Dokumente gemischt. Nur Moravas Bericht hat einen <strong>roten</strong> Stempel und eine <strong>Welle</strong> am oberen Rand.</div>
+    <div class="hilfe"><b>HILFE 2 — REIHENFOLGE</b>Legt die Streifen so, dass die rote Welle oben ohne Knick durchläuft. Lest dann die Sätze quer zur Kontrolle.</div>
+    <div class="hilfe"><b>HILFE 3 — RÄNDER</b>Ganz links ist der Streifen mit der Lupe im Briefkopf. Ganz rechts der mit „Blatt 1 von 1“ und dem Ende der Unterschrift.</div>
+  </div>
+</div>
+
+<script>
+  // Kennbuchstaben pro Streifen (nur für die Lehrkraft, ohne Reihenfolge-Information für Schüler)
+  const CODES_A = ['Q', 'M', 'X', 'B', 'F', 'Z', 'H', 'K'];
+  const CODES_B = ['R', 'D', 'W', 'P', 'J', 'T', 'L', 'C'];
+  const BREITE = 210 / 8;
+  function streifen(seite, codes) {
+    const s = document.getElementById(seite);
+    s.querySelectorAll('.schnitt').forEach(z => {
+      for (let i = 1; i < 8; i++) { const t = document.createElement('i'); t.style.left = (i * BREITE) + 'mm'; z.appendChild(t); }
+    });
+    codes.forEach((c, i) => {
+      const d = document.createElement('div');
+      d.className = 'code'; d.style.left = (i * BREITE) + 'mm'; d.textContent = c;
+      s.appendChild(d);
+    });
+  }
+  streifen('bericht', CODES_A);
+  streifen('wartung', CODES_B);
+  document.getElementById('loesung-a').innerHTML = CODES_A.map(c => '<span>' + c + '</span>').join('');
+  document.getElementById('loesung-b').innerHTML = CODES_B.map(c => '<span>' + c + '</span>').join('');
+
+  // Welle (Bericht) und Zickzack (Ablenkung) über die ganze Breite — mit wechselnder Höhe, damit jede Stelle eindeutig ist
+  let d = 'M0 4.5';
+  for (let x = 0; x <= 210; x += 1) d += ' L' + x + ' ' + (4.5 + Math.sin(x / 7) * 2.6 * (0.6 + 0.4 * Math.sin(x / 31))).toFixed(2);
+  document.getElementById('welle-a').setAttribute('d', d);
+  let z = 'M0 7';
+  for (let x = 0, k = 0; x <= 210; x += 6 + (k % 3) * 2, k++) z += ' L' + x + ' ' + (k % 2 ? 1.5 + (k % 4) : 7.5);
+  document.getElementById('welle-b').setAttribute('d', z);
+</script>
+</body>
+</html>
