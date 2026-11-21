@@ -246,7 +246,7 @@
     #bossintro .bi-text strong { color: #ff6b6b; }
     #bossintro .bi-bar { width: min(340px, 70vw); height: 4px; background: #330000; overflow: hidden; }
     #bossintro .bi-bar i { display: block; height: 100%; width: 0; background: #ff2a2a; box-shadow: 0 0 10px #ff2a2a; }
-    #bossintro.on .bi-bar i { animation: brFill 8s linear forwards; }
+    #bossintro.on .bi-bar i { animation: brFill 14s linear forwards; }   /* gleich lang wie BOSS_INTRO_SEK */
     #bossintro .btn { border-color: #ff3b3b; color: #fff; }
     #gameover .go-big { font-size: clamp(1.8rem, 6vw, 3.2rem); color: #ff3b3b; letter-spacing: 0.22em; font-weight: bold; text-shadow: 0 0 18px #ff3b3b; }
     #gameover .go-text { color: #ccc; max-width: 30rem; line-height: 1.6; }
@@ -433,11 +433,12 @@ const DUELL = [
     spruch: 'Ihr glaubt, ihr könnt mich aufspüren?' },
   { zeit: 10, befehle: ['FIREWALL AN', 'VIRUS ISOLIEREN', 'ZUGANG SPERREN', 'MORAVA FREI'],
     spruch: 'Ihr seid hartnäckig … jetzt werde ich ernst!' },
-  { zeit: 10, befehle: ['sudo bann --waechter', 'protokoll.loeschen()', 'schatten.exit()', 'SYSTEM RESET'],
+  { zeit: 10, befehle: ['protokoll.loeschen()', 'schatten.exit()', 'sudo bann --waechter', 'SYSTEM RESET'],
     spruch: 'Ich lasse mich nicht löschen!' },
 ];
 const STRAFZEIT_ANGRIFF = 10;          // Sekunden, die bei einem Angriff des Wächters auf die Gesamtzeit kommen
-const LEBEN = 3;                       // Angriffe, die eine Gruppe im Duell aushält — danach Neustart ab Login (Zeit läuft weiter)
+const BOSS_INTRO_SEK = 14;             // Lesezeit der „BOSS FIGHT“-Einblendung (Balken in CSS #bossintro gleich lang halten)
+const LEBEN = 3;                     // Angriffe, die eine Gruppe im Duell aushält — danach Neustart ab Login (Zeit läuft weiter)
 // Alarm-Sperre bei falscher Antwort in den Mathe-Firewalls: 15 s, 30 s, 45 s, dann 60 s
 const SPERRE_SCHRITT = 15, SPERRE_MAX = 60;
 const HINT_AFTER_ERRORS  = 2;          // Tipp-Button nach so vielen Fehlversuchen …
@@ -1002,7 +1003,7 @@ const wInput = $('w-input');
 let D = null;                      // Zustand des Duells
 const fxParts = [];
 
-// Vor dem Duell: „BOSS FIGHT“-Einblendung mit Regeln (8 s oder Klick auf BEREIT); 3D lädt währenddessen weiter
+// Vor dem Duell: „BOSS FIGHT“-Einblendung mit Regeln (BOSS_INTRO_SEK oder Klick auf BEREIT); 3D lädt währenddessen weiter
 function startBossFight() {
   vorladen();
   const b = $('bossintro');
@@ -1016,7 +1017,7 @@ function startBossFight() {
     b.classList.remove('on');
     startDuell();
   };
-  const t = setTimeout(los, 8000);
+  const t = setTimeout(los, BOSS_INTRO_SEK * 1000);
   $('bi-btn').onclick = los;
 }
 
@@ -1385,8 +1386,9 @@ function duellLoop(now) {
   // 0/1-Regen beim Sieg
   const w = fxCanvas.clientWidth, h = fxCanvas.clientHeight;
   if (D.rainUntil && now < D.rainUntil) {
-    for (let i = 0; i < 6; i++) fxParts.push({ x: Math.random() * w, y: -10, vx: 0, vy: 3 + Math.random() * 4, life: 1,
-                                               ch: Math.random() < 0.5 ? '0' : '1', color: Math.random() < 0.8 ? '#33ff66' : '#ff2a2a', fall: true });
+    // dezenter Regen: im Schnitt ~1 Zeichen alle 2–3 Bilder (vorher 6 pro Bild)
+    if (Math.random() < 0.4) fxParts.push({ x: Math.random() * w, y: -10, vx: 0, vy: 3 + Math.random() * 4, life: 1,
+                                            ch: Math.random() < 0.5 ? '0' : '1', color: Math.random() < 0.8 ? '#33ff66' : '#ff2a2a', fall: true });
   }
   fx.clearRect(0, 0, w, h);
   fx.font = 'bold 14px Courier New, monospace';
@@ -1439,9 +1441,14 @@ function showVictory() {
     v.classList.add('im-duell', 'active');
     $('duell').appendChild(v);
     const d = $('w-dist');
-    d.setAttribute('position', '0 0 0.2');
+    d.setAttribute('position', '0 -0.25 0');   // etwas tiefer, damit die erhobenen Arme beim Tanz im Bild bleiben
     d.setAttribute('scale', '1 1 1');
     setWEyes('#33ff66');
+    // Gangnam_Groove steht von sich aus ~44° gedreht (gemessen) → frontal ausrichten, Wiegen aus
+    const sway = $('w-sway');
+    sway.removeAttribute('animation__sway');
+    sway.setAttribute('rotation', '0 0 0');
+    $('w-model').setAttribute('rotation', '0 -44 0');
     spiele(CLIP.tanz, { fade: 0.6 });
     fxParts.length = 0;                                   // stehengebliebene 0/1-Zeichen vom Siegesregen weg
     fx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
