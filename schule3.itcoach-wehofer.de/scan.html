@@ -197,7 +197,9 @@
     2-visitenkarte.png  → targetIndex 1  (▲ Moravas Büro: Tisch + Monster)
     3-funkgeraet.png    → targetIndex 2  (● Funkraum: Kreatur)
     4-beweismittel.png  → targetIndex 3  (■ Altes Labor: USB-Stick mit UV-Spuren)
-  Neue Motive (Archiv) hinten anhängen und die Datei neu erstellen.
+    5-bericht.png       → targetIndex 4  (✦ Archiv: zusammengesetzter Bericht, Seite 1 von print/requisit-4-aktenvernichter.html#marker)
+  Neue Motive hinten anhängen und die Datei neu erstellen.
+  ACHTUNG: Wird der Bericht in der Druckvorlage geändert, muss 5-bericht.png neu erzeugt und die Datei neu erstellt werden.
 -->
 <a-scene
   mindar-image="imageTargetSrc: assets/targets/scanner.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.01; missTolerance: 30; warmupTolerance: 1;"
@@ -290,6 +292,14 @@
       </a-entity>
     </a-entity>
     <a-entity class="lage"></a-entity>
+  </a-entity>
+
+  <!-- ✦ TARGET 4: Moravas Bericht (aus Streifen zusammengesetzt, A4 hoch → Höhe 1,414 Markerbreiten).
+       Erkannt wird er nur, wenn die Streifen richtig liegen. Dann wird der schwarze Balken „entschwärzt“.
+       Balken laut Druckvorlage: x 59,6–198,0 mm, y 216,0–225,0 mm → Mitte (0,113 | −0,343) -->
+  <a-entity mindar-image-target="targetIndex: 4" id="t4">
+    <a-plane id="archiv-zeile" width="0.675" height="0.052" position="0.113 -0.343 0.003" visible="false"
+             material="shader: flat; transparent: true"></a-plane>
   </a-entity>
 </a-scene>
 
@@ -938,9 +948,81 @@
   };
 
   // ════════════════════════════════════════════════════════════════════════
+  //  ✦ STATION 4 — ARCHIV / AKTENVERNICHTER  (Target 4)
+  //  Der Scanner erkennt Moravas Bericht nur, wenn die Streifen richtig liegen —
+  //  das ist die Prüfung. Dann wird der schwarze Balken in AR „entschwärzt“.
+  // ════════════════════════════════════════════════════════════════════════
+  const Archiv = {
+    id: 'station-4', targets: [4],
+    ZEILE: '1 8 4',              // was unter dem Balken steht (= Code-Fragment, mit Leerzeichen)
+    visible: false, laeuft: false,
+    init() {
+      const c = document.createElement('canvas');
+      c.id = 'archiv-tex'; c.className = 'tablet-canvas'; c.width = 1024; c.height = 80;
+      document.body.appendChild(c);
+      this.cv = c;
+      $('archiv-zeile').setAttribute('material', 'src', '#archiv-tex');
+      if (isSolved('station-4')) this.showReward();
+    },
+    // Zeichnet die Zeile; fertig = Anzahl Zeichen, die schon „entschlüsselt“ sind
+    zeichne(fertig) {
+      const g = this.cv.getContext('2d'), W = 1024, H = 80;
+      g.fillStyle = '#04140a'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = '#33ff66'; g.lineWidth = 4; g.strokeRect(2, 2, W - 4, H - 4);
+      g.font = 'bold 56px "Courier New", monospace'; g.textBaseline = 'middle';
+      const zeichen = this.ZEILE;
+      const ZUFALL = '0123456789#@%&$?';
+      let x = (W - zeichen.length * 33.5) / 2;   // mittig im Balken
+      for (let i = 0; i < zeichen.length; i++) {
+        const echt = i < fertig || zeichen[i] === ' ';
+        g.fillStyle = echt ? '#7dffa0' : '#2f8f4f';
+        g.shadowColor = '#33ff66'; g.shadowBlur = echt ? 14 : 0;
+        g.fillText(echt ? zeichen[i] : ZUFALL[Math.floor(Math.random() * ZUFALL.length)], x, H / 2 + 2);
+        x += 33.5;
+      }
+      g.shadowBlur = 0;
+      const mesh = $('archiv-zeile').getObject3D('mesh');
+      if (mesh && mesh.material.map) mesh.material.map.needsUpdate = true;
+      return zeichen.length;
+    },
+    showReward() {
+      this.zeichne(99);
+      $('archiv-zeile').setAttribute('visible', true);
+    },
+    activate() { this.updateAction(); },
+    onFound() {
+      this.visible = true;
+      if (!isSolved('station-4') && !this.laeuft) this.entschluesseln();
+      this.updateAction();
+    },
+    onLost() { this.visible = false; },
+    onTap() { if (this.visible && isSolved('station-4')) this.confirm(); },
+    updateAction() {
+      if (isSolved('station-4')) setAction('▸ [ CODE-TEIL ANZEIGEN ]', () => this.confirm());
+      else if (this.laeuft) setPrompt('▸ BERICHT ERKANNT — GESCHWÄRZTE ZEILE WIRD ENTSCHLÜSSELT …');
+    },
+    confirm() { confirmFragment('station-4', '✓ <span style="color:#cc3300">ZUGANGSCODE SERVERRAUM</span>'); },
+    async entschluesseln() {
+      this.laeuft = true;
+      if (navigator.vibrate) navigator.vibrate(60);
+      $('archiv-zeile').setAttribute('visible', true);
+      const n = this.zeichne(0);
+      for (let f = 0; f <= n * 12; f++) {         // Ziffern nacheinander einrasten lassen (~2 s)
+        this.zeichne(Math.floor(f / 12));
+        await wait(35);
+      }
+      this.zeichne(99);
+      markSolved('station-4');
+      this.laeuft = false;
+      this.showReward();
+      this.updateAction();
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════
   //  Scanner-Kern: welcher Marker gehört zu welcher Station?
   // ════════════════════════════════════════════════════════════════════════
-  const MODULES = [Buero, Funk, Labor];
+  const MODULES = [Buero, Funk, Labor, Archiv];
   const BY_TARGET = {};
   MODULES.forEach(m => m.targets.forEach(t => { BY_TARGET[t] = m; }));
   let activeId = null;

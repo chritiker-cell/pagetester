@@ -192,8 +192,8 @@
     <strong>Ziel:</strong> Moravas geschredderten Bericht aus 16 gemischten Streifen heraussuchen und richtig zusammensetzen.
     Der fertige Bericht wird gescannt: Dann wird die geschwärzte Zeile in AR lesbar und gibt das Code-Fragment <strong>✦ 184</strong> frei.
     Dauer ca. 6–10 Minuten. Raten ist nicht möglich: Der Scanner erkennt den Bericht nur, wenn die Streifen richtig liegen.<br><br>
-    <strong>Übergangslösung, solange der Scanner-Teil noch fehlt:</strong> Die Gruppe zeigt der Lehrkraft den richtig gelegten Bericht und
-    erhält das Fragment mündlich.
+    <strong>Scannen:</strong> Den fertigen Bericht flach hinlegen, Streifen dicht an dicht und gerade, gut beleuchtet, dann mit dem Scanner das ganze Blatt erfassen (Handy ca. 40–50 cm darüber).
+    <strong>Falls der Scanner den richtig gelegten Bericht trotzdem nicht erkennt</strong> (Licht, Spiegelung, schiefe Streifen): Fragment mündlich ausgeben.
   </div>
 
   <h2>VORBEREITUNG</h2>
@@ -255,6 +255,13 @@
   let z = 'M0 7';
   for (let x = 0, k = 0; x <= 210; x += 6 + (k % 3) * 2, k++) z += ' L' + x + ' ' + (k % 2 ? 1.5 + (k % 4) : 7.5);
   document.getElementById('welle-b').setAttribute('d', z);
+
+  // Nur für die Erstellung des Scanner-Motivs: …/requisit-4-aktenvernichter.html#marker zeigt nur Seite 1 randlos
+  if (location.hash === '#marker') {
+    document.querySelectorAll('.no-print, .page:not(#bericht)').forEach(e => e.remove());
+    Object.assign(document.body.style, { padding: '0', background: '#fff', display: 'block' });
+    document.getElementById('bericht').style.boxShadow = 'none';
+  }
 </script>
 </body>
 </html>
