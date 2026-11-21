@@ -2,237 +2,387 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Requisit 3 — Beweismittel-Etikett</title>
+  <title>Requisit 3 — Altes Labor: Beweisstück, Steckbriefe, Alibis</title>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: #888; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 2rem; }
     @page { size: A4; margin: 0; }
     @media print {
       body { background: none; padding: 0; gap: 0; }
       .no-print { display: none; }
-      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; height: 297mm; min-height: 0; }
       .page:last-child { page-break-after: auto; }
     }
-    .no-print { text-align:center; color:#fff; font-family:sans-serif; font-size:0.85rem; }
-    .no-print button { background:#333; color:#fff; border:none; padding:0.5rem 1.2rem; cursor:pointer; border-radius:3px; margin-left:0.5rem; }
+    @media screen { .page { max-width: 100%; } }
+    .no-print { text-align: center; color: #fff; font-family: sans-serif; font-size: 0.85rem; }
+    .no-print button { background: #333; color: #fff; border: none; padding: 0.5rem 1.2rem; cursor: pointer; border-radius: 3px; margin-left: 0.5rem; }
 
-    /* ═══ SEITE 1: BEWEISMITTEL-ETIKETT ═══ */
     .page {
-      width: 210mm; min-height: 297mm;
-      background: #f8f8f0;
+      width: 210mm; min-height: 297mm; background: #fff;
       box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
-      padding: 12mm 16mm;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      padding: 13mm 14mm; position: relative; overflow: hidden;
+      font-family: 'Special Elite', monospace; color: #1a1a2e;
     }
-    .page.lehrer {
-      font-family: sans-serif; font-size: 9pt; color: #333;
-      align-items: flex-start;
-    }
+    .page.lehrer { font-family: sans-serif; font-size: 9.3pt; color: #333; }
+    .kopf { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px double #1a1a2e; padding-bottom: 3mm; margin-bottom: 5mm; }
+    .kopf h1 { font-size: 15pt; letter-spacing: 0.12em; }
+    .kopf small { font-size: 8.5pt; letter-spacing: 0.1em; }
+    .fuss { position: absolute; bottom: 8mm; left: 14mm; right: 14mm; display: flex; justify-content: space-between; font-size: 7.5pt; opacity: 0.5; }
 
-    /* Hintergrund-Muster (Sicherheitspapier) */
-    .page::before {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: repeating-linear-gradient(
-        45deg, #0000 0, #0000 10px, #0001 10px, #0001 11px
-      );
-      pointer-events: none;
-    }
+    /* ═══ Seite 1: Marker ═══ */
+    .page.marker { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6mm; }
+    .marker-cut { border: 1.5px dashed #999; padding: 6mm; position: relative; }
+    .marker-cut::before { content: '✂'; position: absolute; top: -4.2mm; left: 8mm; background: #fff; padding: 0 1.5mm; font-size: 11pt; color: #777; font-family: sans-serif; }
+    .marker-cut img { display: block; width: 120mm; height: 120mm; }
+    .marker-hinweis { font-family: sans-serif; font-size: 8.5pt; color: #666; text-align: center; line-height: 1.55; max-width: 150mm; }
 
-    /* Das Etikett selbst */
-    .etikett {
-      width: 140mm;
-      border: 3px solid #1a1a1a;
-      background: #fffef8;
-      padding: 6mm 8mm;
-      position: relative;
-      margin-top: 10mm;
-    }
+    /* ═══ Steckbriefe ═══ */
+    .karten { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .karte { border: 2.5px solid #1a1a2e; padding: 3.5mm; height: 124mm; position: relative; display: flex; flex-direction: column; }
+    .karte::after { content: ''; position: absolute; inset: 1.2mm; border: 0.5px solid #1a1a2e66; pointer-events: none; }
+    .k-top { display: flex; justify-content: space-between; font-size: 8pt; letter-spacing: 0.15em; border-bottom: 1.5px solid #1a1a2e; padding-bottom: 1.5mm; margin-bottom: 2.5mm; }
+    .k-mitte { display: flex; gap: 3mm; }
+    .k-foto { width: 30mm; height: 37mm; border: 1.5px solid #1a1a2e; flex: none; }
+    .k-foto svg { width: 100%; height: 100%; display: block; }
+    .k-daten { font-size: 8.6pt; line-height: 1.45; }
+    .k-name { font-size: 11.5pt; font-weight: bold; line-height: 1.2; margin-bottom: 1mm; }
+    .k-daten b { display: inline-block; min-width: 19mm; }
+    .k-notiz { font-family: 'Caveat', cursive; font-size: 13pt; line-height: 1.15; color: #2a2a6e; margin: 2mm 0 1.5mm; min-height: 10mm; }
+    .k-fp { margin-top: auto; display: flex; align-items: flex-end; gap: 3mm; border-top: 1px dashed #1a1a2e88; padding-top: 2mm; }
+    .k-fp canvas { width: 46mm; height: 55.2mm; border: 1px solid #1a1a2e; flex: none; }
+    .k-fp span { font-size: 7.5pt; line-height: 1.4; letter-spacing: 0.05em; }
 
-    /* Loch oben für Schnur */
-    .loch-wrap {
-      display: flex; justify-content: center; margin-bottom: 4mm;
-    }
-    .loch {
-      width: 8mm; height: 8mm;
-      border: 2px solid #555; border-radius: 50%;
-      background: #f8f8f0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 5pt; color: #999;
-    }
+    /* ═══ Schuhabdruck + Lexikon ═══ */
+    .beweis { display: flex; gap: 6mm; align-items: flex-start; }
+    .foto-rahmen { border: 2.5px solid #1a1a2e; padding: 3mm; flex: none; }
+    .foto-rahmen svg { display: block; width: 84mm; height: 144mm; }
+    .foto-cap { font-size: 7.5pt; letter-spacing: 0.1em; margin-top: 1.5mm; text-align: center; }
+    .aufgabe { border: 2px solid #1a1a2e; padding: 3.5mm; font-size: 9.4pt; line-height: 1.6; margin-bottom: 4mm; }
+    .aufgabe h3 { font-size: 9pt; letter-spacing: 0.18em; margin-bottom: 1.5mm; }
+    .formel { border: 2px dashed #8b1a1a; padding: 2.5mm; text-align: center; font-size: 11pt; margin: 2.5mm 0; }
+    .lexikon { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm; margin-top: 3mm; }
+    .lex { border: 1.5px solid #1a1a2e; padding: 2mm; text-align: center; font-size: 9pt; line-height: 1.3; }
+    .lex canvas, .lex svg { width: 100%; height: auto; display: block; margin-bottom: 1.5mm; }
+    .lex small { font-size: 7.8pt; }
 
-    .etikett-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1.5px solid #333;
-      padding-bottom: 3mm; margin-bottom: 4mm;
-      font-family: 'Special Elite', monospace;
-      font-size: 8.5pt;
-    }
+    /* ═══ Alibi-Mappe ═══ */
+    .aussagen { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin-bottom: 5mm; }
+    .aussagen th, .aussagen td { border: 1px solid #1a1a2e; padding: 1.6mm 2.2mm; text-align: left; vertical-align: top; line-height: 1.4; }
+    .aussagen th { font-size: 7.8pt; letter-spacing: 0.12em; border-bottom-width: 2px; }
+    .aussagen td:first-child { white-space: nowrap; font-weight: bold; }
+    .dokumente { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+    .dok { border: 2px solid #1a1a2e; padding: 3mm; font-size: 8.6pt; line-height: 1.45; position: relative; }
+    .dok h4 { font-size: 8pt; letter-spacing: 0.15em; border-bottom: 1px solid #1a1a2e; padding-bottom: 1mm; margin-bottom: 1.5mm; }
+    .ticket { border-style: dashed; }
+    .ticket .stempel { display: inline-block; margin: 1.5mm 0 0 28mm; transform: rotate(-8deg); border: 2.5px solid #8b1a1a; color: #8b1a1a; padding: 0.5mm 2mm; font-size: 10pt; font-weight: bold; }
+    .hand { font-family: 'Caveat', cursive; font-size: 13pt; color: #2a2a6e; line-height: 1.2; }
 
-    .etikett-nr {
-      font-size: 22pt;
-      font-family: 'Special Elite', monospace;
-      color: #8b1a1a;
-      letter-spacing: 0.1em;
-    }
-
-    /* MARKER: Auge-Symbol */
-    .auge-marker {
-      display: flex; flex-direction: column; align-items: center;
-      margin: 4mm 0;
-      border: 1.5px solid #333;
-      padding: 3mm;
-      background: #f0f0e8;
-    }
-    .auge-symbol { font-size: 52pt; line-height: 1; color: #1a1a1a; }
-    .auge-label {
-      font-family: 'Special Elite', monospace;
-      font-size: 7pt; letter-spacing: 0.25em; color: #555; margin-top: 1mm;
-    }
-
-    /* Etiketten-Felder */
-    .etik-zeile {
-      display: flex; gap: 3mm; margin-bottom: 2mm;
-      font-family: 'Special Elite', monospace; font-size: 8.5pt;
-    }
-    .etik-label { font-weight: bold; min-width: 22mm; }
-    .etik-wert { border-bottom: 1px solid #888; flex: 1; }
-
-    /* Spiegel-Rätsel */
-    .spiegel-box {
-      border: 1.5px dashed #555;
-      padding: 4mm; margin-top: 5mm;
-      background: #eeeee6;
-      font-family: 'Special Elite', monospace;
-    }
-    .spiegel-titel { font-size: 8pt; letter-spacing: 0.15em; font-weight: bold; margin-bottom: 3mm; }
-    .spiegel-text {
-      font-size: 18pt;
-      transform: scaleX(-1);
-      display: inline-block;
-      letter-spacing: 0.2em;
-      color: #1a1a6e;
-      margin: 2mm 0;
-    }
-    .spiegel-anweisung {
-      font-size: 8pt; color: #555; margin-top: 3mm;
-      font-family: 'Caveat', cursive; font-size: 11pt;
-    }
-
-    /* Symbole-Reihe */
-    .symbole-box {
-      border: 1px solid #888;
-      padding: 3mm 4mm;
-      margin-top: 4mm;
-      font-family: 'Special Elite', monospace;
-      font-size: 8pt;
-      background: #fffff0;
-    }
-    .symbole-reihe { font-size: 20pt; letter-spacing: 0.5em; margin: 2mm 0; }
-    .symbole-hinweis { font-size: 8pt; color: #555; }
-
-    /* Lehrer */
-    .lehrer-titel { font-size:10pt; font-weight:bold; letter-spacing:0.1em; border-bottom:1px solid #999; padding-bottom:2mm; margin-bottom:4mm; }
-    .gelb-box { background:#fffde0; border:1px solid #ccaa00; padding:3mm 4mm; font-size:9pt; line-height:1.6; margin-bottom:4mm; }
-    .versteck-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
-    .versteck-tbl th { background:#e8f0e0; border:1px solid #aaa; padding:2mm 3mm; text-align:left; }
-    .versteck-tbl td { border:1px solid #ccc; padding:2mm 3mm; }
-    .versteck-tbl tr:nth-child(even) td { background:#f8fff8; }
-  /* Papier-Struktur hinter den Inhalt legen (sonst drucken manche Browser nur leere Seiten) */
-    .page { z-index: 0; }
-    .page::before { z-index: -1; }
+    /* ═══ Lehrer ═══ */
+    .lehrer-titel { font-size: 11pt; font-weight: bold; letter-spacing: 0.08em; border-bottom: 1px solid #999; padding-bottom: 2mm; margin: 0 0 3mm; }
+    .gelb-box { border: 1.5px solid #ccaa00; background: #fffde0; padding: 2.5mm 3.5mm; line-height: 1.55; margin-bottom: 3.5mm; }
+    .tbl { width: 100%; border-collapse: collapse; margin-bottom: 3.5mm; }
+    .tbl th, .tbl td { border: 1px solid #bbb; padding: 1.3mm 2mm; text-align: left; line-height: 1.4; }
+    .tbl th { background: #eef2f6; }
+    .tbl td.ok { color: #1a7a1a; font-weight: bold; text-align: center; }
+    .tbl td.no { color: #aaa; text-align: center; }
+    .tbl tr.taeter td { border: 2px solid #8b1a1a; font-weight: bold; }
+    .lehrer ol, .lehrer ul { padding-left: 5mm; line-height: 1.55; margin-bottom: 3mm; }
+    .hilfen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+    .hilfe { border: 1.5px dashed #777; padding: 2.5mm; line-height: 1.45; font-size: 8.6pt; }
+    .hilfe b { display: block; letter-spacing: 0.1em; margin-bottom: 1mm; }
+    code { background: #f2f2f2; padding: 0 1mm; }
   </style>
 </head>
 <body>
 <div class="no-print">
-  <span>Requisit 3 — Beweismittel-Etikett (Station: Altes Labor)</span>
+  <span>Requisit 3 — Station ■ Altes Labor: Marker (S. 1), Steckbriefe (S. 2–3), Schuhabdruck (S. 4), Alibi-Mappe (S. 5), Lehrkräfte (S. 6)</span>
   <button onclick="window.print()">🖨 Drucken</button>
 </div>
 
-<!-- ═══ SEITE 1: ETIKETT ═══ -->
+<!-- ═══ SEITE 1: MARKER ═══ -->
+<div class="page marker">
+  <div class="marker-cut"><img src="../assets/targets/marker-labor.png" alt="Marker Beweisstück Altes Labor"></div>
+  <div class="marker-hinweis">
+    Entlang der gestrichelten Linie ausschneiden · auf festen Karton kleben · <strong>nicht glänzend laminieren</strong><br>
+    <strong>Flach in die Tischmitte legen, rundherum Platz lassen:</strong> Die Spuren am USB-Stick sind auch auf der
+    Rückseite und am Stecker. Die Gruppe muss um den Tisch herumgehen können (nicht an die Wand schieben).
+  </div>
+</div>
+
+<!-- ═══ SEITE 2 + 3: STECKBRIEFE (werden per Skript erzeugt) ═══ -->
+<div class="page" id="seite-steckbriefe-1">
+  <div class="kopf"><h1>■ VERDÄCHTIGE — BLATT 1</h1><small>AKTE 2024-007 · ALTES LABOR</small></div>
+  <div class="karten" id="karten-1"></div>
+  <div class="fuss"><span>Schattenschule · Station ■</span><span>Steckbriefe 1–4</span></div>
+</div>
+<div class="page" id="seite-steckbriefe-2">
+  <div class="kopf"><h1>■ VERDÄCHTIGE — BLATT 2</h1><small>AKTE 2024-007 · ALTES LABOR</small></div>
+  <div class="karten" id="karten-2"></div>
+  <div class="fuss"><span>Schattenschule · Station ■</span><span>Steckbriefe 5–8</span></div>
+</div>
+
+<!-- ═══ SEITE 4: SCHUHABDRUCK + FINGERABDRUCK-LEXIKON ═══ -->
 <div class="page">
-
-  <div style="font-family:'Special Elite',monospace; font-size:8pt; letter-spacing:0.3em; color:#555; margin-bottom:2mm;">
-    SICHERHEITSBEHÖRDE ∅∅ — BEWEISMITTELVERWALTUNG
+  <div class="kopf"><h1>■ BEWEISFOTO 2 — SCHUHABDRUCK</h1><small>gefunden vor Labor-PC 2</small></div>
+  <div class="beweis">
+    <div>
+      <div class="foto-rahmen">
+        <svg viewBox="0 0 92 158" xmlns="http://www.w3.org/2000/svg" font-family="Courier New, monospace">
+          <defs>
+            <pattern id="profil" width="6" height="4" patternUnits="userSpaceOnUse">
+              <path d="M0 3 L1.5 1 L3 3 L4.5 1 L6 3" fill="none" stroke="#1a1a2e" stroke-width="1.1"/>
+            </pattern>
+            <clipPath id="sohle-clip"><path id="sohle" d="M58 22 C79 22 85 45 83 61 C81 80 72 89 71 101 C70 113 74 124 68 130 C63 135.3 51 135.3 46 130 C39 123 43 112 43 101 C43 89 33 78 33 59 C33 39 41 22 58 22 Z"/></clipPath>
+          </defs>
+          <rect x="0.5" y="0.5" width="91" height="157" fill="none" stroke="#999" stroke-width="0.4"/>
+          <!-- Foto-Lineal: 1 cm auf dem Foto = 4 mm auf dem Papier, 0 unten -->
+          <rect x="2" y="6" width="14" height="148" fill="none" stroke="#1a1a2e" stroke-width="0.8"/>
+          <g id="lineal"></g>
+          <text x="10" y="4.5" font-size="3.2" text-anchor="middle">cm</text>
+          <!-- Abdruck: Ferse bei 4 cm (y=134), Spitze bei 32 cm (y=22); 0 cm liegt bei y=150 -->
+          <g clip-path="url(#sohle-clip)">
+            <rect x="25" y="15" width="65" height="125" fill="url(#profil)"/>
+            <rect x="25" y="92" width="65" height="6" fill="#fff"/>
+          </g>
+          <use href="#sohle" fill="none" stroke="#1a1a2e" stroke-width="1.6"/>
+          <circle cx="57" cy="118" r="6" fill="#fff" stroke="#1a1a2e" stroke-width="1"/>
+          <text x="57" y="119.2" font-size="3.4" text-anchor="middle" font-weight="bold">RX</text>
+          <g stroke="#8b1a1a" stroke-width="0.5" stroke-dasharray="1.5 1"><line x1="16" y1="22" x2="58" y2="22"/><line x1="16" y1="134" x2="57" y2="134"/></g>
+          <text x="88" y="153" font-size="3" text-anchor="end">BEWEIS 2 / LABOR</text>
+        </svg>
+      </div>
+      <div class="foto-cap">FOTO MIT MASSSTAB (verkleinert)</div>
+    </div>
+    <div>
+      <div class="aufgabe">
+        <h3>// SO BESTIMMT IHR DIE SCHUHGRÖSSE</h3>
+        Das Foto ist <strong>verkleinert</strong>. Messt deshalb <strong>nicht</strong> mit eurem eigenen Lineal,
+        sondern lest am <strong>Lineal auf dem Foto</strong> ab, wo die Ferse und wo die Spitze liegt.
+        Die roten Hilfslinien zeigen, wo Spitze und Ferse liegen.
+        <div class="formel">Länge = Spitze − Ferse (in cm)<br>Schuhgröße (EU) ≈ Länge × 1,5</div>
+      </div>
+      <div class="aufgabe" style="font-family:'Caveat',cursive;font-size:14pt;line-height:1.25;color:#8b1a1a;border-style:dashed">
+        Der Fingerabdruck vom USB-Stick ist nur unter der UV-Lampe zu sehen → Scanner!
+      </div>
+    </div>
   </div>
-
-  <div class="etikett">
-    <div class="loch-wrap"><div class="loch">○</div></div>
-
-    <div class="etikett-header">
-      <div>
-        <div style="font-size:7pt;letter-spacing:0.2em;color:#555">BEWEISMITTEL-NR.</div>
-        <div class="etikett-nr">∅∅3</div>
+  <div>
+      <div class="aufgabe" style="margin-top:4mm">
+        <h3>// FINGERABDRUCK-LEXIKON</h3>
+        Jeder Abdruck hat ein <strong>Grundmuster</strong>. Dazu kommen besondere Stellen (Merkmale).
+        Ein Teilabdruck zeigt nur einen Ausschnitt, vergleicht deshalb Muster <strong>und</strong> Merkmal an derselben Stelle.
+        <div class="lexikon">
+          <div class="lex"><canvas width="150" height="180" data-fp='{"typ":"bogen"}'></canvas>Bogen<br><small>ohne Mitte</small></div>
+          <div class="lex"><canvas width="150" height="180" data-fp='{"typ":"schleife"}'></canvas>Schleife<br><small>wie eine Haarnadel</small></div>
+          <div class="lex"><canvas width="150" height="180" data-fp='{"typ":"wirbel"}'></canvas>Wirbel<br><small>Kreise / Spirale</small></div>
+          <div class="lex">
+            <svg viewBox="0 0 60 72"><g fill="none" stroke="#1a1a2e" stroke-width="3.2" stroke-linecap="round">
+              <path d="M4 14 H56"/><path d="M4 30 H24 C32 30 34 26 42 23 L56 23"/><path d="M24 30 C32 30 34 34 42 37 L56 37"/><path d="M4 46 H56"/><path d="M4 62 H56"/></g>
+              <circle cx="27" cy="30" r="11" fill="none" stroke="#8b1a1a" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
+            Gabelung<br><small>Linie teilt sich</small></div>
+          <div class="lex">
+            <svg viewBox="0 0 60 72"><g fill="none" stroke="#1a1a2e" stroke-width="3.2" stroke-linecap="round">
+              <path d="M4 14 H56"/><path d="M4 30 H56"/><path d="M24 38 H36"/><path d="M4 46 H56"/><path d="M4 62 H56"/></g>
+              <circle cx="30" cy="38" r="11" fill="none" stroke="#8b1a1a" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
+            Insel<br><small>kurzes Stück</small></div>
+        </div>
       </div>
-      <div style="text-align:right;font-size:7.5pt;line-height:1.7;color:#555">
-        FALL: 2024-∅∅7<br>
-        FUNDORT: <span style="color:#8b1a1a">UNBEKANNT</span><br>
-        STATUS: ANALYSIERT
-      </div>
-    </div>
-
-    <!-- MARKER: Auge -->
-    <div class="auge-marker">
-      <div class="auge-symbol">👁</div>
-      <div class="auge-label">— SIEGEL DES BEOBACHTERS —</div>
-    </div>
-
-    <div class="etik-zeile" style="margin-top:3mm">
-      <span class="etik-label">GEFUNDEN:</span>
-      <span class="etik-wert">██████████████████</span>
-    </div>
-    <div class="etik-zeile">
-      <span class="etik-label">INHALT:</span>
-      <span class="etik-wert">Codierte Nachricht — Klasse SHADOW</span>
-    </div>
-
-    <!-- RÄTSEL: Gespiegelte Frage -->
-    <div class="spiegel-box" style="text-align:center">
-      <div class="spiegel-titel" style="text-align:left">⚠ AUFGABE — Lies und beantworte die Frage:</div>
-      <div class="spiegel-text" style="font-size:16pt;line-height:1.5">WIE VIELE BEINE<br>HAT EINE SPINNE?</div>
-      <div class="spiegel-anweisung">
-        Die Schattenwelt schreibt verkehrt herum …<br>
-        Ein Spiegel hilft. Oder das Licht von hinten.
-      </div>
-    </div>
-
-    <div style="margin-top:4mm; font-family:'Caveat',cursive; font-size:11pt; color:#555; text-align:center;">
-      Scannt das Siegel und tippt das Auge an — gebt die Antwort dann im Gerät ein.<br>
-      <span style="font-family:'Special Elite',monospace;font-size:8pt;color:#8b1a1a">→ Code-Fragment für Feld ■</span>
-    </div>
-
   </div>
-
+  <div class="fuss"><span>Schattenschule · Station ■</span><span>Beweisfoto 2</span></div>
 </div>
 
-<!-- ═══ SEITE 2: LEHRER ═══ -->
-<div class="page lehrer">
-  <div class="lehrer-titel">✂ LEHRER-VORLAGE — Station 3 / Altes Labor (NICHT für Schüler)</div>
-  <div class="gelb-box">
-    <strong>Vorbereitung:</strong> Etikett auf normales (dünnes) Papier drucken und im Labor-Bereich verstecken —
-    z. B. hinter die Tafel oder unter das Lehrerpult geklebt. Schüler müssen kurz suchen.<br><br>
-    <strong>Marker:</strong> Das Auge-Symbol (👁) in der Mitte des Etiketts dient als MindAR-Target.
-    Beim Laminieren darauf achten, dass kein Glanz das Tracking stört.<br><br>
-    <strong>Gespiegelte Frage:</strong> „WIE VIELE BEINE HAT EINE SPINNE?“ ist gespiegelt gedruckt.
-    Lösung: <strong>8</strong> → das Gerät gibt das Code-Fragment <strong>803</strong> für Feld ■ (Laptop-Code 417 · 725 · 803 · 184).<br><br>
-    <strong>Lesbar machen:</strong> Einen kleinen Handspiegel an der Station bereitlegen —
-    oder das Blatt gegen das Fenster halten und von hinten lesen.
-  </div>
-  <table class="versteck-tbl">
-    <tr><th>Element</th><th>Details</th></tr>
-    <tr><td>Marker-Bild</td><td>Auge-Symbol in der Mitte (👁)</td></tr>
-    <tr><td>Physisches Rätsel</td><td>Gespiegelte Frage lesen und beantworten → 8</td></tr>
-    <tr><td>AR-Aktion</td><td>Tap auf Auge → Hinweis auf das Etikett → Antwort im Gerät eingeben → Ziffer 8</td></tr>
-    <tr><td>Versteck-Ort</td><td>Altes Labor, nicht sofort sichtbar</td></tr>
-    <tr><td>Material</td><td>Handspiegel (optional)</td></tr>
+<!-- ═══ SEITE 5: ALIBI-MAPPE ═══ -->
+<div class="page">
+  <div class="kopf"><h1>■ ALIBI-MAPPE — WO WAREN SIE?</h1><small>Befragung am Tag nach der Tat</small></div>
+  <p style="font-size:9.4pt;line-height:1.55;margin-bottom:3mm">
+    Alle Verdächtigen wurden gefragt: <strong>„Wo waren Sie zur Tatzeit?“</strong>
+    Eine Aussage allein ist kein Alibi. Nur wenn ein <strong>Dokument oder eine andere Person</strong> sie bestätigt,
+    war die Person nachweislich woanders.
+  </p>
+  <table class="aussagen">
+    <tr><th>VERDÄCHTIGE/R</th><th>AUSSAGE</th></tr>
+    <tr><td>K. Brandner</td><td>„Ich war den ganzen Abend allein im Heizungskeller. Die Heizung war wieder kaputt.“</td></tr>
+    <tr><td>Dr. E. Brunner</td><td>„Ich bin nach dem Unterricht mit dem Bus nach Hause gefahren.“</td></tr>
+    <tr><td>M. Haider</td><td>„Ich saß zu Hause in einer Online-Fortbildung für IT-Betreuer.“</td></tr>
+    <tr><td>G. Huber</td><td>„Ich war daheim. Meine Nachbarin war zum Kaffee bei mir.“</td></tr>
+    <tr><td>M. Kovač</td><td>„Ich habe allein den 1. Stock geputzt, wie jeden Abend.“</td></tr>
+    <tr><td>J. Pichler</td><td>„Mein Praktikum war schon aus. Ich war allein zu Hause am Computer.“</td></tr>
+    <tr><td>P. Steiner</td><td>„Ich habe die Lesung in der Bibliothek moderiert.“</td></tr>
+    <tr><td>S. Wendl</td><td>„Zu der Zeit war ich längst zu Hause. Fragen Sie, wen Sie wollen.“</td></tr>
   </table>
+  <div class="dokumente">
+    <div class="dok ticket">
+      <h4>FUNDSTÜCK: BUSFAHRSCHEIN</h4>
+      Linie <strong>13A</strong> · Schule → Bahnhof<br>
+      Fahrzeit bis Bahnhof: 25 Minuten<br>
+      Einzelfahrt · 2,40 €
+      <div class="stempel">ENTWERTET 18:31</div>
+      <div class="hand" style="margin-top:2mm">Rückseite: „E. Brunner — Fundbüro Lehrerzimmer“</div>
+    </div>
+    <div class="dok">
+      <h4>TEILNEHMERLISTE VIDEOKONFERENZ</h4>
+      „IT-Sicherheit an Schulen“ · 18:30 – 19:15<br>
+      M. Haider — <strong>durchgehend online, Kamera an</strong><br>
+      A. Novak — 18:30 – 18:50<br>
+      T. Berger — 18:45 – 19:15
+    </div>
+    <div class="dok">
+      <h4>AUSHANG BIBLIOTHEK</h4>
+      <strong>Lesung „Geheimnisse der Nacht“</strong><br>
+      18:00 – 19:30 Uhr · Moderation: P. Steiner<br>
+      <span class="hand">Danke für den tollen Abend! Über 30 Gäste! — die Elternvertretung</span>
+    </div>
+    <div class="dok">
+      <h4>NOTIZ (HANDSCHRIFTLICH)</h4>
+      <div class="hand">Ich bestätige: Frau Huber war gestern von 18 bis 20 Uhr bei mir zum Kaffee.<br>— I. Leitner, Nachbarin</div>
+    </div>
+    <div class="dok">
+      <h4>PRAKTIKUMSPLAN</h4>
+      J. Pichler · Labor &amp; Werkstatt<br>
+      Mo – Fr: 08:00 – 17:00 Uhr<br>
+      <span class="hand">Hat er nach 17 Uhr die Schule verlassen? Niemand weiß es.</span>
+    </div>
+    <div class="dok">
+      <h4>DIENSTPLAN REINIGUNG</h4>
+      M. Kovač · 17:30 – 21:00 Uhr<br>
+      Bereich: 1. Stock <strong>und</strong> 2. Stock (Labor)<br>
+      <span class="hand">Arbeitet immer allein.</span>
+    </div>
+  </div>
+  <div class="fuss"><span>Schattenschule · Station ■</span><span>Alibi-Mappe</span></div>
 </div>
+
+<!-- ═══ SEITE 6: LEHRKRÄFTE ═══ -->
+<div class="page lehrer">
+  <div class="lehrer-titel">STATION ■ ALTES LABOR — HINWEISE FÜR LEHRKRÄFTE (nicht auslegen)</div>
+  <div class="gelb-box">
+    <strong>Ziel:</strong> Die Gruppe findet heraus, wer den verseuchten USB-Stick eingesteckt hat.
+    <strong>Lösung: S. Wendl (Laborassistentin), Tatzeit 18:40.</strong> Im Scanner stellt die Gruppe einen
+    <em>Haftbefehl</em> aus (Person + Tatzeit). Danach nennt Morava die Ausweisnummer der Täterin:
+    Code-Fragment <strong>■ 803</strong>. Die Nummer steht auf keinem Papier. Dauer: ca. 8–12 Minuten.
+  </div>
+  <table class="tbl">
+    <tr><th>Person</th><th>Fingerabdruck<br><small>Muster + Gabelung oben</small></th><th>Schuh 42<br><small>(32 − 4) × 1,5</small></th><th>kein Alibi<br><small>um 18:40</small></th></tr>
+    <tr><td>K. Brandner, Hausmeister</td><td class="no">Bogen</td><td class="no">44</td><td class="ok">✓</td></tr>
+    <tr><td>Dr. E. Brunner, Chemielehrerin</td><td class="ok">✓</td><td class="ok">✓</td><td class="no">Bus 18:31</td></tr>
+    <tr><td>M. Haider, IT-Betreuer <small>(falsche Fährte)</small></td><td class="no">Wirbel</td><td class="ok">✓</td><td class="no">Videokonf.</td></tr>
+    <tr><td>G. Huber, Sekretärin</td><td class="no">Bogen</td><td class="no">38</td><td class="no">Nachbarin</td></tr>
+    <tr><td>M. Kovač, Reinigungskraft</td><td class="no">Wirbel</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+    <tr><td>J. Pichler, Praktikant</td><td class="ok">✓</td><td class="no">39</td><td class="ok">✓</td></tr>
+    <tr><td>P. Steiner, Bibliothekar</td><td class="no">Insel</td><td class="no">40</td><td class="no">Lesung</td></tr>
+    <tr class="taeter"><td>S. Wendl, Laborassistentin</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+  </table>
+  <p style="margin-bottom:3mm;line-height:1.5">Jeder Hinweis allein lässt 3–4 Personen übrig, je zwei Hinweise immer genau 2. Erst alle drei zusammen ergeben eine Person.
+  Die Faser („Kittel“) passt zu Brunner, Kovač und Wendl. Sie bestätigt nur und entscheidet nichts.</p>
+
+  <div class="lehrer-titel">ABLAUF IM SCANNER</div>
+  <ol>
+    <li>Marker scannen → USB-Stick erscheint → <strong>UV-LAMPE EINSCHALTEN</strong>.</li>
+    <li><strong>3 Spuren rundum suchen.</strong> Jede leuchtet nur auf, wenn ihre Seite zur Kamera zeigt: <em>Oberseite</em> (Fingerabdruck, von oben),
+      <em>Rückseite</em> (Etikett „EINGESTECKT 18:40“, von der anderen Tischseite), <em>Stecker-Ende</em> (Faser, von der Seite, Handy tiefer halten).
+      Gefundene Spuren bleiben in einer Liste am Bildschirm (antippen = groß anzeigen).</li>
+    <li>Bei 3/3 erscheint <strong>HAFTBEFEHL AUSSTELLEN</strong>: Person wählen und Tatzeit eintippen. Bei einem Fehler sagt der Scanner nicht, welches Feld falsch war.</li>
+    <li><strong>Gegen Raten:</strong> Jeder Fehlversuch sperrt länger: 30 s → 1 → 2 → 4 → 5 Min. Raten dauert damit länger als Lösen.</li>
+    <li>Richtig → Morava meldet sich, Tafel <strong>■ 803</strong> über dem Stick → „CODE-TEIL ANZEIGEN“.</li>
+  </ol>
+
+  <div class="lehrer-titel">AUFBAU</div>
+  <ul>
+    <li>Marker (S. 1) <strong>flach in die Tischmitte</strong>, rundherum begehbar. Gutes, gleichmäßiges Licht.</li>
+    <li>Steckbriefe (S. 2–3) ausschneiden und auslegen, Schuhabdruck (S. 4) und Alibi-Mappe (S. 5) daneben.</li>
+    <li>Optional: Lupe und eine UV-Taschenlampe als Requisite (Atmosphäre, nicht nötig).</li>
+    <li>Reset für die nächste Gruppe: im Scanner 5× auf „◉ SCANNER“ tippen (löscht auch Spuren und Sperre).</li>
+  </ul>
+
+  <div class="lehrer-titel">GESTUFTE HILFEN (ausschneiden, nach Bedarf ausgeben)</div>
+  <div class="hilfen">
+    <div class="hilfe"><b>HILFE 1 — FINGERABDRUCK</b>Vergrößert die Spur im Scanner (Liste antippen). Sucht auf den Steckbriefen Abdrücke mit einer <strong>Gabelung an derselben Stelle</strong> oben rechts. Es sind genau 3.</div>
+    <div class="hilfe"><b>HILFE 2 — SCHUH</b>Am Foto-Lineal ablesen: Ferse bei <strong>4</strong>, Spitze bei <strong>32</strong>. Länge 28 cm × 1,5 = Schuhgröße <strong>42</strong>.</div>
+    <div class="hilfe"><b>HILFE 3 — ALIBI</b>Die Tatzeit steht auf der Rückseite des Sticks (UV). Streicht alle, deren Aussage <strong>durch ein Dokument bestätigt</strong> wird. Ein Plan, der um 17 Uhr endet, ist kein Alibi für später.</div>
+  </div>
+  <div class="fuss" style="opacity:0.6"><span>Schattenschule · Station ■ · Lehrkräfte</span><span>Anpassen: <code>scan.html</code> → Modul <code>Labor</code></span></div>
+</div>
+
+<script src="../js/fingerabdruck.js?v=20261121a"></script>
+<script>
+  // Steckbriefe — Daten (KEINE Ausweisnummern: das Code-Fragment nennt erst Morava im Scanner)
+  const PERSONEN = [
+    { name: 'Karl Brandner', rolle: 'Hausmeister', alter: 58, schuh: 44, kittel: 'nein', haar: 'glatze', brille: false,
+      notiz: 'Hat Schlüssel für alle Räume. Mag keine Computer.', fp: { typ: 'bogen', bogen: 0.28 } },
+    { name: 'Dr. Eva Brunner', rolle: 'Chemielehrerin', alter: 47, schuh: 42, kittel: 'weißer Laborkittel', haar: 'dutt', brille: true,
+      notiz: 'Hat früher bei Projekt SCHATTEN mitgeforscht.', fp: { typ: 'schleife', gabelung: true, punkt: true } },
+    { name: 'Markus Haider', rolle: 'IT-Betreuer', alter: 35, schuh: 42, kittel: 'nein', haar: 'kurz', brille: true,
+      notiz: 'Vorbestraft! Hat als Jugendlicher ein Schulnetz gehackt. Kennt alle Passwörter.', fp: { typ: 'wirbel' } },
+    { name: 'Gerda Huber', rolle: 'Schulsekretärin', alter: 61, schuh: 38, kittel: 'nein', haar: 'locken', brille: true,
+      notiz: 'Verwaltet Schlüssel und Ausweise. Sehr ordentlich.', fp: { typ: 'bogen', bogen: 0.45 } },
+    { name: 'Mira Kovač', rolle: 'Reinigungskraft', alter: 44, schuh: 42, kittel: 'weißer Arbeitskittel', haar: 'zopf', brille: false,
+      notiz: 'Putzt abends allein. Kennt jeden Winkel der Schule.', fp: { typ: 'wirbel', punkt: true } },
+    { name: 'Jonas Pichler', rolle: 'Praktikant (16 J.)', alter: 16, schuh: 39, kittel: 'nein', haar: 'strubbel', brille: false,
+      notiz: 'Liebt Computer. War oft heimlich im Labor.', fp: { typ: 'schleife', gabelung: true } },
+    { name: 'Paul Steiner', rolle: 'Bibliothekar', alter: 52, schuh: 40, kittel: 'nein', haar: 'seite', brille: true,
+      notiz: 'Hat sich letzte Woche den Laborschlüssel ausgeliehen.', fp: { typ: 'schleife', richtung: -1, insel: true } },
+    { name: 'Sabine Wendl', rolle: 'Laborassistentin', alter: 39, schuh: 42, kittel: 'weißer Laborkittel', haar: 'lang', brille: false,
+      notiz: 'Bereitet die Experimente vor. Hat für Projekt SCHATTEN gearbeitet.', fp: { typ: 'schleife', gabelung: true, narbe: true } },
+  ];
+
+  // Einfache Silhouette (Strichzeichnung, druckt auch ohne Hintergrundgrafiken)
+  function silhouette(p) {
+    const haar = {
+      glatze: '<path d="M33 30 Q50 18 67 30" fill="none" stroke="#1a1a2e" stroke-width="2"/>',
+      dutt: '<path d="M30 40 Q30 18 50 18 Q70 18 70 40 Q62 28 50 28 Q38 28 30 40Z" fill="#1a1a2e"/><circle cx="50" cy="13" r="7" fill="#1a1a2e"/>',
+      kurz: '<path d="M31 38 Q31 17 50 17 Q69 17 69 38 Q64 26 50 26 Q36 26 31 38Z" fill="#1a1a2e"/>',
+      locken: '<g fill="#1a1a2e"><circle cx="34" cy="30" r="7"/><circle cx="42" cy="21" r="7"/><circle cx="52" cy="18" r="7"/><circle cx="62" cy="22" r="7"/><circle cx="68" cy="31" r="6"/></g>',
+      zopf: '<path d="M30 40 Q30 17 50 17 Q70 17 70 40 Q62 27 50 27 Q38 27 30 40Z" fill="#1a1a2e"/><path d="M68 34 Q80 50 72 70" fill="none" stroke="#1a1a2e" stroke-width="6" stroke-linecap="round"/>',
+      strubbel: '<path d="M30 38 L33 20 L39 26 L44 14 L50 24 L56 13 L61 25 L67 18 L70 38 Q60 27 50 27 Q40 27 30 38Z" fill="#1a1a2e"/>',
+      seite: '<path d="M31 40 Q30 18 48 17 Q70 16 69 40 Q66 25 40 27 Q34 30 31 40Z" fill="#1a1a2e"/>',
+      lang: '<path d="M29 66 Q24 20 50 17 Q76 20 71 66 L66 66 Q68 34 50 28 Q32 34 34 66Z" fill="#1a1a2e"/>',
+    }[p.haar];
+    const brille = p.brille ? '<g fill="none" stroke="#1a1a2e" stroke-width="1.8"><circle cx="42" cy="41" r="5.5"/><circle cx="58" cy="41" r="5.5"/><path d="M47.5 41 H52.5"/></g>' : '';
+    const kittel = p.kittel !== 'nein' ? '<path d="M50 92 L44 122 M50 92 L56 122" stroke="#1a1a2e" stroke-width="1.5"/>' : '';
+    return '<svg viewBox="0 0 100 122" xmlns="http://www.w3.org/2000/svg">' +
+      '<rect width="100" height="122" fill="#fff"/>' +
+      '<path d="M14 122 Q16 88 50 84 Q84 88 86 122" fill="none" stroke="#1a1a2e" stroke-width="2.2"/>' + kittel +
+      '<path d="M43 74 L43 84 M57 74 L57 84" stroke="#1a1a2e" stroke-width="2"/>' +
+      '<ellipse cx="50" cy="45" rx="19" ry="24" fill="#fff" stroke="#1a1a2e" stroke-width="2.2"/>' +
+      haar + brille +
+      '<path d="M44 58 Q50 62 56 58" fill="none" stroke="#1a1a2e" stroke-width="1.6"/>' +
+      '<text x="96" y="12" font-size="9" text-anchor="end" font-family="Courier New" fill="#1a1a2e">' + p.nr + '</text></svg>';
+  }
+
+  PERSONEN.forEach((p, i) => {
+    p.nr = i + 1;
+    const k = document.createElement('div');
+    k.className = 'karte';
+    k.innerHTML =
+      '<div class="k-top"><span>STECKBRIEF Nr. ' + p.nr + '</span><span>VERDÄCHTIG</span></div>' +
+      '<div class="k-mitte"><div class="k-foto">' + silhouette(p) + '</div>' +
+      '<div class="k-daten"><div class="k-name">' + p.name + '</div>' +
+      '<b>Funktion:</b> ' + p.rolle + '<br>' +
+      '<b>Alter:</b> ' + p.alter + '<br>' +
+      '<b>Schuhgr.:</b> ' + p.schuh + '<br>' +
+      '<b>Kittel:</b> ' + p.kittel + '</div></div>' +
+      '<div class="k-notiz">' + p.notiz + '</div>' +
+      '<div class="k-fp"><canvas width="420" height="504"></canvas>' +
+      '<span>FINGERABDRUCK<br>rechter Zeigefinger<br><br>abgenommen von<br>der Spurensicherung</span></div>';
+    document.getElementById(i < 4 ? 'karten-1' : 'karten-2').appendChild(k);
+    Fingerabdruck.zeichne(k.querySelector('canvas'), p.fp);
+  });
+
+  // Foto-Lineal auf dem Schuhabdruck (0–35 cm, 1 cm = 4 Einheiten, 0 bei y=150)
+  const lin = document.getElementById('lineal');
+  let s = '';
+  for (let cm = 0; cm <= 35; cm++) {
+    const y = 150 - cm * 4;
+    if (y < 7) break;
+    const lang = cm % 5 === 0;
+    s += '<line x1="16" y1="' + y + '" x2="' + (lang ? 9 : 12.5) + '" y2="' + y + '" stroke="#1a1a2e" stroke-width="' + (lang ? 0.7 : 0.4) + '"/>';
+    if (cm % 2 === 0) s += '<text x="8.6" y="' + (y + 1) + '" font-size="2.9" text-anchor="end" font-family="Courier New"' + (lang ? ' font-weight="bold"' : '') + '>' + cm + '</text>';
+  }
+  lin.innerHTML = s;
+
+  // Lexikon-Beispiele
+  document.querySelectorAll('canvas[data-fp]').forEach(c => Fingerabdruck.zeichne(c, JSON.parse(c.dataset.fp)));
+</script>
 </body>
 </html>

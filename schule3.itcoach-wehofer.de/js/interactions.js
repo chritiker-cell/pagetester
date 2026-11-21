@@ -77,6 +77,9 @@ function resetProgress() {
   localStorage.removeItem(PROGRESS_KEY);
   localStorage.removeItem(DIGITS_KEY);
   localStorage.removeItem(LOCK_KEY);
+  // Station 3 (Labor): Fehlversuche, eigene Sperre, gefundene Spuren
+  ['schattenschule_lab_fails', 'schattenschule_lab_lock_until', 'schattenschule_lab_spuren']
+    .forEach(k => localStorage.removeItem(k));
 }
 
 // ── Stationen & Laptop-Code ────────────────────────────────────────────────

@@ -82,6 +82,47 @@
     #radio-done { width: 100%; padding: 0.8rem; margin-top: 0.75rem; }
     #radio-feedback { color: #c00; font-size: 0.8rem; min-height: 1.3em; margin-top: 0.5rem; text-align: center; }
 
+    /* ■ Labor: UV-Licht, Spurenliste, Haftbefehl */
+    #uv-veil {
+      position: fixed; inset: 0; z-index: 90; pointer-events: none; display: none;
+      background: radial-gradient(circle at 50% 45%, rgba(150, 70, 255, 0.10), rgba(55, 0, 130, 0.38));
+    }
+    #spuren {
+      position: fixed; top: 5.6rem; left: 0.75rem; z-index: 120; display: none; max-width: 70vw;
+      background: #000c; border: 1px solid #8a5cff88; padding: 0.4rem 0.6rem; font-size: 0.72rem; line-height: 1.5; color: #d6c8ff;
+    }
+    #spuren div { cursor: pointer; }
+    #spuren div::before { content: '✓ '; color: #b28cff; }
+    #warrant {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: #0a0a0a; border-top: 2px solid #cc3300; box-shadow: 0 -10px 40px #000;
+      padding: 1rem 1rem 1.25rem; max-height: 78vh; overflow-y: auto;
+    }
+    #warrant[hidden] { display: none; }
+    #warrant-close { background: none; border: 1px solid #444; color: #999; font: 1rem 'Courier New', monospace; width: 2rem; height: 2rem; cursor: pointer; }
+    .hb-label { font-size: 0.7rem; letter-spacing: 0.2em; color: #888; margin: 0.6rem 0 0.4rem; }
+    #hb-namen { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+    #hb-namen button {
+      background: #000; border: 1px solid #444; color: #c0c0c0; text-align: left; cursor: pointer;
+      font: 0.8rem 'Courier New', monospace; padding: 0.45rem 0.5rem; line-height: 1.3;
+    }
+    #hb-namen button small { display: block; color: #777; font-size: 0.68rem; }
+    #hb-namen button.sel { border-color: #cc3300; color: #fff; background: #1a0500; }
+    #hb-zeit {
+      width: 100%; background: #000; border: 1px solid #cc330066; border-bottom: 2px solid #cc3300;
+      color: #e0e0e0; font: bold 1.3rem 'Courier New', monospace; letter-spacing: 0.3em; text-align: center; padding: 0.45rem; outline: none;
+    }
+    #hb-zeit::placeholder { color: #444; letter-spacing: 0.15em; font-size: 0.9rem; }
+    #hb-send, #hb-done {
+      width: 100%; margin-top: 0.8rem; background: none; border: 1px solid #cc3300; color: #e0e0e0;
+      font: 0.9rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.75rem; cursor: pointer;
+    }
+    #hb-send:disabled { opacity: 0.35; }
+    #hb-feedback { color: #c00; font-size: 0.8rem; min-height: 1.3em; margin-top: 0.5rem; text-align: center; }
+    #hb-fails { color: #d9a441; font-size: 0.72rem; text-align: center; min-height: 1.1em; }
+    #hb-msg { display: none; border: 1px solid #333; background: #050505; padding: 0.75rem; font-size: 0.9rem; line-height: 1.6; color: #7dffa0; min-height: 5rem; }
+    .fp-gross { display: block; width: min(70vw, 300px); margin: 0.5rem auto; background: #1a0533; border: 1px solid #8a5cff; }
+
     .tablet-canvas { display: none; }
     /* A-Frame-Buttons für VR/AR-Brillenmodus ausblenden (nicht nötig, würde die Kamera-AR stören) */
     .a-enter-vr, .a-enter-ar, .a-enter-vr-button, .a-enter-ar-button { display: none !important; }
@@ -123,6 +164,28 @@
   </div>
 </div>
 
+<!-- ■ Labor: UV-Schleier, gefundene Spuren, Haftbefehl (2D) -->
+<div id="uv-veil"></div>
+<div id="spuren"></div>
+<div id="warrant" hidden>
+  <div class="radio-head">
+    <span>■ HAFTBEFEHL</span>
+    <button id="warrant-close" type="button" aria-label="Haftbefehl schließen">✕</button>
+  </div>
+  <div id="hb-form">
+    <div style="font-size:0.85rem;color:#c0c0c0;line-height:1.5">Wer hat den USB-Stick mit dem Virus eingesteckt — und wann?
+      <span style="color:#888">Nur wenn <strong>beides</strong> stimmt, wird der Haftbefehl ausgestellt.</span></div>
+    <div class="hb-label">TÄTER / TÄTERIN</div>
+    <div id="hb-namen"></div>
+    <div class="hb-label">TATZEIT (laut Beweisstück)</div>
+    <input id="hb-zeit" inputmode="numeric" maxlength="5" autocomplete="off" placeholder="hh:mm" aria-label="Tatzeit">
+    <button id="hb-send" type="button">[ HAFTBEFEHL AUSSTELLEN ]</button>
+    <div id="hb-feedback"></div>
+    <div id="hb-fails"></div>
+  </div>
+  <div id="hb-msg"></div>
+</div>
+
 <!--
   HINWEIS FÜR LEHRER:
   Eine Marker-Datei für alle Motive: assets/targets/scanner.mind
@@ -131,7 +194,8 @@
     1-morava-foto.jpg   → targetIndex 0  (▲ Moravas Büro: Detektiv)
     2-visitenkarte.png  → targetIndex 1  (▲ Moravas Büro: Tisch + Monster)
     3-funkgeraet.png    → targetIndex 2  (● Funkraum: Kreatur)
-  Neue Motive (Labor, Archiv) hinten anhängen und die Datei neu erstellen.
+    4-beweismittel.png  → targetIndex 3  (■ Altes Labor: USB-Stick mit UV-Spuren)
+  Neue Motive (Archiv) hinten anhängen und die Datei neu erstellen.
 -->
 <a-scene
   mindar-image="imageTargetSrc: assets/targets/scanner.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.01; missTolerance: 30; warmupTolerance: 1;"
@@ -198,9 +262,37 @@
     </a-gltf-model>
    </a-entity>
   </a-entity>
+
+  <!-- ■ TARGET 3: Beweismittel-Etikett → USB-Stick liegt FLACH auf dem Blatt (Marker-Ebene = XY, Z zeigt nach oben).
+       Unter UV-Licht leuchten 3 Spuren — jede nur, wenn ihre Seite zur Kamera zeigt:
+       Oberseite (+Z) Fingerabdruck · Rückseite (+Y, andere Tischseite) Etikett · Stecker-Ende (+X) Faser -->
+  <a-entity mindar-image-target="targetIndex: 3" id="t3">
+    <a-entity id="usb" position="0 -0.04 0.08">
+      <a-box id="usb-body" width="0.62" height="0.24" depth="0.16" position="-0.08 0 0" color="#3b3f55" roughness="0.55" metalness="0.2"></a-box>
+      <a-box width="0.2" height="0.16" depth="0.1" position="0.33 0 0" color="#c9cdd6" roughness="0.3" metalness="0.85"></a-box>
+      <a-box width="0.04" height="0.035" depth="0.004" position="0.30 0.035 0.051" color="#1a1a2e"></a-box>
+      <a-box width="0.04" height="0.035" depth="0.004" position="0.30 -0.035 0.051" color="#1a1a2e"></a-box>
+      <a-torus radius="0.03" radius-tubular="0.008" position="-0.33 0 0.081" color="#c9cdd6" metalness="0.8"></a-torus>
+      <!-- Spur 0: Fingerabdruck auf der Oberseite -->
+      <a-plane id="spur-0" width="0.19" height="0.228" position="-0.12 0 0.082" visible="false"
+               material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-plane>
+      <!-- Spur 1: Etikett auf der Rückseite (lesbar von der gegenüberliegenden Tischseite) -->
+      <a-entity position="-0.08 0.122 0" rotation="0 0 180">
+        <a-plane id="spur-1" width="0.56" height="0.14" rotation="90 0 0" visible="false"
+                 material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-plane>
+      </a-entity>
+      <!-- Spur 2: Faser am Stecker-Ende -->
+      <a-entity position="0.432 0 0" rotation="0 0 90">
+        <a-plane id="spur-2" width="0.15" height="0.09" rotation="90 0 0" visible="false"
+                 material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-plane>
+      </a-entity>
+    </a-entity>
+    <a-entity class="lage"></a-entity>
+  </a-entity>
 </a-scene>
 
-<script src="js/interactions.js?v=20261119b"></script>
+<script src="js/interactions.js?v=20261121a"></script>
+<script src="js/fingerabdruck.js?v=20261121a"></script>
 <script>
   window.SCANNER_MODE = true;
   const $ = id => document.getElementById(id);
@@ -565,9 +657,262 @@
   };
 
   // ════════════════════════════════════════════════════════════════════════
+  //  ■ STATION 3 — ALTES LABOR  (Target 3)
+  //  USB-Stick unter UV-Licht: 3 Spuren rundum suchen → Haftbefehl (Täter + Tatzeit).
+  //  HINWEIS FÜR LEHRER: Lösung = S. Wendl (Laborassistentin), Tatzeit 18:40.
+  //  Gegen Durchprobieren: beides muss stimmen, keine Teil-Rückmeldung,
+  //  Sperre wird mit jedem Fehlversuch länger (SPERREN, in Sekunden).
+  // ════════════════════════════════════════════════════════════════════════
+  const LAB_FAILS_KEY = 'schattenschule_lab_fails';
+  const LAB_LOCK_KEY = 'schattenschule_lab_lock_until';
+  const LAB_SPUREN_KEY = 'schattenschule_lab_spuren';
+  const labNum = k => { try { return parseInt(localStorage.getItem(k) || '0', 10) || 0; } catch { return 0; } };
+
+  // Prüft pro Bild, ob eine Spur zur Kamera zeigt (Winkel zwischen Flächennormale und Blickrichtung)
+  AFRAME.registerComponent('spur-sicht', {
+    schema: { idx: { type: 'int' }, winkel: { default: 60 } },
+    init() {
+      this.n = new THREE.Vector3(); this.p = new THREE.Vector3(); this.c = new THREE.Vector3(); this.q = new THREE.Quaternion();
+      this.cosMax = Math.cos(this.data.winkel * Math.PI / 180);
+    },
+    tick(t) {
+      if (!Labor.uv || !Labor.visible || Labor.found[this.data.idx]) return;
+      const o = this.el.object3D, cam = this.el.sceneEl.camera;
+      if (!cam) return;
+      o.getWorldPosition(this.p); o.getWorldQuaternion(this.q);
+      this.n.set(0, 0, 1).applyQuaternion(this.q);
+      cam.getWorldPosition(this.c);
+      const cos = this.n.dot(this.c.sub(this.p).normalize());
+      Labor.spurSicht(this.data.idx, cos > this.cosMax, t);
+    }
+  });
+
+  const Labor = {
+    id: 'station-3', targets: [3],
+    TAETER: 'wendl', TATZEIT: '1840',
+    SPERREN: [30, 60, 120, 240, 300],
+    NAMEN: [
+      ['brandner', 'K. Brandner', 'Hausmeister'],
+      ['brunner', 'Dr. E. Brunner', 'Chemielehrerin'],
+      ['haider', 'M. Haider', 'IT-Betreuer'],
+      ['huber', 'G. Huber', 'Sekretärin'],
+      ['kovac', 'M. Kovač', 'Reinigungskraft'],
+      ['pichler', 'J. Pichler', 'Praktikant'],
+      ['steiner', 'P. Steiner', 'Bibliothekar'],
+      ['wendl', 'S. Wendl', 'Laborassistentin'],
+    ],
+    SPUREN: [
+      { kurz: 'Fingerabdruck', lang: 'Oberseite: Fingerabdruck', winkel: 55 },
+      { kurz: 'Etikett · 18:40', lang: 'Rückseite: Etikett<br><strong>EINGESTECKT 18:40 · LABOR-PC 2</strong>', winkel: 60 },
+      { kurz: 'Faser · Kittel?', lang: 'Stecker: weiße Baumwollfaser<br><strong>vermutlich von einem Kittel</strong>', winkel: 60 },
+    ],
+    visible: false, uv: false, found: [false, false, false], seit: [0, 0, 0], auswahl: null, lockTick: null,
+
+    init() {
+      this.spurEls = [0, 1, 2].map(i => $('spur-' + i));
+      // Texturen der Spuren (Canvas, leuchtend auf transparent)
+      const fp = this.canvas('spur-tex-0', 300, 360);
+      Fingerabdruck.zeichne(fp, { typ: 'schleife', gabelung: true, teil: true, markiere: true, farbe: '#c9f7ff', hintergrund: null, markFarbe: '#ffd84a' });
+      const et = this.canvas('spur-tex-1', 640, 160), g1 = et.getContext('2d');
+      g1.strokeStyle = '#c9f7ff'; g1.lineWidth = 6; g1.strokeRect(8, 8, 624, 144);
+      g1.fillStyle = '#c9f7ff'; g1.textAlign = 'center'; g1.textBaseline = 'middle';
+      g1.font = 'bold 58px "Courier New", monospace'; g1.fillText('EINGESTECKT 18:40', 320, 62);
+      g1.font = 'bold 36px "Courier New", monospace'; g1.fillText('LABOR-PC 2', 320, 120);
+      const fa = this.canvas('spur-tex-2', 256, 154), g2 = fa.getContext('2d');
+      g2.strokeStyle = '#f4fbff'; g2.lineCap = 'round'; g2.shadowColor = '#c9f7ff'; g2.shadowBlur = 10;
+      [[4, 20, 70], [3, 40, 95], [2, 60, 80]].forEach(([w, y0, y1]) => {
+        g2.lineWidth = w; g2.beginPath(); g2.moveTo(20, y0 + 20);
+        g2.bezierCurveTo(80, y0 - 30, 150, y1 + 40, 236, y1); g2.stroke();
+      });
+      this.spurEls.forEach((el, i) => {
+        el.setAttribute('material', 'src', '#spur-tex-' + i);
+        el.setAttribute('spur-sicht', { idx: i, winkel: this.SPUREN[i].winkel });
+      });
+      // Bereits gefundene Spuren (überlebt Neuladen)
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem(LAB_SPUREN_KEY)) || []; } catch {}
+      saved.forEach(i => { if (i >= 0 && i < 3) this.found[i] = true; });
+      this.tablet = makeTablet('station-3', '0 0.62 0.06');
+      lageOf(3).appendChild(this.tablet);
+      // Haftbefehl
+      this.NAMEN.forEach(([key, name, rolle]) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.dataset.key = key;
+        b.innerHTML = name + '<small>' + rolle + '</small>';
+        b.addEventListener('click', () => {
+          this.auswahl = key;
+          document.querySelectorAll('#hb-namen button').forEach(x => x.classList.toggle('sel', x === b));
+        });
+        $('hb-namen').appendChild(b);
+      });
+      $('warrant-close').addEventListener('click', () => this.closeWarrant());
+      $('hb-send').addEventListener('click', () => this.send());
+      $('hb-zeit').addEventListener('keydown', e => { if (e.key === 'Enter') this.send(); });
+      $('spuren').addEventListener('click', e => { const d = e.target.closest('[data-i]'); if (d) this.zeigeSpur(Number(d.dataset.i)); });
+      if (isSolved('station-3')) this.showReward();
+    },
+    canvas(id, w, h) {
+      const c = document.createElement('canvas');
+      c.id = id; c.className = 'tablet-canvas'; c.width = w; c.height = h;
+      document.body.appendChild(c);
+      return c;
+    },
+    anzahl() { return this.found.filter(Boolean).length; },
+
+    showReward() {
+      this.setUV(false);
+      this.tablet.setAttribute('visible', true);
+    },
+    activate() { this.updateAction(); this.renderSpuren(); },
+    deactivate() {
+      this.setUV(false);
+      $('warrant').hidden = true;
+      $('spuren').style.display = 'none';
+      $('signal-hud').style.display = 'none';
+    },
+    onFound() { this.visible = true; if (this.uv) $('uv-veil').style.display = 'block'; this.updateAction(); },
+    onLost() { this.visible = false; $('uv-veil').style.display = 'none'; },
+    onTap() {
+      if (!this.visible || !$('warrant').hidden) return;
+      if (isSolved('station-3')) { this.confirm(); return; }
+      if (!this.uv) this.setUV(true);
+    },
+    updateAction() {
+      if (isSolved('station-3')) { $('signal-hud').style.display = 'none'; setAction('▸ [ CODE-TEIL ANZEIGEN ]', () => this.confirm()); return; }
+      if (!this.uv) { setAction('▸ [ UV-LAMPE EINSCHALTEN ]', () => this.setUV(true)); return; }
+      this.hud();
+      if (this.anzahl() < 3) setPrompt('▸ SUCHT DIE SPUREN — SCHAUT DEN STICK VON ALLEN SEITEN AN<span class="rec">AUCH VON HINTEN UND VOM STECKER AUS</span>');
+      else setAction('▸ [ HAFTBEFEHL AUSSTELLEN ]', () => this.openWarrant());
+    },
+    hud() {
+      const h = $('signal-hud');
+      h.style.display = 'block'; h.classList.toggle('start', this.anzahl() === 3);
+      h.textContent = 'SPUREN ' + this.anzahl() + ' / 3';
+    },
+    confirm() { confirmFragment('station-3', '✓ <span style="color:#cc3300">AUSWEISNUMMER DER TÄTERIN</span>'); },
+
+    // ── UV-Licht & Spuren ──
+    setUV(on) {
+      this.uv = on && !isSolved('station-3');
+      $('uv-veil').style.display = this.uv && this.visible ? 'block' : 'none';
+      $('usb-body').setAttribute('color', this.uv ? '#241a4a' : '#3b3f55');
+      this.spurEls.forEach((el, i) => {
+        el.setAttribute('visible', this.uv);
+        el.setAttribute('material', 'opacity', this.found[i] ? 1 : 0.12);
+      });
+      if (activeId === this.id) this.updateAction();
+    },
+    spurSicht(i, sichtbar, t) {
+      const el = this.spurEls[i];
+      if (sichtbar) {
+        if (!this.seit[i]) this.seit[i] = t;
+        const dauer = t - this.seit[i];
+        el.setAttribute('material', 'opacity', Math.min(1, 0.3 + dauer / 700));
+        if (dauer > 700) this.spurGefunden(i);
+      } else if (this.seit[i]) {
+        this.seit[i] = 0;
+        el.setAttribute('material', 'opacity', 0.12);
+      }
+    },
+    spurGefunden(i) {
+      if (this.found[i]) return;
+      this.found[i] = true;
+      this.spurEls[i].setAttribute('material', 'opacity', 1);
+      try { localStorage.setItem(LAB_SPUREN_KEY, JSON.stringify([0, 1, 2].filter(k => this.found[k]))); } catch {}
+      if (navigator.vibrate) navigator.vibrate(80);
+      this.renderSpuren();
+      this.updateAction();
+    },
+    renderSpuren() {
+      const box = $('spuren');
+      const list = [0, 1, 2].filter(i => this.found[i]);
+      if (!list.length || isSolved('station-3') || activeId !== this.id) { box.style.display = 'none'; return; }
+      box.innerHTML = '<p style="margin:0;color:#888;letter-spacing:0.1em">SPUREN (antippen)</p>' +
+        list.map(i => '<div data-i="' + i + '">' + this.SPUREN[i].kurz + '</div>').join('');
+      box.style.display = 'block';
+    },
+    zeigeSpur(i) {
+      if (i === 0) {
+        showHint('<span style="color:#b28cff">// SPUR 1 — FINGERABDRUCK</span><br>' +
+          '<img class="fp-gross" src="' + $('spur-tex-0').toDataURL() + '" alt="Teilabdruck"><br>' +
+          'Nur ein <strong>Teilabdruck</strong> (obere Hälfte). Die gestrichelte Stelle ist auffällig.<br>' +
+          'Vergleicht mit den Fingerabdrücken auf den Steckbriefen.', null);
+      } else {
+        showHint('<span style="color:#b28cff">// SPUR ' + (i + 1) + '</span><br><br>' + this.SPUREN[i].lang, null);
+      }
+    },
+
+    // ── Haftbefehl ──
+    openWarrant() {
+      if (isSolved('station-3')) return;
+      $('warrant').hidden = false;
+      $('action-btn').hidden = true;
+      this.updateLock();
+    },
+    closeWarrant() { $('warrant').hidden = true; this.updateAction(); },
+    updateLock() {
+      const left = Math.ceil((labNum(LAB_LOCK_KEY) - Date.now()) / 1000);
+      const locked = left > 0;
+      $('hb-send').disabled = locked;
+      const fails = labNum(LAB_FAILS_KEY);
+      $('hb-fails').textContent = fails ? 'Fehlversuche: ' + fails + ' · nächste Sperre: ' + this.fmt(this.SPERREN[Math.min(fails, this.SPERREN.length - 1)]) : '';
+      if (locked) {
+        $('hb-feedback').textContent = '⚠ HAFTBEFEHL ABGELEHNT — DIE BEWEISE PASSEN NICHT. GESPERRT: ' + this.fmt(left);
+        if (!this.lockTick) this.lockTick = setInterval(() => this.updateLock(), 250);
+      } else {
+        if (this.lockTick) { clearInterval(this.lockTick); this.lockTick = null; }
+        if ($('hb-feedback').textContent.startsWith('⚠')) $('hb-feedback').textContent = '';
+      }
+    },
+    fmt(s) { return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' Min' : s + ' s'; },
+    send() {
+      if (isSolved('station-3') || labNum(LAB_LOCK_KEY) > Date.now()) return;
+      let zeit = $('hb-zeit').value.replace(/\D/g, '');
+      if (zeit.length === 3) zeit = '0' + zeit;
+      if (!this.auswahl) { $('hb-feedback').textContent = 'Wählt zuerst eine Person aus.'; return; }
+      if (zeit.length !== 4) { $('hb-feedback').textContent = 'Tragt die Tatzeit ein (z. B. 07:15).'; return; }
+      if (this.auswahl === this.TAETER && zeit === this.TATZEIT) { this.erfolg(); return; }
+      const fails = labNum(LAB_FAILS_KEY) + 1;
+      const sperre = this.SPERREN[Math.min(fails - 1, this.SPERREN.length - 1)];
+      try {
+        localStorage.setItem(LAB_FAILS_KEY, String(fails));
+        localStorage.setItem(LAB_LOCK_KEY, String(Date.now() + sperre * 1000));
+      } catch {}
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      this.updateLock();
+    },
+    async erfolg() {
+      $('hb-form').style.display = 'none';
+      const box = $('hb-msg');
+      box.style.display = 'block'; box.innerHTML = '';
+      Funk.rauschen(2.4);
+      const lines = [
+        '… krrrz … Morava hier. Starke Arbeit, Detektive!',
+        'Sabine Wendl, die Laborassistentin. Sie hat den Stick um 18:40 eingesteckt — so kam das Virus ins System.',
+        'Ihre Ausweisnummer ist mein Teil des Schlüssels.',
+        'Richtet die Kamera auf das Beweisstück — ich zeige sie euch.'
+      ];
+      for (const line of lines) {
+        const p = document.createElement('div');
+        box.appendChild(p);
+        for (const ch of line) { p.textContent += ch; await wait(26); }
+        await wait(450);
+      }
+      markSolved('station-3');
+      this.showReward();
+      $('spuren').style.display = 'none';
+      const done = document.createElement('button');
+      done.id = 'hb-done'; done.type = 'button';
+      done.textContent = '[ ZUM BEWEISSTÜCK ]';
+      done.onclick = () => { $('warrant').hidden = true; this.updateAction(); };
+      $('warrant').appendChild(done);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════
   //  Scanner-Kern: welcher Marker gehört zu welcher Station?
   // ════════════════════════════════════════════════════════════════════════
-  const MODULES = [Buero, Funk];
+  const MODULES = [Buero, Funk, Labor];
   const BY_TARGET = {};
   MODULES.forEach(m => m.targets.forEach(t => { BY_TARGET[t] = m; }));
   let activeId = null;
@@ -629,7 +974,7 @@
       visibleTargets.delete(idx);
       mod.onLost(idx);
       // Kein Motiv mehr im Bild: bei erledigter Station (oder ohne offene Aktion) zurück zur Suche
-      if (!visibleTargets.size && $('radio').hidden && (isStationDone(mod.id) || $('action-btn').hidden)) {
+      if (!visibleTargets.size && $('radio').hidden && $('warrant').hidden && (isStationDone(mod.id) || $('action-btn').hidden)) {
         setAction(null);
         defaultPrompt();
       }
@@ -638,7 +983,7 @@
 
   // Tipp auf den Bildschirm → an die aktive Station (große Fläche statt genau auf die wackelnde Figur)
   document.addEventListener('pointerup', e => {
-    if (e.target.closest('#radio, button, #hint-overlay, #station-ui, #home-btn, input')) return;
+    if (e.target.closest('#radio, #warrant, #spuren, button, #hint-overlay, #station-ui, #home-btn, input')) return;
     const mod = MODULES.find(m => m.id === activeId);
     if (mod && mod.onTap) mod.onTap();
   });

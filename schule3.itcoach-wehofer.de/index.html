@@ -126,7 +126,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/interactions.js?v=20261119b"></script>
+<script src="js/interactions.js?v=20261121a"></script>
 <script>
   // Die Reihenfolge der Stationen legt der Scanner selbst fest:
   // die zuerst gescannte Station bestimmt die empfohlene Route (siehe scan.html).
@@ -154,8 +154,11 @@
     },
     3: {
       name: 'ALTES LABOR',
-      desc: 'In Vorbereitung — Fortsetzung folgt. Geplant: Spurensicherung mit Fingerabdrücken und Alibi-Abgleich. Bis dahin gibt die Lehrkraft das Code-Fragment für Feld ■ aus.',
-      prints: [ AUFGABENBLATT ]
+      desc: 'Scannt das Beweisstück: Ein USB-Stick erscheint. Schaltet die UV-Lampe ein und sucht rundherum 3 Spuren. Vergleicht sie mit den Steckbriefen, dem Schuhabdruck und den Alibis. Wer hat das Virus eingeschleust? Stellt im Handy den Haftbefehl aus. Dann gibt euch Morava das Code-Fragment für Feld ■.',
+      prints: [
+        AUFGABENBLATT,
+        { label: '[ REQUISIT 3 — MARKER, STECKBRIEFE, BEWEISE ]', url: 'print/requisit-3.html' }
+      ]
     },
     4: {
       name: 'ARCHIV',
