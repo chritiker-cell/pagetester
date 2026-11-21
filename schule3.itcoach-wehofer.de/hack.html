@@ -77,6 +77,11 @@
     .fw-bar i { width: 30px; height: 9px; border: 1px solid var(--acc); display: block; }
     .fw-bar i.done { background: var(--acc); box-shadow: 0 0 8px var(--acc); }
     #timer { color: var(--txt); font-size: 0.95rem; }
+    #timer.strafe { color: #ff3b3b; animation: dPulse 0.4s 4; }
+    /* Alarm-Sperre bei falscher Antwort (Mathe-Firewalls) */
+    #lvl-body.gesperrt { opacity: 0.35; pointer-events: none; filter: grayscale(0.6); }
+    .alarm { color: #ff3b3b; font-weight: bold; letter-spacing: 0.08em; animation: dPulse 0.8s infinite; }
+    .choices.acht { display: grid; grid-template-columns: repeat(4, minmax(4.5rem, 1fr)); max-width: 26rem; margin: 0 auto; }
 
     /* Level-Panel */
     .panel {
@@ -213,6 +218,18 @@
     #breach .br-bar { width: min(420px, 80vw); height: 8px; border: 1px solid var(--acc); margin-top: 1.4rem; }
     #breach .br-bar i { display: block; height: 100%; width: 0; background: var(--acc); box-shadow: 0 0 12px var(--acc); }
     #breach.on .br-bar i { animation: brFill 1.3s ease-out forwards; }
+    /* Leben im Duell + „Game over“ */
+    #lives-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; letter-spacing: 0.2em; color: #888; margin: 0.45rem 0 0; }
+    #lives { color: #ff3b3b; font-size: 1.15rem; letter-spacing: 0.25em; text-shadow: 0 0 8px #ff3b3b88; }
+    #lives.weg { animation: dShake 0.35s 2; }
+    #gameover {
+      position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 0.9rem;
+      background: radial-gradient(ellipse at center, #2a0000ee 0%, #000000f5 70%); text-align: center; padding: 1rem;
+    }
+    #gameover.on { display: flex; animation: brIn 0.3s ease-out; }
+    #gameover .go-big { font-size: clamp(1.8rem, 6vw, 3.2rem); color: #ff3b3b; letter-spacing: 0.22em; font-weight: bold; text-shadow: 0 0 18px #ff3b3b; }
+    #gameover .go-text { color: #ccc; max-width: 30rem; line-height: 1.6; }
+    #gameover .btn { border-color: #ff3b3b; color: #fff; }
     @keyframes brIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
     @keyframes brFill { to { width: var(--br-to, 100%); } }
 
@@ -292,6 +309,7 @@
     <div id="hp-bar-wrap">
       <div class="hp-label"><span>WÄCHTER — INTEGRITÄT</span><span id="hp-text">100%</span></div>
       <div id="hp-bar-bg"><div id="hp-bar"></div></div>
+      <div id="lives-row"><span>EURE LEBEN</span><span id="lives">♥♥♥</span></div>
     </div>
     <div id="stage">
       <div id="w-fallback"><i></i><i></i></div>
@@ -339,6 +357,15 @@
   <div class="br-bar"><i id="br-fill"></i></div>
 </div>
 
+<!-- Alle Leben verloren -->
+<div id="gameover" aria-live="assertive">
+  <div style="font-size:0.8rem;letter-spacing:0.4em;color:#ff3b3baa">// ALLE LEBEN VERLOREN</div>
+  <div class="go-big">SYSTEM ÜBERNOMMEN</div>
+  <div class="go-text">Der Wächter hat euch aus dem System geworfen. Ihr müsst euch neu einloggen und alle Firewalls
+    noch einmal knacken. <strong>Die Zeit läuft weiter.</strong></div>
+  <button class="btn" id="go-btn">[ NEU EINLOGGEN ]</button>
+</div>
+
 <!-- Urkunde (nur Druck) -->
 <div id="certificate">
   <div class="c-frame">
@@ -365,14 +392,19 @@ const CORRECT_CODE = CODE_GROUPS.map(s => s.code).join('');
 const SOLUTION_WORD = 'VIRUS GELÖSCHT';
 // Finale „Hacker-Duell“: pro Phase Befehle zum Abtippen (ohne Umlaute), zeit = Sekunden pro Befehl,
 // spruch = was der Wächter zu Beginn der Phase sagt. Jeder richtig getippte Befehl = 1 Treffer.
+// Falscher Buchstabe = Befehl von vorne. Zeit abgelaufen = Angriff: Wächter repariert sich + Strafzeit.
 const DUELL = [
-  { zeit: 14, befehle: ['SCAN', 'PING', 'LOCK', 'TRACE'],
+  { zeit: 10, befehle: ['SCAN', 'PING', 'LOCK', 'TRACE'],
     spruch: 'Ihr glaubt, ihr könnt mich aufspüren?' },
-  { zeit: 11, befehle: ['FIREWALL AN', 'VIRUS ISOLIEREN', 'ZUGANG SPERREN', 'MORAVA FREI'],
+  { zeit: 10, befehle: ['FIREWALL AN', 'VIRUS ISOLIEREN', 'ZUGANG SPERREN', 'MORAVA FREI'],
     spruch: 'Ihr seid hartnäckig … jetzt werde ich ernst!' },
-  { zeit: 9,  befehle: ['sudo bann --waechter', 'protokoll.loeschen()', 'schatten.exit()', 'SYSTEM RESET'],
+  { zeit: 10, befehle: ['sudo bann --waechter', 'protokoll.loeschen()', 'schatten.exit()', 'SYSTEM RESET'],
     spruch: 'Ich lasse mich nicht löschen!' },
 ];
+const STRAFZEIT_ANGRIFF = 10;          // Sekunden, die bei einem Angriff des Wächters auf die Gesamtzeit kommen
+const LEBEN = 3;                       // Angriffe, die eine Gruppe im Duell aushält — danach Neustart ab Login (Zeit läuft weiter)
+// Alarm-Sperre bei falscher Antwort in den Mathe-Firewalls: 15 s, 30 s, 45 s, dann 60 s
+const SPERRE_SCHRITT = 15, SPERRE_MAX = 60;
 const HINT_AFTER_ERRORS  = 2;          // Tipp-Button nach so vielen Fehlversuchen …
 const HINT_AFTER_SECONDS = 90;         // … oder nach so vielen Sekunden
 // Zum Testen: hack.html?lehrer=3 springt direkt zu Firewall 3 (5 = Finale)
@@ -388,10 +420,12 @@ const TRIANGLE_SVG =
 const LEVELS = [
   {
     type: 'choice',
+    sperre: true,
     title: 'GEOMETRIE-SCHLOSS',
-    text: 'Das Schloss öffnet sich nur mit der richtigen Zahl.<br><strong>Wie viele Dreiecke stecken in dieser Figur?</strong>',
+    text: 'Das Schloss öffnet sich nur mit der richtigen Zahl.<br><strong>Wie viele Dreiecke stecken in dieser Figur?</strong><br>' +
+          '<span style="color:#ff6b6b;font-size:0.85rem">Achtung: Jede falsche Antwort löst Alarm aus und sperrt das Schloss.</span>',
     figure: TRIANGLE_SVG,
-    choices: ['6', '9', '12', '15'],
+    choices: ['6', '8', '9', '10', '12', '13', '15', '16'],
     answer: '12',
     hint: 'Zählt zuerst alle Dreiecke <em>oberhalb</em> der waagrechten Linie (alle haben die Spitze oben). ' +
           'Dann alle großen, die bis ganz nach unten reichen. Auch zusammengesetzte Dreiecke zählen!'
@@ -404,13 +438,15 @@ const LEVELS = [
           'Berührung = Absturz, zurück zum letzten sicheren Feld.<br>' +
           'Pfeiltasten, W A S D oder die Buttons unten.',
     hint: 'Im ersten Raum könnt ihr <em>zwischen</em> den Scanner-Säulen stehen bleiben und auf die nächste Lücke warten. ' +
-          'Im zweiten Raum: nicht durch die Mitte — schleicht in einer Ecke um den drehenden Arm herum.'
+          'Im zweiten Raum: nicht durch die Mitte — schleicht an der Wand entlang über die Ecken und wartet dort, bis der Arm vorbei ist.'
   },
   {
     type: 'input',
+    sperre: true,
     title: 'ZAHLEN-CODE',
     text: 'Der Server verlangt die nächste Zahl der Reihe:<br><br>' +
-          '<strong style="font-size:1.6rem;letter-spacing:0.15em">3 · 6 · 11 · 18 · 27 · ?</strong>',
+          '<strong style="font-size:1.6rem;letter-spacing:0.15em">3 · 6 · 11 · 18 · 27 · ?</strong><br><br>' +
+          '<span style="color:#ff6b6b;font-size:0.85rem">Achtung: Jede falsche Antwort löst Alarm aus und sperrt die Eingabe.</span>',
     answer: '38',
     hint: 'Schaut, um wie viel die Zahlen jeweils größer werden: +3, +5, +7 … wie geht es weiter?'
   },
@@ -432,6 +468,14 @@ let startTime = null;
 let timerId = null;
 let levelIdx = 0;
 let cleanupLevel = null;
+let strafMs = 0;                   // Strafzeit (Angriffe im Duell), wird auf die Gesamtzeit addiert
+const gesamtMs = () => (startTime ? Date.now() - startTime : 0) + strafMs;
+function strafe(sek) {
+  strafMs += sek * 1000;
+  const t = $('timer');
+  t.textContent = fmtTime(gesamtMs());
+  t.classList.remove('strafe'); void t.offsetWidth; t.classList.add('strafe');
+}
 
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -453,7 +497,7 @@ function fmtTime(ms) {
 function startTimer() {
   startTime = Date.now();
   $('hud').classList.add('on');
-  timerId = setInterval(() => { $('timer').textContent = fmtTime(Date.now() - startTime); }, 500);
+  timerId = setInterval(() => { $('timer').textContent = fmtTime(gesamtMs()); }, 500);
 }
 
 function updateFirewallBar() {
@@ -510,7 +554,7 @@ function checkCode() {
     loggedIn = true;
     $('login-err').style.color = '#33ff66';
     $('login-err').textContent = '✓ ZUGRIFF GEWÄHRT — FIREWALL WIRD GEHACKT …';
-    setTimeout(() => { startTimer(); startLevel(0); }, 900);
+    setTimeout(() => { if (!startTime) startTimer(); startLevel(0); }, 900);   // nach „Game over“ läuft die Zeit weiter
   } else {
     $('login-err').style.color = '#c00';
     $('login-err').textContent = code.length < CODE_LEN ? '⚠ ALLE FELDER AUSFÜLLEN' : '⚠ ZUGRIFF VERWEIGERT — CODE UNGÜLTIG';
@@ -548,6 +592,31 @@ function startLevel(i) {
     };
   };
   const hintTimer = setTimeout(offerHint, HINT_AFTER_SECONDS * 1000);
+  let sperrTick = null;
+  $('lvl-body').classList.remove('gesperrt');
+
+  // Alarm-Sperre: Antworten für eine Weile blockiert, wird mit jedem Fehler länger
+  const sperren = () => {
+    const ende = Date.now() + Math.min(SPERRE_MAX, SPERRE_SCHRITT * errors) * 1000;
+    const felder = [...$('lvl-body').querySelectorAll('input, button')];
+    $('lvl-body').classList.add('gesperrt');
+    felder.forEach(e => { e.disabled = true; });
+    const tick = () => {
+      const rest = Math.ceil((ende - Date.now()) / 1000);
+      if (rest <= 0) {
+        clearInterval(sperrTick); sperrTick = null;
+        $('lvl-body').classList.remove('gesperrt');
+        felder.forEach(e => { e.disabled = false; });
+        $('lvl-err').innerHTML = 'Sperre aufgehoben. Denkt nach, bevor ihr antwortet!';
+        const f = $('lvl-body').querySelector('input'); if (f) f.focus();
+        return;
+      }
+      $('lvl-err').innerHTML = '<span class="alarm">⚠ ALARM — FALSCHE ANTWORT! SYSTEM GESPERRT: ' + rest + ' s</span>';
+    };
+    clearInterval(sperrTick);
+    tick();
+    sperrTick = setInterval(tick, 250);
+  };
 
   const ctx = {
     body: $('lvl-body'),
@@ -556,23 +625,26 @@ function startLevel(i) {
       errors++;
       $('lvl-err').textContent = msg || '⚠ FALSCH — ZUGRIFF VERWEIGERT';
       screenShake(document.querySelector('#screen-level .panel'));
+      if (lvl.sperre) sperren();
       if (errors >= HINT_AFTER_ERRORS) offerHint();
     },
     done() {
       clearTimeout(hintTimer);
+      clearInterval(sperrTick);
       $('lvl-err').style.color = '#33ff66';
       $('lvl-err').textContent = '✓ FIREWALL ' + (i + 1) + ' DURCHBROCHEN';
       setTimeout(() => showBreach(i + 1, () => { $('lvl-err').style.color = ''; startLevel(i + 1); }), 500);
     }
   };
   const extraCleanup = RENDERERS[lvl.type](lvl, ctx);
-  cleanupLevel = () => { clearTimeout(hintTimer); if (extraCleanup) extraCleanup(); };
+  cleanupLevel = () => { clearTimeout(hintTimer); clearInterval(sperrTick); $('lvl-body').classList.remove('gesperrt'); if (extraCleanup) extraCleanup(); };
 }
 
 const RENDERERS = {
   // Multiple Choice mit optionaler Figur
   choice(lvl, ctx) {
-    ctx.body.innerHTML = (lvl.figure ? '<div class="fig">' + lvl.figure + '</div>' : '') + '<div class="choices"></div>';
+    ctx.body.innerHTML = (lvl.figure ? '<div class="fig">' + lvl.figure + '</div>' : '') +
+      '<div class="choices' + (lvl.choices.length > 4 ? ' acht' : '') + '"></div>';
     const wrap = ctx.body.querySelector('.choices');
     let solved = false;
     lvl.choices.forEach(c => {
@@ -580,7 +652,7 @@ const RENDERERS = {
       b.className = 'btn';
       b.textContent = c;
       b.onclick = () => {
-        if (solved) return;
+        if (solved || ctx.body.classList.contains('gesperrt')) return;
         if (c === lvl.answer) { solved = true; ctx.done(); }
         else { b.classList.add('wrong'); ctx.wrong(); }
       };
@@ -596,7 +668,7 @@ const RENDERERS = {
     const inp = ctx.body.querySelector('input');
     let solved = false;
     const submit = () => {
-      if (solved) return;
+      if (solved || ctx.body.classList.contains('gesperrt')) return;
       const v = inp.value.trim().toUpperCase();
       if (!v) return;
       if (v === String(lvl.answer).toUpperCase()) { solved = true; ctx.done(); }
@@ -623,7 +695,8 @@ const RENDERERS = {
     const COLS = [110, 150, 190, 230, 270];
     const COL_MIN = ARENA.y + R, COL_LEN = ARENA.h - 2 * R, COL_SPEED = 150;
     // Raum 2: drehender Arm um die Mitte
-    const ARM_C = { x: 450, y: 180 }, ARM_R = [0, 35, 70, 100], ARM_W = 1.2;
+    // (Arm reicht bis 130 px und dreht schneller als früher; die Ecken links bleiben knapp sicher)
+    const ARM_C = { x: 450, y: 180 }, ARM_R = [0, 33, 66, 98, 130], ARM_W = 1.55;
 
     ctx.body.innerHTML =
       '<canvas class="dodge-canvas"></canvas>' +
@@ -972,9 +1045,11 @@ function resizeFx() {
 
 function startDuell() {
   showScreen('boss');
-  D = { hp: W_TOTAL, phase: 0, idx: 0, attacks: 0, active: false, running: true,
+  D = { hp: W_TOTAL, phase: 0, idx: 0, attacks: 0, lives: LEBEN, active: false, running: true,
         cmd: '', good: '', t0: 0, limit: 0, tw: null, shake: null, loaded: false };
   updateHPBar();
+  updateLives();
+  $('w-msg').textContent = '';
   $('w-cmd-wrap').style.display = 'none';
   $('w-start').hidden = true;
   $('stage-load').textContent = '◌ DER WÄCHTER ERSCHEINT …';
@@ -983,6 +1058,17 @@ function startDuell() {
 
   if (!$('stage').querySelector('a-scene')) {
     ladeAFrame().then(baueSzene).catch(zeigeRueckfall);
+  } else if ($('w-model') && $('w-model').getObject3D && $('w-model').getObject3D('mesh')) {
+    // Zweiter Versuch nach „Game over“: Szene steht schon — Wächter zurücksetzen und neu auftauchen lassen
+    D.loaded = true;
+    $('stage-load').textContent = '';
+    $('w-fallback').style.display = 'none';
+    const dist = $('w-dist');
+    dist.setAttribute('position', '0 -2.6 0');
+    dist.setAttribute('scale', '1 1 1');
+    $('w-model').setAttribute('visible', true);
+    setWEyes('#ff2a2a');
+    dist.emit('rise');
   }
   setTimeout(zeigeRueckfall, 10000);   // kein WebGL / offline → glühende Augen in der Dunkelheit
 
@@ -1010,7 +1096,7 @@ function naechsterBefehl() {
   D.cmd = p.befehle[D.idx];
   D.good = '';
   wInput.value = '';
-  D.limit = p.zeit * 1000 * (D.attacks >= 4 ? 1.5 : 1);
+  D.limit = p.zeit * 1000;
   D.t0 = performance.now();
   D.active = true;
   $('w-phase').textContent = '// PHASE ' + (D.phase + 1) + ' / ' + DUELL.length + ' — TIPPT DEN BEFEHL';
@@ -1034,7 +1120,11 @@ wInput.addEventListener('input', () => {
   if (D.cmd.toUpperCase().startsWith(v.toUpperCase())) {
     D.good = D.cmd.slice(0, v.length);          // Schreibweise des Befehls übernehmen
   } else {
+    // Falscher Buchstabe → Befehl von vorne (die Zeit läuft weiter)
+    D.good = '';
     wInput.classList.remove('bad'); void wInput.offsetWidth; wInput.classList.add('bad');
+    $('w-msg').style.color = '#ff5a5a';
+    $('w-msg').textContent = '✕ TIPPFEHLER — BEFEHL VON VORNE!';
   }
   wInput.value = D.good;
   renderCmd();
@@ -1061,6 +1151,7 @@ function treffer() {
   burst(22, ['#33ff66', '#7dffa0', '#ff2a2a']);
   $('w-msg').style.color = '#33ff66';
   $('w-msg').textContent = '✓ TREFFER — BEFEHL AUSGEFÜHRT';
+  wInput.classList.remove('bad');
   $('atk-bar').style.width = '0%';
   D.idx++;
   if (D.hp <= 0) { setTimeout(sieg, 450); return; }
@@ -1089,19 +1180,57 @@ function phasenWechsel() {
 function angriff() {
   D.active = false;
   D.attacks++;
+  D.lives--;
+  updateLives(true);
   emitW('w-jolt', 'atk');
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.opacity = '0.55';
   requestAnimationFrame(() => { fl.style.transition = 'opacity 0.5s'; fl.style.opacity = '0'; });
   screenShake($('duell'));
+  strafe(STRAFZEIT_ANGRIFF);
+  wInput.value = '';
+  if (D.lives <= 0) { gameOver(); return; }
   let msg;
-  if (D.idx > 0) { D.idx--; D.hp++; updateHPBar(); msg = '✕ ANGRIFF! DER WÄCHTER REPARIERT SICH (+1)'; }
-  else msg = '✕ ANGRIFF! VERSUCHT ES NOCHMAL';
-  if (D.attacks === 4) msg += ' — IHR BEKOMMT MEHR ZEIT';
+  if (D.idx > 0) { D.idx--; D.hp++; updateHPBar(); msg = '✕ ANGRIFF! −1 LEBEN · WÄCHTER REPARIERT SICH · +' + STRAFZEIT_ANGRIFF + ' s'; }
+  else msg = '✕ ANGRIFF! −1 LEBEN · +' + STRAFZEIT_ANGRIFF + ' s STRAFZEIT';
+  if (D.lives === 1) msg += ' — LETZTES LEBEN!';
   $('w-msg').style.color = '#ff3b3b';
   $('w-msg').textContent = msg;
-  wInput.value = '';
   setTimeout(naechsterBefehl, 1300);
 }
+
+function updateLives(verloren) {
+  const el = $('lives');
+  el.textContent = '♥'.repeat(Math.max(0, D.lives)) + '♡'.repeat(LEBEN - Math.max(0, D.lives));
+  if (verloren) { el.classList.remove('weg'); void el.offsetWidth; el.classList.add('weg'); }
+}
+
+// Alle Leben verloren → „System übernommen“ → Neustart ab Login (Zeit und Strafzeit laufen weiter)
+function gameOver() {
+  D.active = false;
+  clearInterval(D.shake);
+  $('w-cmd-wrap').style.display = 'none';
+  $('w-msg').textContent = '';
+  setWEyes('#ff2a2a');
+  emitW('w-dist', 'near');
+  tippe('HAHAHA … DAS SYSTEM GEHÖRT JETZT MIR.');
+  setTimeout(() => { if (D) D.running = false; $('gameover').classList.add('on'); $('go-btn').focus(); }, 2200);
+}
+
+$('go-btn').addEventListener('click', () => {
+  $('gameover').classList.remove('on');
+  window.removeEventListener('resize', resizeFx);
+  if (D) { clearInterval(D.tw); clearInterval(D.shake); }
+  D = null;
+  fxParts.length = 0;
+  loggedIn = false;
+  levelIdx = 0;
+  updateFirewallBar();
+  digitInputs.forEach(d => { d.value = ''; });
+  $('login-err').style.color = '#c00';
+  $('login-err').textContent = '⚠ VERBINDUNG GETRENNT — BITTE NEU EINLOGGEN';
+  showScreen('login');
+  digitInputs[0].focus();
+});
 
 function sieg() {
   D.active = false;
@@ -1169,7 +1298,7 @@ function showBreach(nDone, then) {
 
 function showVictory() {
   clearInterval(timerId);
-  const elapsed = startTime ? Date.now() - startTime : 0;
+  const elapsed = gesamtMs();
   $('hud').classList.remove('on');
   $('solution-display').textContent = SOLUTION_WORD;
   $('final-time').textContent = fmtTime(elapsed);
