@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Schattenwelt-Scanner</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261122a">
   <!-- Marker-Datei sofort mitladen, während die Bibliotheken noch laden -->
   <link rel="preload" href="assets/targets/scanner.mind" as="fetch" crossorigin="anonymous">
   <!-- A-Frame ZUERST, dann MindAR — Reihenfolge kritisch für Android/Chrome -->
@@ -25,11 +25,13 @@
       font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem; cursor: pointer;
     }
     #sound-btn.on { border-color: #cc3300; color: #e0e0e0; }
-    #home-btn {
-      position: fixed; top: 3.2rem; left: 0.75rem; z-index: 120;
-      background: #000c; border: 1px solid #444; color: #999; text-decoration: none;
-      font: 0.7rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.4rem 0.6rem;
+    /* Tipp-Knopf (gestufte Hilfen pro Station) */
+    #tipp-btn {
+      position: fixed; left: 0.75rem; top: 5.6rem; z-index: 150; display: none;   /* oben links, unter der Statuszeile */
+      background: #0a0a0add; border: 1px solid #d9a441; color: #ffd27a; cursor: pointer;
+      font: 0.8rem 'Courier New', monospace; letter-spacing: 0.1em; padding: 0.5rem 0.75rem;
     }
+    #tipp-btn.neu { animation: soundNudge 1s ease-in-out 4; box-shadow: 0 0 12px #d9a441; }
     #reset-tap { cursor: pointer; user-select: none; -webkit-user-select: none; }
     #sound-btn.nudge { border-color: #33ff77; color: #33ff77; animation: soundNudge 1s ease-in-out infinite; }
     @keyframes soundNudge { 50% { box-shadow: 0 0 14px #33ff77; } }
@@ -88,7 +90,7 @@
       background: radial-gradient(circle at 50% 45%, rgba(150, 70, 255, 0.10), rgba(55, 0, 130, 0.38));
     }
     #spuren {
-      position: fixed; top: 5.6rem; left: 0.75rem; z-index: 120; display: none; max-width: 70vw;
+      position: fixed; top: 8.4rem; left: 0.75rem; z-index: 120; display: none; max-width: 70vw;
       background: #000c; border: 1px solid #8a5cff88; padding: 0.4rem 0.6rem; font-size: 0.72rem; line-height: 1.5; color: #d6c8ff;
     }
     #spuren div { cursor: pointer; }
@@ -139,7 +141,7 @@
 </div>
 
 <div id="signal-hud"></div>
-<a id="home-btn" href="index.html">⌂ START</a>
+<button id="tipp-btn" type="button">💡 TIPP</button>
 <button id="sound-btn" type="button">🔇 TON</button>
 <div id="scan-prompt"></div>
 <button id="action-btn" type="button" hidden></button>
@@ -303,7 +305,7 @@
   </a-entity>
 </a-scene>
 
-<script src="js/interactions.js?v=20261121a"></script>
+<script src="js/interactions.js?v=20261122a"></script>
 <script src="js/fingerabdruck.js?v=20261121a"></script>
 <script>
   window.SCANNER_MODE = true;
@@ -1079,10 +1081,13 @@
       activate(mod);
       $('scan-prompt').style.display = 'none';
       mod.onFound(idx);
+      tippStart(mod.id);
+      updateTipp();
     });
     anchor.addEventListener('targetLost', () => {
       visibleTargets.delete(idx);
       mod.onLost(idx);
+      updateTipp();
       // Kein Motiv mehr im Bild: bei erledigter Station (oder ohne offene Aktion) zurück zur Suche
       if (!visibleTargets.size && $('radio').hidden && $('warrant').hidden && (isStationDone(mod.id) || $('action-btn').hidden)) {
         setAction(null);
@@ -1093,7 +1098,7 @@
 
   // Tipp auf den Bildschirm → an die aktive Station (große Fläche statt genau auf die wackelnde Figur)
   // Wischen (Bewegung > 14 px) ist KEIN Tipp, sondern geht an onDrag der aktiven Station (Labor: Stick drehen)
-  const UI_ZIELE = '#radio, #warrant, #spuren, button, #hint-overlay, #station-ui, #home-btn, input';
+  const UI_ZIELE = '#radio, #warrant, #spuren, button, #hint-overlay, #station-ui, input';
   const aktivesModul = () => MODULES.find(m => m.id === activeId);
   let ptr = null;
   document.addEventListener('pointerdown', e => {
@@ -1122,7 +1127,89 @@
     const mod = MODULES.find(m => m.id === activeId);
     if (!visibleTargets.size) { setAction(null); defaultPrompt(); }
     else if (mod && mod.updateAction) mod.updateAction();
+    updateTipp();
   };
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  Gestufte Tipps im Scanner (entlasten die Lehrkraft)
+  //  HINWEIS FÜR LEHRER: Tipp 1/2/3 werden nach TIPP_MINUTEN freigeschaltet,
+  //  gezählt ab dem ersten Scannen der Station. Das Archiv lässt sich erst nach dem
+  //  Lösen scannen → dort startet die Zählung, wenn die Gruppe im Tipp-Menü „Archiv“ wählt
+  //  (Tipp 1 dann sofort, die weiteren im selben Abstand).
+  // ════════════════════════════════════════════════════════════════════════
+  const TIPP_MINUTEN = [3, 6, 9];
+  const TIPP_KEY = 'schattenschule_tipps';
+  const TIPPS = {
+    'station-1': [
+      'Im Raum sind <strong>4 Karten mit Zeichen</strong> versteckt. Wie die Zeichen aussehen, zeigt Moravas Notizbuch.',
+      'Lest <strong>Seite 1</strong> des Notizbuchs genau: In Moravas Worten kommen die 4 Zeichen in der richtigen <strong>Reihenfolge</strong> vor.',
+      'Legt die Karten in dieser Reihenfolge nebeneinander und <strong>dreht sie um</strong> — die Rückseiten ergeben ein Wort. Scannt dann Moravas Foto, tippt ihn an und <strong>schüttelt das Handy</strong>.'
+    ],
+    'station-2': [
+      'Wartet auf das <strong style="color:#33ff77">grüne Aufleuchten</strong> der Augen — danach beginnt Buchstabe 1. Rundes Aufblitzen = <strong>Punkt</strong>, langer Schlitz = <strong>Strich</strong>. Mit Ton (🔊 oben rechts) ist es leichter.',
+      'Das Kennwort hat <strong>4 Buchstaben</strong>. Schreibt pro Buchstabe die Punkte und Striche auf und sucht sie in der Morse-Tabelle.',
+      'Buchstabe 1 ist <strong>— · — ·</strong> (Strich, Punkt, Strich, Punkt) = <strong>C</strong>. Macht mit den anderen drei genauso weiter.'
+    ],
+    'station-3': [
+      'Schaltet die UV-Lampe ein und <strong>dreht den Stick durch Wischen</strong> — auf drei Seiten sind Spuren. Tippt in der Spurenliste auf den Fingerabdruck: Sucht auf den Steckbriefen Abdrücke mit einer <strong>Gabelung an derselben Stelle oben rechts</strong>. Es sind genau 3.',
+      'Schuhabdruck: Am <strong>Foto-Lineal</strong> ablesen — Ferse bei 4, Spitze bei 32. Länge × 1,5 = Schuhgröße. Wer von euren 3 hat diese Größe?',
+      'Die Tatzeit steht auf der Rückseite des Sticks. Streicht in der Alibi-Mappe alle, deren Aussage <strong>durch ein Dokument bestätigt</strong> wird. Ein Plan, der um 17 Uhr endet, ist kein Alibi für später.'
+    ],
+    'station-4': [
+      'Es sind <strong>zwei Dokumente</strong> gemischt. Nur Moravas Bericht hat einen <strong>roten Stempel</strong> und eine <strong>rote Welle</strong> am oberen Rand.',
+      'Legt die Streifen so, dass die rote Welle oben <strong>ohne Knick</strong> durchläuft. Lest dann die Sätze quer zur Kontrolle.',
+      'Ganz links liegt der Streifen mit der <strong>Lupe</strong> im Briefkopf, ganz rechts der mit „Blatt 1 von 1“ und dem Ende der Unterschrift. Dann das ganze Blatt flach scannen.'
+    ]
+  };
+  const tippDaten = () => { try { return JSON.parse(localStorage.getItem(TIPP_KEY)) || {}; } catch { return {}; } };
+  function tippStart(id, sofort) {
+    const d = tippDaten();
+    if (d[id] || !TIPPS[id]) return;
+    d[id] = Date.now() - (sofort ? TIPP_MINUTEN[0] * 60000 : 0);
+    try { localStorage.setItem(TIPP_KEY, JSON.stringify(d)); } catch {}
+  }
+  // Anzahl freigeschalteter Tipps + Sekunden bis zum nächsten
+  function tippStand(id) {
+    const t0 = tippDaten()[id];
+    if (!t0) return { n: 0, naechster: null };
+    const min = (Date.now() - t0) / 60000;
+    const n = Math.min(TIPPS[id].length, TIPP_MINUTEN.filter(m => min >= m).length);
+    const next = n < TIPPS[id].length ? Math.ceil((TIPP_MINUTEN[n] - min) * 60) : null;
+    return { n, naechster: next };
+  }
+  const offen = () => Object.keys(TIPPS).filter(id => !isSolved(id) && !isStationDone(id));
+  function updateTipp() {
+    const b = $('tipp-btn');
+    let zeigen = false, n = 0;
+    const direkt = visibleTargets.size > 0 && activeId && TIPPS[activeId] && !isSolved(activeId);
+    if (direkt) { n = tippStand(activeId).n; zeigen = n > 0; }            // Motiv im Bild: Tipps dieser Station
+    else if (!visibleTargets.size) { zeigen = offen().length > 0; }       // kein Motiv im Bild: Stations-Menü
+    if (!zeigen) { b.style.display = 'none'; return; }
+    const key = (activeId || '-') + n;
+    if (b.dataset.key !== key && n > 0) { b.classList.remove('neu'); void b.offsetWidth; b.classList.add('neu'); }
+    b.dataset.key = key;
+    b.textContent = n > 0 ? '💡 TIPP' + (n > 1 ? 'S (' + n + ')' : '') : '💡 TIPP';
+    b.style.display = 'block';
+  }
+  function zeigeTipps(id) {
+    tippStart(id, true);
+    const { n, naechster } = tippStand(id);
+    const liste = TIPPS[id].slice(0, n).map((t, i) => '<div style="text-align:left;margin-bottom:0.8rem"><span style="color:#d9a441">TIPP ' + (i + 1) + ':</span> ' + t + '</div>').join('');
+    const mm = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    showHint('<span style="color:#d9a441">// ' + stationLabel(id) + '</span><br><br>' + (liste || 'Noch kein Tipp frei.') +
+             (naechster ? '<div style="color:#888;font-size:0.85em">Nächster Tipp in ' + mm(naechster) + ' Min.</div>' : ''), null);
+    updateTipp();
+  }
+  window.zeigeTipps = zeigeTipps;
+  $('tipp-btn').addEventListener('click', () => {
+    if (visibleTargets.size > 0 && activeId && TIPPS[activeId] && !isSolved(activeId)) { zeigeTipps(activeId); return; }
+    // Kein Motiv im Bild: Station auswählen (zuletzt gescannte zuerst)
+    const ids = offen().sort((a, b) => (b === activeId) - (a === activeId));
+    const knoepfe = ids.map(id =>
+      '<button class="hint-close" style="display:block;width:100%;margin-bottom:0.5rem" onclick="zeigeTipps(\'' + id + '\')">' + stationLabel(id) + '</button>').join('');
+    showHint('<span style="color:#d9a441">// TIPP</span><br><br>An welcher Station seid ihr gerade?<br><br>' + knoepfe, null);
+  });
+  setInterval(updateTipp, 5000);
 
   // ── 3D-Modelle erst nach dem Kamerastart im Hintergrund laden (nach Priorität, eines nach dem anderen) ──
   let modelleGestartet = false;
@@ -1165,6 +1252,20 @@
   MODULES.forEach(m => m.init());
   updateHeader();
   defaultPrompt();
+  updateTipp();
+
+  // Einmalige Scan-Anleitung pro Gerät (Lehrer-Reset löscht das Merkzeichen mit)
+  try {
+    if (!localStorage.getItem('schattenschule_anleitung')) {
+      localStorage.setItem('schattenschule_anleitung', '1');
+      showHint('<span style="color:#cc3300">// SO SCANNT IHR</span><br><br>' +
+        '<div style="text-align:left;line-height:1.9">' +
+        '① Das <strong>ganze Motiv</strong> muss im Bild sein.<br>' +
+        '② Abstand ca. <strong>20–40 cm</strong>, gutes Licht.<br>' +
+        '③ Handy <strong>ruhig halten</strong> — dann erscheint die Figur.<br>' +
+        '④ Hängt ihr fest? Oben links gibt es <strong style="color:#ffd27a">💡 TIPPS</strong>.</div>', null);
+    }
+  } catch {}
   document.addEventListener('DOMContentLoaded', async () => { await enableMotion(); });
 </script>
 </body>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SCHATTENSCHULE — Terminal</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261122a">
   <style>
     :root { --acc: #33ff66; --txt: #e0e0e0; --dim: #555; --hint: #d9a441; }
     body { overflow: auto; }
@@ -302,13 +302,13 @@
 
 <!-- 1. Login -->
 <div class="screen active" id="screen-login">
-  <div class="term-head">// SYSTEM: SCHATTENSCHULE-ARCHIV</div>
-  <div class="term-title">FORSCHUNGSPROTOKOLL<br>ZUGRIFF GESPERRT</div>
+  <div class="term-head">// SYSTEM: HAUPTSERVER · SERVERRAUM K-04</div>
+  <div class="term-title">VIRUS SCHATTEN AKTIV<br>ZUGRIFF GESPERRT</div>
   <div style="color:#999;margin-bottom:1.25rem;font-size:0.95rem">Gebt den Zugangscode aus euren 4 Stationen ein — sortiert nach Moravas Zeichen:</div>
   <div class="digits" id="digits"></div>
   <div class="err" id="login-err"></div>
   <button class="btn" id="login-btn">[ ZUGRIFF ANFORDERN ]</button>
-  <div style="margin-top:2.5rem;font-size:0.7rem;color:#333;letter-spacing:0.1em">WARNUNG: Unbefugter Zugriff wird protokolliert.</div>
+  <div style="margin-top:2.5rem;font-size:0.75rem;color:#777;letter-spacing:0.1em">WARNUNG: Unbefugter Zugriff wird protokolliert.</div>
 </div>
 
 <!-- 2. Firewall-Ebenen -->
@@ -416,7 +416,7 @@
   </div>
 </div>
 
-<script src="js/interactions.js?v=20261121a"></script>
+<script src="js/interactions.js?v=20261122a"></script>
 <script>
 // ═════════════════════════════════════════════════════════════════════════
 //  HINWEIS FÜR LEHRER — hier lässt sich alles anpassen
@@ -511,6 +511,7 @@ function strafe(sek) {
   const t = $('timer');
   t.textContent = fmtTime(gesamtMs());
   t.classList.remove('strafe'); void t.offsetWidth; t.classList.add('strafe');
+  speichereStand(levelIdx);
 }
 
 function showScreen(name) {
@@ -531,10 +532,19 @@ function fmtTime(ms) {
 }
 
 function startTimer() {
-  startTime = Date.now();
+  if (!startTime) startTime = Date.now();          // nach Neuladen läuft die gespeicherte Zeit weiter
   $('hud').classList.add('on');
+  clearInterval(timerId);
   timerId = setInterval(() => { $('timer').textContent = fmtTime(gesamtMs()); }, 500);
 }
+
+// ── Fortschritt speichern: Neuladen / Ruhezustand setzt nicht alles zurück ──
+const HACK_KEY = 'schattenschule_hack';
+function speichereStand(level) {
+  if (testLevel >= 1) return;   // Lehrer-Testmodus speichert nichts (testLevel wird unten gesetzt, bevor gespeichert wird)
+  try { localStorage.setItem(HACK_KEY, JSON.stringify({ level, startTime, strafMs })); } catch {}
+}
+function loescheStand() { try { localStorage.removeItem(HACK_KEY); } catch {} }
 
 function updateFirewallBar() {
   const bar = $('fw-bar');
@@ -608,6 +618,7 @@ function startLevel(i) {
   if (cleanupLevel) { cleanupLevel(); cleanupLevel = null; }
   levelIdx = i;
   updateFirewallBar();
+  if (startTime) speichereStand(i);
   if (i >= LEVELS.length) { startBossFight(); return; }
 
   const lvl = LEVELS[i];
@@ -1349,6 +1360,7 @@ $('go-btn').addEventListener('click', () => {
   digitInputs.forEach(d => { d.value = ''; });
   $('login-err').style.color = '#c00';
   $('login-err').textContent = '⚠ VERBINDUNG GETRENNT — BITTE NEU EINLOGGEN';
+  speichereStand('login');   // auch nach Neuladen: Login, Zeit läuft weiter
   showScreen('login');
   digitInputs[0].focus();
 });
@@ -1425,6 +1437,7 @@ function showBreach(nDone, then) {
 function showVictory() {
   clearInterval(timerId);
   const elapsed = gesamtMs();
+  loescheStand();
   $('hud').classList.remove('on');
   $('solution-display').textContent = SOLUTION_WORD;
   $('final-time').textContent = fmtTime(elapsed);
@@ -1476,6 +1489,38 @@ if (testLevel >= 1 && testLevel <= LEVELS.length + 1) {
   loggedIn = true;
   startTimer();
   startLevel(testLevel - 1);
+}
+
+// Lehrer-Reset am Laptop: 5× innerhalb von 2 s auf „// SCHATTENSCHULE-TERMINAL“ (oben links) tippen
+(() => {
+  let n = 0, t = null;
+  const el = $('hud-name');
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', () => {
+    n++; clearTimeout(t);
+    t = setTimeout(() => { n = 0; el.textContent = '// SCHATTENSCHULE-TERMINAL'; }, 2000);
+    if (n >= 5) { loescheStand(); el.textContent = '✓ RESET'; setTimeout(() => location.replace(location.pathname), 600); }
+    else if (n >= 2) el.textContent = 'RESET ' + (5 - n) + '×';
+  });
+})();
+
+if (!(testLevel >= 1 && testLevel <= LEVELS.length + 1)) {
+  // Gespeicherten Stand fortsetzen (z. B. nach F5 oder Ruhezustand des Laptops)
+  let stand = null;
+  try { stand = JSON.parse(localStorage.getItem(HACK_KEY)); } catch {}
+  if (stand && stand.startTime) {
+    startTime = stand.startTime;
+    strafMs = stand.strafMs || 0;
+    startTimer();
+    if (stand.level === 'login') {
+      $('login-err').style.color = '#c00';
+      $('login-err').textContent = '⚠ VERBINDUNG GETRENNT — BITTE NEU EINLOGGEN';
+    } else if (Number.isInteger(stand.level)) {
+      loggedIn = true;
+      vorladen();
+      startLevel(Math.min(stand.level, LEVELS.length));   // Duell beginnt neu mit 3 Leben
+    }
+  }
 }
 </script>
 <script>
