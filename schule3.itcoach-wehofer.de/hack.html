@@ -19,6 +19,8 @@
       text-align: center;
     }
     .screen.active { display: flex; }
+    /* Sieg-Inhalt unter dem tanzenden Wächter (im Duell-Fenster) */
+    #screen-victory.im-duell { min-height: 0; padding: 1.25rem 0 0.5rem; }
 
     .term-head  { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.5rem; }
     .term-title { font-size: 1.5rem; color: var(--acc); letter-spacing: 0.2em; margin-bottom: 2rem; animation: glitch 3s infinite; line-height: 1.5; }
@@ -219,9 +221,14 @@
     #breach .br-bar i { display: block; height: 100%; width: 0; background: var(--acc); box-shadow: 0 0 12px var(--acc); }
     #breach.on .br-bar i { animation: brFill 1.3s ease-out forwards; }
     /* Leben im Duell + „Game over“ */
-    #lives-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; letter-spacing: 0.2em; color: #888; margin: 0.45rem 0 0; }
-    #lives { color: #ff3b3b; font-size: 1.15rem; letter-spacing: 0.25em; text-shadow: 0 0 8px #ff3b3b88; }
-    #lives.weg { animation: dShake 0.35s 2; }
+    /* Leben groß rechts unten im Monster-Fenster */
+    #lives-box {
+      position: absolute; right: 12px; bottom: 10px; z-index: 3; text-align: right;
+      background: #000a; border: 1px solid #ff3b3b55; padding: 0.35rem 0.7rem 0.45rem;
+    }
+    #lives-box small { display: block; font-size: 0.62rem; letter-spacing: 0.25em; color: #ff8a8a; margin-bottom: 0.1rem; }
+    #lives { color: #ff3b3b; font-size: clamp(1.8rem, 4.5vw, 2.6rem); line-height: 1; letter-spacing: 0.12em; text-shadow: 0 0 12px #ff3b3baa; }
+    #lives-box.weg { animation: dShake 0.35s 2; border-color: #ff3b3b; }
     #gameover {
       position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 0.9rem;
       background: radial-gradient(ellipse at center, #2a0000ee 0%, #000000f5 70%); text-align: center; padding: 1rem;
@@ -309,13 +316,13 @@
     <div id="hp-bar-wrap">
       <div class="hp-label"><span>WÄCHTER — INTEGRITÄT</span><span id="hp-text">100%</span></div>
       <div id="hp-bar-bg"><div id="hp-bar"></div></div>
-      <div id="lives-row"><span>EURE LEBEN</span><span id="lives">♥♥♥</span></div>
     </div>
     <div id="stage">
       <div id="w-fallback"><i></i><i></i></div>
       <canvas id="fx"></canvas>
       <div id="flash"></div>
       <div id="stage-load">◌ DER WÄCHTER ERSCHEINT …</div>
+      <div id="lives-box"><small>EURE LEBEN</small><span id="lives">♥♥♥</span></div>
     </div>
     <div id="w-dialog"></div>
     <button class="btn" id="w-start" hidden>▸ DUELL STARTEN</button>
@@ -554,6 +561,7 @@ function checkCode() {
     loggedIn = true;
     $('login-err').style.color = '#33ff66';
     $('login-err').textContent = '✓ ZUGRIFF GEWÄHRT — FIREWALL WIRD GEHACKT …';
+    vorladen();
     setTimeout(() => { if (!startTime) startTimer(); startLevel(0); }, 900);   // nach „Game over“ läuft die Zeit weiter
   } else {
     $('login-err').style.color = '#c00';
@@ -695,8 +703,9 @@ const RENDERERS = {
     const COLS = [110, 150, 190, 230, 270];
     const COL_MIN = ARENA.y + R, COL_LEN = ARENA.h - 2 * R, COL_SPEED = 150;
     // Raum 2: drehender Arm um die Mitte
-    // (Arm reicht bis 130 px und dreht schneller als früher; die Ecken links bleiben knapp sicher)
-    const ARM_C = { x: 450, y: 180 }, ARM_R = [0, 33, 66, 98, 130], ARM_W = 1.55;
+    // Arm: Spitze reicht bis x = 470 − 120 − 8 = 342 → knapp VOR die SAFE-Zone (endet bei x = 340), nie hinein.
+    // Dreht schneller als früher; der Weg aus der SAFE-Zone an der linken Wand entlang muss abgepasst werden.
+    const ARM_C = { x: 470, y: 180 }, ARM_R = [0, 30, 60, 90, 120], ARM_W = 1.6;
 
     ctx.body.innerHTML =
       '<canvas class="dodge-canvas"></canvas>' +
@@ -951,7 +960,13 @@ const RENDERERS = {
 
 // ── Finale: Hacker-Duell gegen den Wächter (3D-Monster aus dem Funkraum) ──
 const AFRAME_URL = 'https://aframe.io/releases/1.6.0/aframe.min.js';
-const W_MODEL    = 'assets/models/kreatur-funkraum.glb';
+const AFRAME_EXTRAS_URL = 'https://cdn.jsdelivr.net/npm/aframe-extras@7.2.0/dist/aframe-extras.min.js';   // animation-mixer
+// Animiertes Meshy-Monster (nur hier im Laptop-Finale; der Scanner nutzt weiter kreatur-funkraum.glb)
+const W_MODEL    = 'assets/models/waechter-animiert.glb';
+const CLIP = { idle: 'Idle_10', angriff: 'Charged_Upward_Slash', phase: 'Skill_01',
+               besiegt: 'Shot_in_the_Back_and_Fall', tanz: 'Gangnam_Groove' };
+const AUGEN = { x: 0.067, y: 1.238, z: 0.28, r: 0.03 };   // Augenhöhlen in der Grundhaltung (Modellkoordinaten)
+let wEyes = [];
 const W_TOTAL    = DUELL.reduce((n, p) => n + p.befehle.length, 0);
 const fxCanvas = $('fx');
 const fx = fxCanvas.getContext('2d');
@@ -961,21 +976,69 @@ const fxParts = [];
 
 function startBossFight() { startDuell(); }
 
-function ladeAFrame() {
+function ladeSkript(src) {
   return new Promise((res, rej) => {
-    if (window.AFRAME) return res();
     const s = document.createElement('script');
-    s.src = AFRAME_URL; s.onload = res; s.onerror = rej;
+    s.src = src; s.onload = res; s.onerror = rej;
     document.head.appendChild(s);
+  });
+}
+let aframeLaden = null;
+function ladeAFrame() {
+  // A-Frame ist Pflicht; aframe-extras (Animationen) optional — ohne steht der Wächter eben still
+  if (!aframeLaden) aframeLaden = (window.AFRAME ? Promise.resolve() : ladeSkript(AFRAME_URL))
+    .then(() => (AFRAME.components['animation-mixer'] ? null : ladeSkript(AFRAME_EXTRAS_URL).catch(() => null)));
+  return aframeLaden;
+}
+// Schon während der Firewalls im Hintergrund laden, damit der Wächter im Finale sofort da ist
+function vorladen() {
+  ladeAFrame().catch(() => {});
+  try { fetch(W_MODEL).catch(() => {}); } catch {}
+}
+
+// Animation abspielen (once = einmal, danach optional zurück in die Grundhaltung)
+function spiele(clip, opts = {}) {
+  const el = $('w-model');
+  if (!el || !el.setAttribute || !window.AFRAME || !AFRAME.components['animation-mixer']) return;
+  el.setAttribute('animation-mixer', { clip, loop: opts.once ? 'once' : 'repeat', clampWhenFinished: !!opts.once,
+                                       crossFadeDuration: opts.fade != null ? opts.fade : 0.3, timeScale: opts.speed || 1 });
+  if (opts.once && opts.danachIdle) {
+    const fertig = () => {
+      el.removeEventListener('animation-finished', fertig);
+      if ((el.getAttribute('animation-mixer') || {}).clip === clip) spiele(CLIP.idle);
+    };
+    el.addEventListener('animation-finished', fertig);
+  }
+}
+
+// Leuchtende Augen als Kinder des Kopfknochens → bewegen sich mit jeder Animation mit
+function augenAnKopf() {
+  const root = $('w-model').getObject3D('mesh');
+  let head = null, skin = null;
+  root.traverse(n => {
+    if (n.isBone && /Head$/.test(n.name) && !head) head = n;
+    if (n.isSkinnedMesh && !skin) skin = n;
+  });
+  if (!head || !skin) return;
+  skin.skeleton.pose();                 // Grundhaltung, in der die Augen ausgemessen wurden
+  root.updateMatrixWorld(true);
+  const ws = new THREE.Vector3(); head.getWorldScale(ws);
+  wEyes = [-1, 1].map(s => {
+    const core = new THREE.Mesh(new THREE.SphereGeometry(AUGEN.r, 16, 12), new THREE.MeshBasicMaterial({ color: '#ff2a2a' }));
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(AUGEN.r * 1.45, 16, 12),
+      new THREE.MeshBasicMaterial({ color: '#ff2a2a', transparent: true, opacity: 0.35, depthWrite: false }));
+    core.add(glow);
+    const p = root.localToWorld(new THREE.Vector3(s * AUGEN.x, AUGEN.y, AUGEN.z));
+    head.worldToLocal(p);
+    core.position.copy(p);
+    core.scale.setScalar(1 / ws.x);
+    head.add(core);
+    return core;
   });
 }
 
 function baueSzene() {
-  // Modell-Ursprung liegt in der Mitte (Höhe ca. −0.95 … +0.95); Augen = Modellkoordinaten wie in scan.html
-  const auge = x =>
-    '<a-sphere class="w-eye" radius="0.05" position="' + x + ' 0.43 0.38" color="#ff2a2a" material="shader: flat">' +
-      '<a-sphere class="glow" radius="0.07" color="#ff2a2a" opacity="0.35" material="shader: flat; transparent: true"></a-sphere>' +
-    '</a-sphere>';
+  // Modell-Ursprung liegt an den Füßen (Höhe 0 … 1,7) → um 0,95 absenken, damit es mittig im Fenster steht
   $('stage').insertAdjacentHTML('afterbegin',
     '<a-scene embedded vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" loading-screen="enabled: false" ' +
     'device-orientation-permission-ui="enabled: false" renderer="colorManagement: true; antialias: true" ' +
@@ -992,13 +1055,15 @@ function baueSzene() {
           ' animation__hit="property: position; from: 0 0 -0.25; to: 0 0 0; dur: 380; easing: easeOutQuad; startEvents: hit"' +
           ' animation__atk="property: position; from: 0 0.05 0.75; to: 0 0 0; dur: 650; easing: easeOutQuad; startEvents: atk">' +
           '<a-entity id="w-sway" rotation="0 -8 0" animation__sway="property: rotation; to: 0 8 0; dir: alternate; loop: true; dur: 3200; easing: easeInOutSine">' +
-            '<a-gltf-model id="w-model" src="' + W_MODEL + '"></a-gltf-model>' +
-            auge(-0.085) + auge(0.085) +
+            '<a-gltf-model id="w-model" src="' + W_MODEL + '" position="0 -0.95 0"' +
+              ' animation-mixer="clip: ' + CLIP.idle + '; crossFadeDuration: 0.3"></a-gltf-model>' +
           '</a-entity>' +
         '</a-entity>' +
       '</a-entity>' +
     '</a-scene>');
   $('w-model').addEventListener('model-loaded', () => {
+    try { augenAnKopf(); } catch (e) { console.warn('Augen', e); }
+    setWEyes(baseEyeColor());
     if (!D) return;
     D.loaded = true;
     $('stage-load').textContent = '';
@@ -1014,9 +1079,9 @@ function zeigeRueckfall() {
 }
 
 function setWEyes(color) {
-  document.querySelectorAll('.w-eye').forEach(e => {
-    e.setAttribute('color', color);
-    const g = e.querySelector('.glow'); if (g) g.setAttribute('color', color);
+  wEyes.forEach(e => {
+    e.material.color.set(color);
+    if (e.children[0]) e.children[0].material.color.set(color);
   });
   document.querySelectorAll('#w-fallback i').forEach(i => {
     i.style.background = color; i.style.boxShadow = '0 0 25px 8px ' + color;
@@ -1068,6 +1133,7 @@ function startDuell() {
     dist.setAttribute('scale', '1 1 1');
     $('w-model').setAttribute('visible', true);
     setWEyes('#ff2a2a');
+    spiele(CLIP.idle);
     dist.emit('rise');
   }
   setTimeout(zeigeRueckfall, 10000);   // kein WebGL / offline → glühende Augen in der Dunkelheit
@@ -1172,6 +1238,7 @@ function phasenWechsel() {
     d.setAttribute('animation__near', 'to', D.phase >= 2 ? '0 0 0.8' : '0 0 0.4');
     d.emit('near');
   }
+  spiele(CLIP.phase, { once: true, danachIdle: true });
   if (D.phase >= 2 && !D.shake) D.shake = setInterval(() => { if (D.active) screenShake($('stage')); }, 2200);
   tippe(DUELL[D.phase].spruch);
   setTimeout(naechsterBefehl, 1900);
@@ -1183,6 +1250,7 @@ function angriff() {
   D.lives--;
   updateLives(true);
   emitW('w-jolt', 'atk');
+  spiele(CLIP.angriff, { once: true, danachIdle: true, speed: 1.4 });
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.opacity = '0.55';
   requestAnimationFrame(() => { fl.style.transition = 'opacity 0.5s'; fl.style.opacity = '0'; });
   screenShake($('duell'));
@@ -1201,7 +1269,8 @@ function angriff() {
 function updateLives(verloren) {
   const el = $('lives');
   el.textContent = '♥'.repeat(Math.max(0, D.lives)) + '♡'.repeat(LEBEN - Math.max(0, D.lives));
-  if (verloren) { el.classList.remove('weg'); void el.offsetWidth; el.classList.add('weg'); }
+  const box = $('lives-box');
+  if (verloren) { box.classList.remove('weg'); void box.offsetWidth; box.classList.add('weg'); }
 }
 
 // Alle Leben verloren → „System übernommen“ → Neustart ab Login (Zeit und Strafzeit laufen weiter)
@@ -1237,17 +1306,21 @@ function sieg() {
   clearInterval(D.shake);
   $('w-cmd-wrap').style.display = 'none';
   tippe('NEIN … MEIN CODE …!\nIHR … LÖSCHT … MICH …');
-  emitW('w-dist', 'die');
-  const m = $('w-model');
-  let k = 0;
-  const flicker = setInterval(() => {
-    k++;
-    if (m && m.setAttribute) m.setAttribute('visible', k % 2 === 0);
-    document.querySelectorAll('#w-fallback i').forEach(i => { i.style.opacity = k % 2 ? 0.2 : 1; });
-    if (k > 20) { clearInterval(flicker); if (m && m.setAttribute) m.setAttribute('visible', false); $('w-fallback').style.display = 'none'; }
-  }, 90);
+  if (D.loaded) {
+    // 3D: Wächter bricht zusammen, Augen erlöschen
+    spiele(CLIP.besiegt, { once: true, fade: 0.2 });
+    setTimeout(() => setWEyes('#330000'), 1800);
+  } else {
+    // Rückfall ohne 3D: glühende Augen flackern und verschwinden
+    let k = 0;
+    const flicker = setInterval(() => {
+      k++;
+      document.querySelectorAll('#w-fallback i').forEach(i => { i.style.opacity = k % 2 ? 0.2 : 1; });
+      if (k > 20) { clearInterval(flicker); $('w-fallback').style.display = 'none'; }
+    }, 90);
+  }
   D.rainUntil = performance.now() + 3500;
-  setTimeout(() => { D.running = false; window.removeEventListener('resize', resizeFx); showVictory(); }, 4200);
+  setTimeout(() => { D.running = false; window.removeEventListener('resize', resizeFx); showVictory(); }, 5000);
 }
 
 function duellLoop(now) {
@@ -1306,7 +1379,25 @@ function showVictory() {
   $('c-group').textContent = ' ';
   $('c-time').textContent = fmtTime(elapsed);
   $('c-date').textContent = new Date().toLocaleDateString('de-AT');
-  showScreen('victory');
+  if (D && D.loaded) {
+    // Abschlussbild im Duell-Fenster: der besiegte Wächter tanzt (Augen grün = Virus gelöscht),
+    // darunter Lösungswort, Zeit und Urkunde. Die 3D-Szene selbst bleibt, wo sie ist.
+    ['hp-bar-wrap', 'w-dialog', 'w-cmd-wrap', 'lives-box'].forEach(id => { $(id).style.display = 'none'; });
+    $('duell').querySelector('.lvl-label').style.display = 'none';
+    const v = $('screen-victory');
+    v.classList.add('im-duell', 'active');
+    $('duell').appendChild(v);
+    const d = $('w-dist');
+    d.setAttribute('position', '0 0 0.2');
+    d.setAttribute('scale', '1 1 1');
+    setWEyes('#33ff66');
+    spiele(CLIP.tanz, { fade: 0.6 });
+    fxParts.length = 0;                                   // stehengebliebene 0/1-Zeichen vom Siegesregen weg
+    fx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    window.scrollTo(0, 0);
+  } else {
+    showScreen('victory');
+  }
   // Morava meldet sich
   const msg = '» … hier Morava. Ich bin zurück! Ohne euch wäre ich für immer in der Schattenwelt geblieben. Danke, Detektive. «';
   const el = $('v-morava'); el.textContent = '';
