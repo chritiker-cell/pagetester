@@ -124,6 +124,8 @@
     .fp-gross { display: block; width: min(70vw, 300px); margin: 0.5rem auto; background: #1a0533; border: 1px solid #8a5cff; }
 
     .tablet-canvas { display: none; }
+    /* Wischen auf dem Kamerabild nicht als Scrollen/Zoomen deuten (sonst bricht die Geste ab) */
+    .a-canvas, a-scene, video { touch-action: none; }
     /* A-Frame-Buttons für VR/AR-Brillenmodus ausblenden (nicht nötig, würde die Kamera-AR stören) */
     .a-enter-vr, .a-enter-ar, .a-enter-vr-button, .a-enter-ar-button { display: none !important; }
   </style>
@@ -702,9 +704,9 @@
       ['wendl', 'S. Wendl', 'Laborassistentin'],
     ],
     SPUREN: [
-      { kurz: 'Fingerabdruck', lang: 'Oberseite: Fingerabdruck', winkel: 55 },
-      { kurz: 'Etikett · 18:40', lang: 'Rückseite: Etikett<br><strong>EINGESTECKT 18:40 · LABOR-PC 2</strong>', winkel: 60 },
-      { kurz: 'Faser · Kittel?', lang: 'Stecker: weiße Baumwollfaser<br><strong>vermutlich von einem Kittel</strong>', winkel: 60 },
+      { kurz: 'Fingerabdruck', lang: 'Oberseite: Fingerabdruck', winkel: 70 },
+      { kurz: 'Etikett · 18:40', lang: 'Rückseite: Etikett<br><strong>EINGESTECKT 18:40 · LABOR-PC 2</strong>', winkel: 70 },
+      { kurz: 'Faser · Kittel?', lang: 'Stecker: weiße Baumwollfaser<br><strong>vermutlich von einem Kittel</strong>', winkel: 70 },
     ],
     visible: false, uv: false, found: [false, false, false], seit: [0, 0, 0], auswahl: null, lockTick: null,
 
@@ -777,11 +779,37 @@
       if (isSolved('station-3')) { this.confirm(); return; }
       if (!this.uv) this.setUV(true);
     },
+
+    // ── Stick drehen per Wischen (links/rechts), mit leichtem Nachdrehen ──
+    yaw: 0, vel: 0, spin: null,
+    setYaw(grad) {
+      this.yaw = ((grad % 360) + 360) % 360;
+      $('usb').object3D.rotation.z = this.yaw * Math.PI / 180;
+    },
+    onDrag(dx, dt) {
+      if (!this.visible || !$('warrant').hidden) return;
+      if (this.spin) { cancelAnimationFrame(this.spin); this.spin = null; }
+      const d = -dx * 0.5;                       // 0,5° pro Pixel; nach rechts wischen = im Uhrzeigersinn
+      this.setYaw(this.yaw + d);
+      this.vel = dt > 0 ? Math.max(-1, Math.min(1, d / dt)) : 0;   // Grad pro ms
+    },
+    onDragEnd() {
+      if (Math.abs(this.vel) < 0.05) return;
+      let last = performance.now();
+      const step = now => {
+        const dt = now - last; last = now;
+        this.vel *= Math.pow(0.985, dt);
+        if (Math.abs(this.vel) < 0.01) { this.spin = null; return; }
+        this.setYaw(this.yaw + this.vel * dt);
+        this.spin = requestAnimationFrame(step);
+      };
+      this.spin = requestAnimationFrame(step);
+    },
     updateAction() {
       if (isSolved('station-3')) { $('signal-hud').style.display = 'none'; setAction('▸ [ CODE-TEIL ANZEIGEN ]', () => this.confirm()); return; }
       if (!this.uv) { setAction('▸ [ UV-LAMPE EINSCHALTEN ]', () => this.setUV(true)); return; }
       this.hud();
-      if (this.anzahl() < 3) setPrompt('▸ SUCHT DIE SPUREN — SCHAUT DEN STICK VON ALLEN SEITEN AN<span class="rec">AUCH VON HINTEN UND VOM STECKER AUS</span>');
+      if (this.anzahl() < 3) setPrompt('▸ SUCHT DIE SPUREN AUF ALLEN SEITEN<span class="rec">⟲ WISCHEN = STICK DREHEN</span>');
       else setAction('▸ [ HAFTBEFEHL AUSSTELLEN ]', () => this.openWarrant());
     },
     hud() {
@@ -982,9 +1010,27 @@
   });
 
   // Tipp auf den Bildschirm → an die aktive Station (große Fläche statt genau auf die wackelnde Figur)
+  // Wischen (Bewegung > 14 px) ist KEIN Tipp, sondern geht an onDrag der aktiven Station (Labor: Stick drehen)
+  const UI_ZIELE = '#radio, #warrant, #spuren, button, #hint-overlay, #station-ui, #home-btn, input';
+  const aktivesModul = () => MODULES.find(m => m.id === activeId);
+  let ptr = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.target.closest(UI_ZIELE)) { ptr = null; return; }
+    ptr = { x0: e.clientX, y0: e.clientY, x: e.clientX, t: performance.now(), moved: false };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!ptr) return;
+    if (Math.abs(e.clientX - ptr.x0) + Math.abs(e.clientY - ptr.y0) > 14) ptr.moved = true;
+    const mod = aktivesModul(), now = performance.now();
+    if (ptr.moved && mod && mod.onDrag) mod.onDrag(e.clientX - ptr.x, now - ptr.t);
+    ptr.x = e.clientX; ptr.t = now;
+  });
+  document.addEventListener('pointercancel', () => { ptr = null; });
   document.addEventListener('pointerup', e => {
-    if (e.target.closest('#radio, #warrant, #spuren, button, #hint-overlay, #station-ui, #home-btn, input')) return;
-    const mod = MODULES.find(m => m.id === activeId);
+    const p = ptr; ptr = null;
+    if (!p || e.target.closest(UI_ZIELE)) return;
+    const mod = aktivesModul();
+    if (p.moved) { if (mod && mod.onDragEnd) mod.onDragEnd(); return; }
     if (mod && mod.onTap) mod.onTap();
   });
 
