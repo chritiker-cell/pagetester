@@ -4,122 +4,168 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SCHATTENSCHULE</title>
-  <link rel="stylesheet" href="style.css?v=20261122a">
+  <link rel="stylesheet" href="style.css?v=20261122b">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body { overflow-y: auto; overflow-x: hidden; }
-    #landing { padding-left: 16px; padding-right: 16px; }
-    .report-box, .group-buttons { width: 100%; }
+    #landing { padding: 0 16px 2rem; }
 
-    /* Großer Einstieg für die Schüler */
+    /* ═══ Einstieg: Titelbild + Polizeibericht ═══ */
+    .intro { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    /* Handy: Bild niedriger, Logo (oben im Bild) bleibt sichtbar */
+    #hero { max-width: 480px; overflow: hidden; }
+    #hero-img { width: 100%; max-height: 58vh; object-fit: cover; object-position: top; }
+    .intro-text { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
+    .intro .logo-sub { margin: 1.25rem 0 1.25rem; font-size: 0.85rem; }
+    .intro .report-box { width: 100%; max-width: none; margin-bottom: 1.5rem; color: #b5b5b5; }
+    .intro .report-box .label { font-size: 0.8rem; }
+
     .start-btn {
-      display: block; width: 100%; max-width: 380px; margin: 0 0 0.9rem; padding: 1.15rem 1rem;
+      display: block; width: 100%; padding: 1.15rem 1rem; margin-bottom: 0.7rem;
       border: 2px solid #cc3300; background: #cc33001a; color: #f0f0f0; text-decoration: none;
       font: bold 1.15rem 'Courier New', monospace; letter-spacing: 0.18em; text-align: center;
       box-shadow: 0 0 22px #cc330055, inset 0 0 18px #cc330022;
       animation: startPulse 2.6s ease-in-out infinite;
     }
     .start-btn:hover, .start-btn:active { background: #cc330040; }
-    .start-sub { max-width: 380px; font-size: 0.8rem; color: #777; line-height: 1.7; }
-    .start-sub strong { color: #c0c0c0; }
+    .start-sub { font-size: 0.85rem; color: #9a9a9a; line-height: 1.6; }
+    .start-sub strong { color: #d0d0d0; }
+    .intro .warning { margin-top: 1rem; }
     @keyframes startPulse { 50% { box-shadow: 0 0 34px #cc330088, inset 0 0 22px #cc330033; } }
 
-    /* Bereich für Lehrkräfte */
-    .teacher {
-      width: 100%; max-width: 380px; margin-top: 3.5rem; padding: 1.25rem 1rem 1rem;
-      border-top: 1px dashed #333; text-align: center;
+    /* Laptop / Beamer: Bild links, Bericht rechts — alles auf einen Blick, größere Schrift */
+    @media (min-width: 900px) {
+      .intro {
+        flex-direction: row; justify-content: center; align-items: center; gap: 2.5rem;
+        min-height: 100vh; max-width: 1200px; margin: 0 auto;
+      }
+      #hero { flex: none; width: auto; max-width: none; height: calc(100vh - 2rem); }   /* style.css setzt width:100% */
+      #hero-img { width: auto; height: 100%; max-height: none; }
+      .intro-text { flex: 0 1 560px; min-width: 0; max-width: 560px; align-items: stretch; text-align: left; }
+      .intro .logo-sub { text-align: left; padding: 0; margin: 0 0 1rem; font-size: 0.78rem; }
+      .intro .report-box { font-size: 1.06rem; line-height: 1.6; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
+      .start-btn { font-size: 1.3rem; }
+      .start-sub, .intro .warning { text-align: left; }
     }
-    .teacher-head { font-size: 0.65rem; letter-spacing: 0.3em; color: #666; margin-bottom: 1.1rem; }
-    .teacher-sub  { font-size: 0.6rem; letter-spacing: 0.25em; color: #555; margin: 1.6rem 0 0.75rem; }
+
+    /* ═══ Bereich für Lehrkräfte (aufklappbar) ═══ */
+    .teacher { width: 100%; max-width: 420px; margin: 2.5rem auto 0; border-top: 1px dashed #3a3a3a; padding-top: 1rem; }
+    .teacher > summary {
+      list-style: none; cursor: pointer; user-select: none; text-align: center;
+      font-size: 0.8rem; letter-spacing: 0.3em; color: #a0a0a0; padding: 0.8rem;
+      border: 1px solid #333; background: #070707;
+    }
+    .teacher > summary::-webkit-details-marker { display: none; }
+    .teacher > summary::after { content: ' ▾'; color: #cc3300; }
+    .teacher[open] > summary::after { content: ' ▴'; }
+    .teacher > summary:hover { color: #e0e0e0; border-color: #cc3300; }
+    .t-grid { display: grid; grid-template-columns: 1fr; gap: 1.1rem; margin-top: 1.1rem; text-align: center; }
+    .t-box { border: 1px solid #262626; padding: 0.9rem; background: #050505; }
+    .t-box h3 { font-weight: normal; font-size: 0.72rem; letter-spacing: 0.25em; color: #9a9a9a; margin: 0 0 0.75rem; }
     .lehrer-btn {
-      display: block; width: 100%; padding: 0.8rem 1rem;
-      border: 1px solid #333; background: #070707; color: #888; text-decoration: none;
-      font-size: 0.75rem; letter-spacing: 0.15em; text-align: center;
+      display: block; width: 100%; padding: 0.7rem 0.8rem; margin-bottom: 0.5rem;
+      border: 1px solid #3a3a3a; background: #0a0a0a; color: #c8c8c8; text-decoration: none;
+      font-size: 0.8rem; letter-spacing: 0.1em; text-align: center; font-family: 'Courier New', monospace; cursor: pointer;
     }
-    .lehrer-btn:hover, .lehrer-btn:active { color: #cc3300; border-color: #cc3300; }
-    .teacher .group-buttons { max-width: none; margin: 0 auto; }
-    .teacher .group-btn { font-size: 0.85rem; padding: 0.7rem; }
-    .teacher-note { font-size: 0.65rem; color: #555; margin-top: 0.5rem; letter-spacing: 0.05em; line-height: 1.6; }
-    #qrcode { display: inline-block; padding: 0.75rem; background: #0a0a0a; border: 1px solid #cc330044; }
+    .lehrer-btn:hover, .lehrer-btn:active { color: #fff; border-color: #cc3300; }
+    .st-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .st-grid .group-btn { padding: 0.65rem 0.4rem; font-size: 0.78rem; line-height: 1.35; }
+    .st-grid .group-btn b { display: block; font-size: 1.35rem; color: #cc3300; font-weight: normal; }
+    .geraete { display: flex; gap: 0.8rem; align-items: center; text-align: left; }
+    #qrcode { flex: none; padding: 0.4rem; background: #0a0a0a; border: 1px solid #cc330044; line-height: 0; }
+    .geraete .lehrer-btn { margin-bottom: 0.4rem; }
+    .t-note { font-size: 0.72rem; color: #8a8a8a; line-height: 1.55; word-break: break-word; }
+    #reset-hint {
+      margin-top: 0.6rem; padding: 0.55rem; font-size: 0.78rem; color: #8a8a8a; letter-spacing: 0.15em;
+      cursor: pointer; user-select: none; border: 1px dashed #333;
+    }
+    @media (min-width: 900px) {
+      .teacher { max-width: 1100px; margin-bottom: 1rem; }
+      .teacher > summary { max-width: 420px; margin: 0 auto; }
+      .t-grid { grid-template-columns: 1fr 1.25fr 1.25fr; }
+    }
   </style>
 </head>
 <body>
 <div id="landing">
 
-  <!-- Hero Image -->
-  <div id="hero">
-    <img src="schattenschule.jpg" alt="Schattenschule" id="hero-img">
-    <div id="hero-overlay"></div>
-  </div>
-
-  <div class="logo-sub" style="margin-top:1.5rem">ERMITTLUNGSPROTOKOLL — ZUGRIFF EINGESCHRÄNKT</div>
-
-  <div class="report-box">
-    <div class="label">// POLIZEIBERICHT NR. 2024-∅∅7</div>
-    Am Abend des 14. November wurde Privatdetektiv <strong style="color:#e0e0e0">E. MORAVA</strong>
-    zuletzt in diesem Gebäude gesehen. Die Überwachungskameras zeigten nur Rauschen.
-    Kollegen berichten von seltsamen Geräuschen aus den Wänden.<br><br>
-    Drei Tage später fand man sein Notizbuch — leer. Bis auf eine Seite.
-    Sie trägt nur die Worte:<br><br>
-    <span style="color:#cc3300;font-style:italic">"Die Schattenschule ist immer noch offen."</span><br><br>
-    Ihr seid die einzige Hoffnung. Euer Gerät kann sehen was wir nicht sehen.
-    Findet E. Morava. Löscht das Virus.
-  </div>
-
-  <!-- Einstieg für die Gruppen -->
-  <a href="scan.html" class="start-btn">▶ SCANNER STARTEN</a>
-  <div class="start-sub">
-    Richtet die Kamera auf die Motive an den Stationen.
-    Jede Station verrät euch <strong>einen Teil des Codes</strong> —
-    mit allen 4 Teilen knackt ihr am Ende den Laptop der Schattenschule.
-  </div>
-
-  <div class="warning">⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN</div>
-
-  <!-- ═══ Für Lehrkräfte ═══ -->
-  <div class="teacher">
-    <div class="teacher-head">// FÜR LEHRKRÄFTE</div>
-
-    <a href="print/ablauf-lehrkraefte.pdf" target="_blank" rel="noopener" class="lehrer-btn">
-      📄 PROJEKT &amp; ABLAUF (PDF)
-    </a>
-
-    <div class="teacher-sub">— DIE 4 STATIONEN · DRUCKMATERIAL —</div>
-    <div class="group-buttons">
-      <button class="group-btn" onclick="showStationInfo(1)">[ ▲ STATION 1 ] &nbsp;→ Moravas Büro</button>
-      <button class="group-btn" onclick="showStationInfo(2)">[ ● STATION 2 ] &nbsp;→ Funkraum</button>
-      <button class="group-btn" onclick="showStationInfo(3)">[ ■ STATION 3 ] &nbsp;→ Altes Labor</button>
-      <button class="group-btn" onclick="showStationInfo(4)">[ ✦ STATION 4 ] &nbsp;→ Archiv</button>
+  <!-- ═══ Einstieg ═══ -->
+  <div class="intro">
+    <div id="hero">
+      <img src="schattenschule.jpg" alt="Schattenschule" id="hero-img">
+      <div id="hero-overlay"></div>
     </div>
 
-    <div class="teacher-sub">— QR-CODE ZUM SCANNER —</div>
-    <div id="qrcode"></div>
-    <div class="teacher-note">schule3.itcoach-wehofer.de/scan.html</div>
-    <a href="print/qr-scanner.html" target="_blank" rel="noopener" class="lehrer-btn" style="margin-top:0.75rem">
-      🖨 QR-CODE ALS A4 DRUCKEN
-    </a>
+    <div class="intro-text">
+      <div class="logo-sub">ERMITTLUNGSPROTOKOLL — ZUGRIFF EINGESCHRÄNKT</div>
 
-    <div class="teacher-sub">— LAPTOP-TERMINAL —</div>
-    <a href="hack.html" class="group-btn" style="display:block;text-decoration:none;font-size:0.85rem;padding:0.7rem">
-      [ LAPTOP-TERMINAL ÖFFNEN ]
-    </a>
-    <div class="teacher-note">Auf jedem Gruppen-Laptop öffnen: schule3.itcoach-wehofer.de/hack.html</div>
+      <div class="report-box">
+        <div class="label">// POLIZEIBERICHT NR. 2024-∅∅7</div>
+        Am Abend des 14. November wurde Privatdetektiv <strong style="color:#e0e0e0">E. MORAVA</strong>
+        zuletzt in diesem Gebäude gesehen. Die Überwachungskameras zeigten nur Rauschen.
+        Kollegen berichten von seltsamen Geräuschen aus den Wänden.<br><br>
+        Drei Tage später fand man sein Notizbuch — leer. Bis auf eine Seite.
+        Sie trägt nur die Worte:<br><br>
+        <span style="color:#cc3300;font-style:italic">"Die Schattenschule ist immer noch offen."</span><br><br>
+        Ihr seid die einzige Hoffnung. Euer Gerät kann sehen was wir nicht sehen.
+        Findet E. Morava. Löscht das Virus.
+      </div>
 
-    <!-- Lehrer-Reset: 5x tippen -->
-    <div id="reset-hint" style="margin-top:1.75rem;padding:0.6rem 1rem;font-size:0.75rem;color:#555;letter-spacing:0.15em;cursor:pointer;user-select:none"
-         onclick="handleResetTap()">∅ RESET (5× TIPPEN)</div>
+      <a href="scan.html" class="start-btn">▶ SCANNER STARTEN</a>
+      <div class="start-sub">Jede Station verrät euch <strong>einen Teil des Codes</strong> — mit allen 4 Teilen knackt ihr am Ende den Laptop.</div>
+      <div class="warning">⚠ KEINE KOMMUNIKATION MIT ANDEREN GRUPPEN</div>
+    </div>
   </div>
+
+  <!-- ═══ Für Lehrkräfte (aufklappbar) ═══ -->
+  <details class="teacher">
+    <summary>// FÜR LEHRKRÄFTE</summary>
+    <div class="t-grid">
+
+      <div class="t-box">
+        <h3>UNTERLAGEN</h3>
+        <a href="print/ablauf-lehrkraefte.pdf" target="_blank" rel="noopener" class="lehrer-btn">📄 Projekt &amp; Ablauf (PDF)</a>
+        <a href="story.html" target="_blank" rel="noopener" class="lehrer-btn">📜 Story &amp; Hintergrund</a>
+        <a href="print/aufgabenblatt.html" target="_blank" rel="noopener" class="lehrer-btn">📝 Aufgabenblatt (je Gruppe)</a>
+      </div>
+
+      <div class="t-box">
+        <h3>STATIONEN · DRUCKMATERIAL</h3>
+        <div class="st-grid">
+          <button class="group-btn" onclick="showStationInfo(1)"><b>▲</b>Moravas Büro</button>
+          <button class="group-btn" onclick="showStationInfo(2)"><b>●</b>Funkraum</button>
+          <button class="group-btn" onclick="showStationInfo(3)"><b>■</b>Altes Labor</button>
+          <button class="group-btn" onclick="showStationInfo(4)"><b>✦</b>Archiv</button>
+        </div>
+      </div>
+
+      <div class="t-box">
+        <h3>GERÄTE</h3>
+        <div class="geraete">
+          <div id="qrcode" title="QR-Code zum Scanner"></div>
+          <div style="flex:1;min-width:0">
+            <a href="print/qr-scanner.html" target="_blank" rel="noopener" class="lehrer-btn">🖨 QR als A4 drucken</a>
+            <a href="hack.html" class="lehrer-btn">💻 Laptop-Terminal</a>
+            <div class="t-note">Scanner: schule3.itcoach-wehofer.de/scan.html<br>Laptop: …/hack.html</div>
+          </div>
+        </div>
+        <!-- Lehrer-Reset: 5x tippen -->
+        <div id="reset-hint" onclick="handleResetTap()">∅ RESET DIESES GERÄTS (5× TIPPEN)</div>
+      </div>
+
+    </div>
+  </details>
 
 </div>
 
 <!-- Station Info Modal -->
 <div id="station-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9998;overflow-y:auto;padding:2rem 1rem;justify-content:center;align-items:flex-start;">
-  <div style="max-width:380px;width:100%;border:1px solid #cc3300;background:#0a0a0a;padding:1.5rem;box-shadow:0 0 30px #cc330033;margin:auto;">
-    <div id="modal-label" style="font-size:0.6rem;letter-spacing:0.3em;color:#cc3300;margin-bottom:0.5rem;"></div>
+  <div style="max-width:420px;width:100%;border:1px solid #cc3300;background:#0a0a0a;padding:1.5rem;box-shadow:0 0 30px #cc330033;margin:auto;">
+    <div id="modal-label" style="font-size:0.72rem;letter-spacing:0.3em;color:#cc3300;margin-bottom:0.5rem;"></div>
     <div id="modal-name" style="font-size:1.1rem;color:#e0e0e0;letter-spacing:0.2em;margin-bottom:1.25rem;"></div>
-    <div style="font-size:0.6rem;letter-spacing:0.2em;color:#555;margin-bottom:0.5rem;">// ABLAUF</div>
-    <div id="modal-desc" style="font-size:0.85rem;color:#999;line-height:1.8;margin-bottom:1.5rem;border-left:2px solid #cc330044;padding-left:0.75rem;"></div>
-    <div style="font-size:0.6rem;letter-spacing:0.2em;color:#555;margin-bottom:0.75rem;">// MATERIALIEN ZUM DRUCKEN</div>
+    <div style="font-size:0.72rem;letter-spacing:0.2em;color:#8a8a8a;margin-bottom:0.5rem;">// ABLAUF</div>
+    <div id="modal-desc" style="font-size:0.88rem;color:#b0b0b0;line-height:1.75;margin-bottom:1.5rem;border-left:2px solid #cc330044;padding-left:0.75rem;"></div>
+    <div style="font-size:0.72rem;letter-spacing:0.2em;color:#8a8a8a;margin-bottom:0.75rem;">// MATERIALIEN ZUM DRUCKEN</div>
     <div id="modal-prints" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;"></div>
     <button class="group-btn" onclick="document.getElementById('station-modal').style.display='none'" style="width:100%;font-size:0.85rem;padding:0.7rem;">[ ← ZURÜCK ]</button>
   </div>
@@ -189,17 +235,17 @@
     document.getElementById('station-modal').style.display = 'flex';
   }
 
-  // QR-Code: führt direkt zum Scanner
+  // QR-Code: führt direkt zum Scanner (klein; zum Aufhängen gibt es die A4-Druckseite)
   new QRCode(document.getElementById('qrcode'), {
     text: SCANNER_URL,
-    width: 160,
-    height: 160,
+    width: 104,
+    height: 104,
     colorDark: '#cc3300',
     colorLight: '#0a0a0a',
     correctLevel: QRCode.CorrectLevel.M
   });
 
-  // Fortschritt auf diesem Gerät löschen (Stationen, Code-Teile, Route, Sperre)
+  // Fortschritt auf diesem Gerät löschen (Stationen, Code-Teile, Route, Sperre, Laptop-Stand)
   function resetDevice() {
     resetProgress();
     localStorage.clear();
@@ -215,7 +261,7 @@
       resetTaps = 0;
       resetDevice();
       el.textContent = '✓ ZURÜCKGESETZT';
-      setTimeout(() => { el.textContent = '∅ RESET (5× TIPPEN)'; }, 1800);
+      setTimeout(() => { el.textContent = '∅ RESET DIESES GERÄTS (5× TIPPEN)'; }, 1800);
     } else {
       el.textContent = '∅ RESET (' + (5 - resetTaps) + '× NOCH)';
     }
