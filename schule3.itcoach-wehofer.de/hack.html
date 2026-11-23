@@ -131,7 +131,7 @@
     }
     .pipes .tile { aspect-ratio: 1; background: #000; cursor: pointer; outline: 1px solid #111; }
     .pipes .tile:hover { background: #04200e; }
-    .pipes .tile.kurz, .pipes .tile.kurz:hover { cursor: not-allowed; background: #120202; }
+    .pipes .tile.kurz, .pipes .tile.kurz:hover { cursor: default; background: #0b0b0b; }
     .pipes .tile.end { outline: 2px dashed #33ff6699; outline-offset: -2px; }
     .pipes svg { width: 100%; height: 100%; display: block; }
     .pipes .side { position: relative; }
@@ -491,14 +491,10 @@ const LEVELS = [
     type: 'pipes',
     title: 'STROMKREIS',
     text: 'Der Server-Kern hat keinen Strom. <strong>Klickt auf die Felder, um die Leitungen zu drehen</strong>, ' +
-          'bis eine Leitung vom <strong>START ⚡ links oben</strong> zum <strong>ZIEL 🖥 rechts unten</strong> führt.<br>' +
-          '<span style="color:#ff6b6b;font-size:0.85rem">Achtung: Zeigt eine Strom führende Leitung in ein <strong>rotes Kurzschluss-Feld</strong>, ' +
-          'löst das Alarm aus und sperrt die Eingabe. Erst denken, dann drehen!</span>',
-    sperre: true,
-    sperrGrund: 'KURZSCHLUSS',
+          'bis eine Leitung vom <strong>START ⚡ links oben</strong> zum <strong>ZIEL 🖥 rechts unten</strong> führt. Die <strong>defekten Felder ✖</strong> leiten keinen Strom.',
     hint: 'Beginnt beim START links oben und arbeitet euch Feld für Feld vor. ' +
           'Leuchtende Leitungen sind schon verbunden. Nicht alle Felder werden gebraucht. ' +
-          'Der Weg schlängelt sich um die roten Felder: erst nach unten, unten nach rechts, dann wieder hoch …'
+          'Der Weg schlängelt sich um die defekten Felder: erst nach unten, unten nach rechts, dann wieder hoch …'
   },
 ];
 
@@ -665,7 +661,7 @@ function startLevel(i) {
         const f = $('lvl-body').querySelector('input'); if (f) f.focus();
         return;
       }
-      $('lvl-err').innerHTML = '<span class="alarm">⚠ ALARM — ' + (lvl.sperrGrund || 'FALSCHE ANTWORT') + '! SYSTEM GESPERRT: ' + rest + ' s</span>';
+      $('lvl-err').innerHTML = '<span class="alarm">⚠ ALARM — FALSCHE ANTWORT! SYSTEM GESPERRT: ' + rest + ' s</span>';
     };
     clearInterval(sperrTick);
     tick();
@@ -906,16 +902,16 @@ const RENDERERS = {
   },
 
   // Stromkreis: Kacheln drehen, bis Strom von oben links nach unten rechts fließt.
-  // Rote Kurzschluss-Felder: zeigt eine Strom führende Leitung hinein → Alarm-Sperre, letzte Drehung wird zurückgenommen.
+  // Defekte Felder sind feste Mauern: leiten nichts, sind nicht drehbar, keine Strafe.
   pipes(lvl, ctx) {
     const R = 5, C = 6;
     // Verbindungen als Bitmaske: 1 = oben, 2 = rechts, 4 = unten, 8 = links
-    // Lösungsweg (18 Kacheln, Schlangenlinie um die Kurzschluss-Felder herum)
+    // Lösungsweg (18 Kacheln, Schlangenlinie um die defekten Felder herum)
     const SOLUTION = {
       '0,0': 10, '0,1': 12, '1,1': 5, '2,1': 9, '2,0': 6, '3,0': 5, '4,0': 3, '4,1': 10, '4,2': 9,
       '3,2': 6, '3,3': 9, '2,3': 5, '1,3': 6, '1,4': 12, '2,4': 5, '3,4': 3, '3,5': 12, '4,5': 3
     };
-    const SHORTS = new Set(['1,2', '2,5', '4,3']);   // feste Kurzschluss-Felder (nicht drehbar)
+    const SHORTS = new Set(['1,2', '2,5', '4,3']);   // defekte Felder (Mauer, nicht drehbar)
     const FILLERS = [5, 10, 3, 6, 12, 9, 7, 11, 13, 14, 15];
     const rot = m => ((m << 1) | (m >> 3)) & 15;
     const DIRS = [[-1, 0, 1, 4], [0, 1, 2, 8], [1, 0, 4, 1], [0, -1, 8, 2]]; // dr, dc, eigenes Bit, Gegen-Bit
@@ -927,7 +923,7 @@ const RENDERERS = {
         grid.push([]);
         for (let c = 0; c < C; c++) {
           const k = r + ',' + c;
-          if (SHORTS.has(k)) { grid[r].push(15); continue; }
+          if (SHORTS.has(k)) { grid[r].push(0); continue; }
           let m = SOLUTION[k] || FILLERS[Math.floor(Math.random() * FILLERS.length)];
           const turns = 1 + Math.floor(Math.random() * 3);
           for (let t = 0; t < turns; t++) m = rot(m);
@@ -936,8 +932,8 @@ const RENDERERS = {
       }
     }
     function powered() {
-      const seen = new Set(), shorted = new Set();
-      if (!(grid[0][0] & 8)) return { seen, shorted, win: false };
+      const seen = new Set();
+      if (!(grid[0][0] & 8)) return { seen, win: false };
       const q = [[0, 0]];
       seen.add('0,0');
       while (q.length) {
@@ -947,26 +943,24 @@ const RENDERERS = {
           const nr = r + dr, nc = c + dc;
           if (nr < 0 || nc < 0 || nr >= R || nc >= C) continue;
           const k = nr + ',' + nc;
-          if (SHORTS.has(k)) { shorted.add(k); continue; }   // Leitung zeigt in ein Kurzschluss-Feld
           if (!(grid[nr][nc] & o)) continue;
           if (!seen.has(k)) { seen.add(k); q.push([nr, nc]); }
         }
       }
-      const win = !shorted.size && seen.has((R - 1) + ',' + (C - 1)) && !!(grid[R - 1][C - 1] & 2);
-      return { seen, shorted, win };
+      const win = seen.has((R - 1) + ',' + (C - 1)) && !!(grid[R - 1][C - 1] & 2);
+      return { seen, win };
     }
-    do { scramble(); } while (powered().win || powered().shorted.size);
+    do { scramble(); } while (powered().win);
 
     ctx.body.innerHTML = '<div class="pipes-wrap"><div class="pipes"></div></div>';
     const wrap = ctx.body.querySelector('.pipes');
     let solved = false;
 
-    function tileSvg(m, on, kurz, blitz) {
+    function tileSvg(m, on, kurz) {
       if (kurz) {
-        const col = blitz ? '#ff3b3b' : '#a01818';
-        return '<svg viewBox="0 0 100 100"' + (blitz ? ' style="filter:drop-shadow(0 0 6px #ff3b3b)"' : '') + '>' +
-               '<rect x="14" y="14" width="72" height="72" rx="6" fill="#2a0505" stroke="' + col + '" stroke-width="5" stroke-dasharray="10 6"/>' +
-               '<path d="M56 22 L36 54 H50 L42 80 L66 44 H52 Z" fill="' + col + '"/></svg>';
+        return '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="4" fill="#161616" stroke="#3a3a3a" stroke-width="3"/>' +
+               '<path d="M32 30 L68 66 M68 30 L32 66" stroke="#555" stroke-width="7" stroke-linecap="round"/>' +
+               '<text x="50" y="86" text-anchor="middle" font-size="13" font-family="monospace" fill="#777" letter-spacing="1">DEFEKT</text></svg>';
       }
       const col = on ? '#7dffa0' : '#1f4a2c';
       const glow = on ? ' style="filter:drop-shadow(0 0 4px #7dffa0)"' : '';
@@ -977,7 +971,7 @@ const RENDERERS = {
              '" stroke-width="16" stroke-linecap="round" fill="none"/><circle cx="50" cy="50" r="9" fill="' + col + '"/></svg>';
     }
     // Raster mit C+2 Spalten: links START (nur Zeile 1), C Kacheln, rechts ZIEL (nur letzte Zeile)
-    function draw(blitz) {
+    function draw() {
       const { seen, win } = powered();
       wrap.innerHTML = '';
       for (let r = 0; r < R; r++) {
@@ -995,19 +989,10 @@ const RENDERERS = {
           const kurz = SHORTS.has(k);
           const isEnd = (r === 0 && c === 0) || (r === R - 1 && c === C - 1);
           cell.className = 'tile' + (isEnd ? ' end' : '') + (kurz ? ' kurz' : '');
-          cell.innerHTML = tileSvg(grid[r][c], seen.has(k), kurz, blitz && blitz.has(k));
+          cell.innerHTML = tileSvg(grid[r][c], seen.has(k), kurz);
           if (!kurz) cell.onclick = () => {
             if (solved) return;
             grid[r][c] = rot(grid[r][c]);
-            const p = powered();
-            if (p.shorted.size) {
-              // Kurzschluss: kurz aufblitzen lassen, Drehung zurücknehmen, Alarm-Sperre
-              draw(p.shorted);
-              for (let t = 0; t < 3; t++) grid[r][c] = rot(grid[r][c]);
-              ctx.wrong('⚠ KURZSCHLUSS! Die Leitung führte in ein rotes Feld.');
-              setTimeout(() => { if (!solved) draw(); }, 900);
-              return;
-            }
             draw();
           };
           wrap.appendChild(cell);
